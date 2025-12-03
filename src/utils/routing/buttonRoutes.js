@@ -14,6 +14,7 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('guild_panel:edit_data:')) return '../interactions/buttons/guild/editGuildData';
   if (customId.startsWith('guild_panel:manage_managers:')) return '../interactions/buttons/guild/manageManagers';
   if (customId.startsWith('coLeader:removeConfirm:')) return '../interactions/buttons/guild/coLeaderRemoveConfirm';
+  if (customId.startsWith('coLeader:addConfirm:')) return '../interactions/buttons/guild/coLeaderAddConfirm';
 
   // Leaderboards pagination
   if (customId.startsWith('eventpoints_lb:')) return '../interactions/buttons/leaderboard/eventPointsPagination';
@@ -56,6 +57,7 @@ function resolveButtonHandler(customId) {
   // Manager invite flow
   if (customId.startsWith('managerInvite:accept:')) return '../interactions/buttons/guild/managerInviteAccept';
   if (customId.startsWith('managerInvite:decline:')) return '../interactions/buttons/guild/managerInviteDecline';
+  if (customId.startsWith('manager:inviteConfirm:')) return '../interactions/buttons/guild/managerInviteConfirm';
   if (customId.startsWith('manager:remove:')) return '../interactions/buttons/guild/removeManager';
 
   if (customId === 'profile:edit') return '../interactions/buttons/profile/editProfile';

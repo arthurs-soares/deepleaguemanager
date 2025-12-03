@@ -46,7 +46,7 @@ function getForumChannelId(settings, regionFilter) {
 }
 
 /**
- * Find roster thread by title in a specific forum
+ * Find roster thread by title in a specific forum (active and archived)
  * @param {import('discord.js').Guild} discordGuild - Discord guild
  * @param {string} forumId - Forum channel ID
  * @param {string} title - Thread title (guild name)
@@ -55,18 +55,29 @@ function getForumChannelId(settings, regionFilter) {
 async function findRosterThreadInForum(discordGuild, forumId, title) {
   const forum = forumId ? discordGuild.channels.cache.get(forumId) : null;
   if (!forum || forum.type !== ChannelType.GuildForum) return null;
+
+  // Search in active threads first
   const active = await forum.threads.fetchActive();
-  return active.threads.find(t => t.name === title) || null;
+  const activeThread = active.threads.find(t => t.name === title);
+  if (activeThread) return activeThread;
+
+  // Search in archived threads if not found in active
+  try {
+    const archived = await forum.threads.fetchArchived({ fetchAll: true });
+    return archived.threads.find(t => t.name === title) || null;
+  } catch (_) {
+    return null;
+  }
 }
 
 /**
- * Archive/remove the roster thread for a specific guild from ALL roster forums
+ * Delete the roster thread for a specific guild from ALL roster forums
  * @param {import('discord.js').Guild} discordGuild - Discord guild
  * @param {string} guildName - Guild name (thread title)
- * @returns {Promise<boolean>} True if at least one thread was archived
+ * @returns {Promise<boolean>} True if at least one thread was deleted
  */
 async function removeGuildRosterThread(discordGuild, guildName) {
-  let archived = false;
+  let deleted = false;
   try {
     const settings = await getOrCreateServerSettings(discordGuild.id);
     const forumIds = [
@@ -84,11 +95,11 @@ async function removeGuildRosterThread(discordGuild, guildName) {
           guildName
         );
         if (thread) {
-          await thread.setArchived(true);
-          archived = true;
+          await thread.delete('Guild deleted');
+          deleted = true;
         }
       } catch (err) {
-        LoggerService.warn('Failed to archive roster thread', {
+        LoggerService.warn('Failed to delete roster thread', {
           forumId,
           guildName,
           error: err?.message
@@ -101,16 +112,16 @@ async function removeGuildRosterThread(discordGuild, guildName) {
       error: error?.message
     });
   }
-  return archived;
+  return deleted;
 }
 
 /**
  * Synchronize the roster forum: create/update posts for each guild
  * - Create topics for guilds without topic
  * - Update the first post of the topic to reflect the current roster
- * - Archive topics of removed guilds
+ * - Delete topics of removed or inactive guilds
  * @param {import('discord.js').Guild} discordGuild - The Discord guild
- * @param {string} [regionFilter] - Optional region filter: 'South America', 'NA', 'Europe', or null for all
+ * @param {string} [regionFilter] - Optional region filter
  */
 async function syncRosterForum(discordGuild, regionFilter = null) {
   const settings = await getOrCreateServerSettings(discordGuild.id);
@@ -118,8 +129,11 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
   const forum = forumId ? discordGuild.channels.cache.get(forumId) : null;
   if (!forum || forum.type !== ChannelType.GuildForum) return;
 
-  // Build query filter based on region
-  const query = { discordGuildId: discordGuild.id };
+  // Build query filter based on region (only active guilds)
+  const query = {
+    discordGuildId: discordGuild.id,
+    status: { $in: ['ativa', 'active'] }
+  };
   const regionValues = getRegionValues(regionFilter);
   if (regionValues) {
     query.region = { $in: regionValues };
@@ -127,10 +141,20 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
 
   const guilds = await Guild.find(query).sort({ createdAt: 1 });
 
-  // Map existing threads by title (guild name)
-  const active = await forum.threads.fetchActive();
+  // Map existing threads by title (guild name) - active and archived
   const titleToThread = new Map();
+  const active = await forum.threads.fetchActive();
   active.threads.forEach(t => titleToThread.set(t.name, t));
+
+  // Also fetch archived threads to clean them up
+  try {
+    const archived = await forum.threads.fetchArchived({ fetchAll: true });
+    archived.threads.forEach(t => {
+      if (!titleToThread.has(t.name)) {
+        titleToThread.set(t.name, t);
+      }
+    });
+  } catch (_) { /* ignore */ }
 
   const expectedTitles = new Set(guilds.map(g => g.name));
 
@@ -140,8 +164,15 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
     let thread = titleToThread.get(title);
     if (!thread) {
       // Create thread
-      thread = await forum.threads.create({ name: title, message: await buildRosterPostContent(g) });
+      thread = await forum.threads.create({
+        name: title,
+        message: await buildRosterPostContent(g)
+      });
     } else {
+      // Unarchive if archived
+      if (thread.archived) {
+        try { await thread.setArchived(false); } catch (_) { /* ignore */ }
+      }
       // Update first post if possible
       try {
         const starterMessage = await thread.fetchStarterMessage();
@@ -153,10 +184,12 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
     }
   }
 
-  // Archive topics that no longer correspond to any guild
+  // Delete topics that no longer correspond to any guild
   for (const [title, thread] of titleToThread.entries()) {
     if (!expectedTitles.has(title)) {
-      try { await thread.setArchived(true); } catch (_) {}
+      try {
+        await thread.delete('Guild no longer exists or inactive');
+      } catch (_) { /* ignore */ }
     }
   }
 }

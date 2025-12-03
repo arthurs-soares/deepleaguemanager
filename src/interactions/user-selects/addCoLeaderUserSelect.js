@@ -1,8 +1,22 @@
-const { MessageFlags } = require('discord.js');
-const { createErrorEmbed, createSuccessEmbed } = require('../../utils/embeds/embedBuilder');
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags
+} = require('discord.js');
+const {
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SeparatorBuilder
+} = require('@discordjs/builders');
+const {
+  createErrorEmbed
+} = require('../../utils/embeds/embedBuilder');
 const Guild = require('../../models/guild/Guild');
 const { isGuildLeader } = require('../../utils/guilds/guildMemberManager');
 const { isGuildAdmin } = require('../../utils/core/permissions');
+const { colors, emojis } = require('../../config/botConfig');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * User Select handler to promote co-leader
@@ -71,73 +85,87 @@ async function handle(interaction) {
     }
 
     // Limitar número máximo de co-líderes (1)
-    const coCount = (guildDoc.members || []).filter(m => m.role === 'vice-lider').length;
+    const coCount = (guildDoc.members || [])
+      .filter(m => m.role === 'vice-lider').length;
+
     if (coCount >= 1) {
-      const embed = createErrorEmbed('Limit reached', 'The guild already has the maximum number of co-leaders (1).');
-      return interaction.reply({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+      const embed = createErrorEmbed(
+        'Limit reached',
+        'The guild already has the maximum number of co-leaders (1).'
+      );
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
     }
 
-    // Promove a co-líder
-    const target = (guildDoc.members || []).find(m => m.userId === userId);
-    if (!target) {
-      const embed = createErrorEmbed('Failure', 'Could not locate the member after adding.');
-      return interaction.reply({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
-    }
-    target.role = 'vice-lider';
-    await guildDoc.save();
+    // Fetch user info for confirmation
+    let targetUser = null;
+    try {
+      targetUser = await interaction.client.users.fetch(userId);
+    } catch (_) { /* ignore */ }
 
-    // Grant equivalent permissions: assign co-leader role if it exists
-    // Note: Role config has "coLeadersRoleId"; let's try to assign it
-    const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
-    const { logRoleAssignment } = require('../../utils/core/roleLogger');
-    const cfg = await getOrCreateRoleConfig(interaction.guild.id);
-    const coRoleId = cfg?.coLeadersRoleId;
-    if (coRoleId) {
-      try {
-        const role = interaction.guild.roles.cache.get(coRoleId);
-        const member = await interaction.guild.members.fetch(userId);
-        if (role && member && !member.roles.cache.has(coRoleId)) {
-          await member.roles.add(coRoleId);
+    const username = targetUser?.username || userId;
 
-          // Log the role assignment
-          await logRoleAssignment(
-            interaction.guild,
-            userId,
-            coRoleId,
-            role.name,
-            interaction.user.id,
-            'Co-leader role assigned via user selection'
-          );
-        }
-      } catch (error) {
-        console.error('Error assigning co-leader role:', error);
-      }
-    }
+    // Build confirmation message
+    const container = new ContainerBuilder();
+    const warningColor = typeof colors.warning === 'string'
+      ? parseInt(colors.warning.replace('#', ''), 16)
+      : colors.warning;
+    container.setAccentColor(warningColor);
 
-    // Auditoria: se admin (não líder) adicionou co-líder
-    const memberSelf = await interaction.guild.members.fetch(interaction.user.id);
-    const adminAudit = await isGuildAdmin(memberSelf, interaction.guild.id);
-    const leader = isGuildLeader(guildDoc, interaction.user.id);
-    if (adminAudit && !leader) {
-      try {
-        const { auditAdminAction } = require('../../utils/misc/adminAudit');
-        await auditAdminAction(interaction.guild, interaction.user.id, 'Add Co-leader', {
-          guildName: guildDoc.name,
-          guildId,
-          targetUserId: userId,
-        });
-      } catch (_) {}
-    }
+    const titleText = new TextDisplayBuilder()
+      .setContent(`# ${emojis.warning || '⚠️'} Confirm Co-leader Promotion`);
 
-    const container = createSuccessEmbed('Co-leader added', `User <@${userId}> successfully promoted to co-leader.`);
-    return interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+    const descText = new TextDisplayBuilder()
+      .setContent(
+        `Are you sure you want to promote the following user ` +
+        `to **Co-leader** of **${guildDoc.name}**?`
+      );
+
+    const userText = new TextDisplayBuilder()
+      .setContent(
+        `**User:** <@${userId}>\n` +
+        `**Username:** ${username}`
+      );
+
+    container.addTextDisplayComponents(titleText);
+    container.addSeparatorComponents(new SeparatorBuilder());
+    container.addTextDisplayComponents(descText);
+    container.addTextDisplayComponents(userText);
+
+    const confirmBtn = new ButtonBuilder()
+      .setCustomId(`coLeader:addConfirm:${guildId}:${userId}:yes`)
+      .setLabel('Confirm')
+      .setStyle(ButtonStyle.Success);
+
+    const cancelBtn = new ButtonBuilder()
+      .setCustomId(`coLeader:addConfirm:${guildId}:${userId}:no`)
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Secondary);
+
+    const row = new ActionRowBuilder().addComponents(confirmBtn, cancelBtn);
+
+    return interaction.reply({
+      components: [container, row],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+    });
   } catch (error) {
-    console.error('Error adding co-leader:', error);
-    const container = createErrorEmbed('Error', 'Could not complete co-leader promotion.');
+    LoggerService.error('Error in addCoLeaderUserSelect:', { error });
+    const container = createErrorEmbed(
+      'Error',
+      'Could not complete co-leader promotion.'
+    );
     if (interaction.deferred || interaction.replied) {
-      return interaction.followUp({ components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+      return interaction.followUp({
+        components: [container],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
     }
-    return interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+    return interaction.reply({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+    });
   }
 }
 
