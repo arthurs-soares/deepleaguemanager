@@ -18,6 +18,8 @@ const serverSettingsSchema = new mongoose.Schema({
   generalTicketsCategoryId: { type: String, default: null },
   leaderboardChannelId: { type: String, default: null },
   leaderboardMessageId: { type: String, default: null },
+  wagerLeaderboardChannelId: { type: String, default: null },
+  wagerLeaderboardMessageId: { type: String, default: null },
   eventPointsLeaderboardChannelId: { type: String, default: null },
   eventPointsLeaderboardMessageId: { type: String, default: null },
   warDodgeChannelId: { type: String, default: null },

@@ -4,7 +4,7 @@ const {
   MessageFlags
 } = require('discord.js');
 const {
-  buildWagerEloLeaderboardEmbed
+  buildWagerLeaderboardEmbed
 } = require('../../utils/wager/wagerLeaderboard');
 
 module.exports = {
@@ -17,7 +17,7 @@ module.exports = {
   cooldown: 5,
 
   async execute(interaction) {
-    const container = await buildWagerEloLeaderboardEmbed(interaction.guild);
+    const container = await buildWagerLeaderboardEmbed(interaction.guild);
     return interaction.reply({
       components: [container],
       flags: MessageFlags.IsComponentsV2

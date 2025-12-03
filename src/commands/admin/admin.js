@@ -28,10 +28,6 @@ function _buildInfoContainer(lines) {
   return container;
 }
 
-async function warAdjustElo(interaction) {
-  return adminWar.adjustElo(interaction);
-}
-
 async function warMarkDodge(interaction) {
   return adminWar.markDodge(interaction);
 }
@@ -59,34 +55,45 @@ module.exports = {
       .setName('war')
       .setDescription('War administration')
       .addSubcommand(sc => sc
-        .setName('adjust-elo')
-        .setDescription('Add or remove ELO from a guild')
-        .addStringOption(o => o.setName('guild').setDescription('Guild name').setAutocomplete(true).setRequired(true))
-        .addStringOption(o => o.setName('operation').setDescription('Operation').addChoices(
-          { name: 'add', value: 'add' }, { name: 'remove', value: 'remove' }
-        ).setRequired(true))
-        .addIntegerOption(o => o.setName('amount').setDescription('Amount (abs 1-500)').setMinValue(1).setMaxValue(500).setRequired(true))
-      )
-      .addSubcommand(sc => sc
         .setName('mark-dodge')
-        .setDescription('Mark a war as dodge and apply ELO')
-        .addStringOption(o => o.setName('warid').setDescription('War ID').setAutocomplete(true).setRequired(true))
-        .addStringOption(o => o.setName('dodger_guild').setDescription('Dodger guild name').setAutocomplete(true).setRequired(true))
-        .addBooleanOption(o => o.setName('confirm').setDescription('Confirm this destructive action'))
+        .setDescription('Mark a war as dodge')
+        .addStringOption(o => o
+          .setName('warid')
+          .setDescription('War ID')
+          .setAutocomplete(true)
+          .setRequired(true))
+        .addStringOption(o => o
+          .setName('dodger_guild')
+          .setDescription('Dodger guild name')
+          .setAutocomplete(true)
+          .setRequired(true))
+        .addBooleanOption(o => o
+          .setName('confirm')
+          .setDescription('Confirm this destructive action'))
       )
       .addSubcommand(sc => sc
         .setName('undo-dodge')
-        .setDescription('Undo a war dodge and revert ELO')
-        .addStringOption(o => o.setName('warid').setDescription('War ID').setAutocomplete(true).setRequired(true))
-        .addBooleanOption(o => o.setName('confirm').setDescription('Confirm this destructive action'))
+        .setDescription('Undo a war dodge')
+        .addStringOption(o => o
+          .setName('warid')
+          .setDescription('War ID')
+          .setAutocomplete(true)
+          .setRequired(true))
+        .addBooleanOption(o => o
+          .setName('confirm')
+          .setDescription('Confirm this destructive action'))
       )
       .addSubcommand(sc => sc
         .setName('revert-result')
-        .setDescription('Revert a finalized war result (requires previous ELOs)')
-        .addStringOption(o => o.setName('warid').setDescription('War ID').setAutocomplete(true).setRequired(true))
-        .addIntegerOption(o => o.setName('winner_elo_before').setDescription('Winner ELO before finalizing').setRequired(true))
-        .addIntegerOption(o => o.setName('loser_elo_before').setDescription('Loser ELO before finalizing').setRequired(true))
-        .addBooleanOption(o => o.setName('confirm').setDescription('Confirm this destructive action'))
+        .setDescription('Revert a finalized war result')
+        .addStringOption(o => o
+          .setName('warid')
+          .setDescription('War ID')
+          .setAutocomplete(true)
+          .setRequired(true))
+        .addBooleanOption(o => o
+          .setName('confirm')
+          .setDescription('Confirm this destructive action'))
       )
     )
 
@@ -97,8 +104,14 @@ module.exports = {
       .addSubcommand(sc => sc
         .setName('record')
         .setDescription('Record a wager result between two users')
-        .addUserOption(o => o.setName('winner').setDescription('Winner').setRequired(true))
-        .addUserOption(o => o.setName('loser').setDescription('Loser').setRequired(true))
+        .addUserOption(o => o
+          .setName('winner')
+          .setDescription('Winner')
+          .setRequired(true))
+        .addUserOption(o => o
+          .setName('loser')
+          .setDescription('Loser')
+          .setRequired(true))
       )
     ),
 
@@ -161,10 +174,11 @@ module.exports = {
       const group = interaction.options.getSubcommandGroup();
       const sub = interaction.options.getSubcommand();
 
-      if (group === 'war' && sub === 'adjust-elo') return warAdjustElo(interaction);
       if (group === 'war' && sub === 'mark-dodge') return warMarkDodge(interaction);
       if (group === 'war' && sub === 'undo-dodge') return warUndoDodge(interaction);
-      if (group === 'war' && sub === 'revert-result') return warRevertResult(interaction);
+      if (group === 'war' && sub === 'revert-result') {
+        return warRevertResult(interaction);
+      }
 
       if (group === 'wager' && sub === 'record') return wagerRecord(interaction);
 

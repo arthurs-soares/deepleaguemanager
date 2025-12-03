@@ -48,7 +48,6 @@ function buildWhatsNewEmbed() {
     .setContent(
       '### 🛡️ Unified Admin Commands\n' +
       'Administrative commands are consolidated under `/admin`:\n' +
-      '`/admin war adjust-elo` — Adjust ELO after a war\n' +
       '`/admin war mark-dodge` — Mark a dodge\n' +
       '`/admin war undo-dodge` — Undo a dodge\n' +
       '`/admin war revert-result` — Revert a war result\n' +

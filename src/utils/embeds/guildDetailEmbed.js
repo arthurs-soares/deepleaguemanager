@@ -67,17 +67,16 @@ async function buildGuildDetailDisplayComponents(guild, discordGuild) {
 
   container.addSectionComponents(leadershipSection);
 
-  // Statistics section - use individual TextDisplayBuilder components instead of Section
-  // since we don't need an accessory for these
-  const eloText = new TextDisplayBuilder()
-    .setContent(`**🏅 ELO**\n${formatEloField(guild)}`);
+  // Statistics section - use individual TextDisplayBuilder components
   const rostersText = new TextDisplayBuilder()
     .setContent(`**${emojis.rosters} Rosters**\n${formatRosterCounts(guild)}`);
   const winsLossesText = new TextDisplayBuilder()
-    .setContent(`**${emojis.winsLosses} Wins/Losses**\n${guild.wins||0} / ${guild.losses||0}`);
+    .setContent(
+      `**${emojis.winsLosses} Wins/Losses**\n${guild.wins||0} / ${guild.losses||0}`
+    );
 
   // Add individual statistics text components
-  container.addTextDisplayComponents(eloText, rostersText, winsLossesText);
+  container.addTextDisplayComponents(rostersText, winsLossesText);
 
   // Badges section
   const badgesText = new TextDisplayBuilder()
@@ -110,14 +109,4 @@ function formatUserList(ids) {
 }
 
 module.exports = { buildGuildDetailDisplayComponents };
-
-/**
- * Format ELO field
- * @param {Object} guild
- * @returns {string}
- */
-function formatEloField(guild) {
-  const val = Number.isFinite(guild?.elo) ? guild.elo : 1000;
-  return `${val}`;
-}
 

@@ -13,20 +13,6 @@ function getRankEmoji(rank) {
 }
 
 /**
- * Get tier emoji based on performance
- * @param {number} elo - ELO rating (kept for backward compatibility)
- * @returns {string} Tier emoji
- */
-function getTierEmoji(elo) {
-  if (elo >= 2000) return '💎';
-  if (elo >= 1600) return '🏆';
-  if (elo >= 1300) return '🥇';
-  if (elo >= 1000) return '🥈';
-  if (elo >= 700) return '🥉';
-  return '🔸';
-}
-
-/**
  * Create visual win rate bar
  * @param {number} winRate - Win rate as decimal (0-1)
  * @returns {string} Visual progress bar
@@ -68,7 +54,6 @@ function formatGuildName(name, maxLength = 20) {
 
 module.exports = {
   getRankEmoji,
-  getTierEmoji,
   createWinRateBar,
   formatWinRateDisplay,
   formatGuildName

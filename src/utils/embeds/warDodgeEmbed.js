@@ -4,16 +4,16 @@ const { colors } = require('../../config/botConfig');
 /**
  * Build a clear War Dodge container using Components v2.
  * Shows who dodged and who the dodge was against.
- * Optionally includes who marked it and the penalty.
+ * Optionally includes who marked it.
  *
  * @param {string} dodgerName
  * @param {string} targetName
  * @param {string} [markedByUserId]
- * @param {string} [penaltyText] e.g., "-16 ELO (dodger), +8 ELO (opponent)"
+ * @param {string} [_unused] - Previously used for penalty text (kept for compat)
  * @param {Date} [when]
  * @returns {ContainerBuilder}
  */
-function buildWarDodgeEmbed(dodgerName, targetName, markedByUserId, penaltyText, when = new Date()) {
+function buildWarDodgeEmbed(dodgerName, targetName, markedByUserId, _unused, when = new Date()) {
   const container = new ContainerBuilder();
 
   // Set accent color for warning
@@ -35,13 +35,6 @@ function buildWarDodgeEmbed(dodgerName, targetName, markedByUserId, penaltyText,
     .setContent(`**Target**\n${targetName || 'Unknown'}`);
 
   container.addTextDisplayComponents(dodgerText, targetText);
-
-  // Penalty if provided
-  if (penaltyText) {
-    const penaltyTextDisplay = new TextDisplayBuilder()
-      .setContent(`**Penalty**\n${penaltyText}`);
-    container.addTextDisplayComponents(penaltyTextDisplay);
-  }
 
   // Marked by if provided
   if (markedByUserId) {

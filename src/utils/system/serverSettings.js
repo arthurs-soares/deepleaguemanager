@@ -17,6 +17,8 @@ async function getOrCreateServerSettings(discordGuildId) {
       logsChannelId: null,
       leaderboardChannelId: null,
       leaderboardMessageId: null,
+      wagerLeaderboardChannelId: null,
+      wagerLeaderboardMessageId: null,
       eventPointsLeaderboardChannelId: null,
       eventPointsLeaderboardMessageId: null,
       warCategoryId: null,
@@ -117,6 +119,20 @@ async function setEventPointsLeaderboardMessage(discordGuildId, messageId) {
   return doc;
 }
 
+async function setWagerLeaderboardChannel(discordGuildId, channelId) {
+  const doc = await getOrCreateServerSettings(discordGuildId);
+  doc.wagerLeaderboardChannelId = channelId;
+  await doc.save();
+  return doc;
+}
+
+async function setWagerLeaderboardMessage(discordGuildId, messageId) {
+  const doc = await getOrCreateServerSettings(discordGuildId);
+  doc.wagerLeaderboardMessageId = messageId;
+  await doc.save();
+  return doc;
+}
+
 module.exports = {
   getOrCreateServerSettings,
   setWarTicketsChannel,
@@ -124,6 +140,8 @@ module.exports = {
   setRosterForumChannel,
   setLeaderboardChannel,
   setLeaderboardMessage,
+  setWagerLeaderboardChannel,
+  setWagerLeaderboardMessage,
   setWarDodgeChannel,
   setDmWarningChannel,
   setGeneralTicketsChannel,

@@ -49,7 +49,9 @@ function buildAdminPanelEmbed() {
   const adminText = new TextDisplayBuilder()
     .setContent(
       '**Admin Commands (Unified)**\n' +
-      'Use `/admin war adjust-elo`, `/admin war mark-dodge`, `/admin war undo-dodge`, `/admin war revert-result`, and `/admin wager record`. Legacy commands like `wagerrecord`, `waradmin`, and `setelo` were consolidated under `/admin`.'
+      'Use `/admin war mark-dodge`, `/admin war undo-dodge`, ' +
+      '`/admin war revert-result`, and `/admin wager record`. ' +
+      'Legacy commands were consolidated under `/admin`.'
     );
   container.addTextDisplayComponents(adminText);
 

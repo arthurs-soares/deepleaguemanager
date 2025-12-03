@@ -1,5 +1,12 @@
-const { MessageFlags, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SectionBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } = require('@discordjs/builders');
+const { MessageFlags, ButtonStyle } = require('discord.js');
+const {
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SeparatorBuilder,
+  SectionBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder
+} = require('@discordjs/builders');
 const { colors, emojis } = require('../../config/botConfig');
 
 /**
@@ -31,11 +38,13 @@ function buildWarTicketsPanel() {
 
   const descText = new TextDisplayBuilder()
     .setContent(
-      `${emojis.info} Use this panel to start the flow of creating a war between guilds.\n\n` +
+      `${emojis.info} Use this panel to start the flow of creating a ` +
+      'war between guilds.\n\n' +
       '• Click the button below to start\n' +
       '• Select the opponent guild\n' +
       `• Enter war date and time ${emojis.schedule}\n\n` +
-      `${emojis.channel} The bot will create a private channel in the configured category to organize the details.`
+      `${emojis.channel} The bot will create a private channel in the ` +
+      'configured category to organize the details.'
     );
 
   container.addTextDisplayComponents(titleText, descText);
@@ -59,30 +68,22 @@ function buildWarTicketsPanel() {
   container.addSectionComponents(startWarSection);
   container.addSeparatorComponents(new SeparatorBuilder());
 
-  // Build a legacy ActionRow for compatibility with tests
-  const actionRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('war:start')
-      .setStyle(ButtonStyle.Primary)
-      .setLabel('Start War')
-  );
-
   const footerText = new TextDisplayBuilder()
     .setContent('*🌊 War System*');
   container.addTextDisplayComponents(footerText);
 
-  return { container, actionRow };
+  return container;
 }
 
 /**
  * Send the panel to the specified channel
- * @param {import('discord.js').TextChannel | import('discord.js').NewsChannel} channel
+ * @param {import('discord.js').TextChannel|import('discord.js').NewsChannel} ch
  */
-async function sendWarTicketsPanel(channel) {
-  const { container, actionRow } = buildWarTicketsPanel();
+async function sendWarTicketsPanel(ch) {
+  const container = buildWarTicketsPanel();
 
-  return channel.send({
-    components: [container, actionRow],
+  return ch.send({
+    components: [container],
     flags: MessageFlags.IsComponentsV2
   });
 }

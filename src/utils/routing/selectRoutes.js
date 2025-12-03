@@ -35,7 +35,7 @@ function resolveSelectHandler(customId) {
   if (customId === 'config:channels:selectGeneralTicketsCategory') return '../interactions/channel-selects/configGeneralTicketsCategorySelect';
   if (customId === 'config:channels:selectWarDodge') return '../interactions/channel-selects/configWarDodgeSelect';
   if (customId === 'config:channels:selectDmWarning') return '../interactions/channel-selects/configDmWarningSelect';
-  if (customId === 'config:channels:selectUserEloLeaderboard') return '../interactions/channel-selects/configUserEloLeaderboardSelect';
+  if (customId === 'config:channels:selectWagerLeaderboard') return '../interactions/channel-selects/configWagerLeaderboardSelect';
   if (customId === 'config:channels:selectEventPointsLeaderboard') return '../interactions/channel-selects/configEventPointsLeaderboardSelect';
   if (customId === 'config:channels:selectWarLogs') return '../interactions/channel-selects/configWarLogsSelect';
 

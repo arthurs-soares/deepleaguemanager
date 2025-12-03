@@ -45,6 +45,11 @@ async function handle(interaction) {
         placeholder: 'Select a text channel for the guild leaderboard',
         types: [ChannelType.GuildText]
       },
+      wagerLeaderboard: {
+        customId: 'config:channels:selectWagerLeaderboard',
+        placeholder: 'Select a text channel for the wager leaderboard',
+        types: [ChannelType.GuildText]
+      },
       eventPointsLeaderboard: {
         customId: 'config:channels:selectEventPointsLeaderboard',
         placeholder: 'Select a text channel for the event points leaderboard',

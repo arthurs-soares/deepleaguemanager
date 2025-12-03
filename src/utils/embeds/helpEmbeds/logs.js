@@ -23,8 +23,9 @@ function buildLogsEmbed() {
   const coverageText = new TextDisplayBuilder()
     .setContent(
       '**Coverage**\n' +
-      '- Commands: name, parameters, user, timestamp, results, errors, and before/after for data changes (ELO included)\n' +
-      '- Wars: creation, acceptance/dodge and completion (with ELO deltas)\n' +
+      '- Commands: name, parameters, user, timestamp, results, errors, ' +
+      'and before/after for data changes\n' +
+      '- Wars: creation, acceptance/dodge and completion\n' +
       '- Administrative actions (audit)'
     );
   container.addTextDisplayComponents(coverageText);

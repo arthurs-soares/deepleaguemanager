@@ -15,8 +15,9 @@ function buildLeaderboardEmbed() {
     .setContent('# 🏆 Leaderboards');
   const descText = new TextDisplayBuilder()
     .setContent(
-      `${emojis.info} Use \`/leaderboard elo guild\` for guild ELO, \`/leaderboard elo user\` for user ELO, and \`/leaderboard elo wager\` for wager ELO.\n` +
-      `${emojis.info} You can configure automatic leaderboard channels in \`/config\` → Channels → Set Guild/User ELO Leaderboard.`
+      `${emojis.info} Use \`/leaderboard\` to view guild rankings.\n` +
+      `${emojis.info} You can configure automatic leaderboard channels ` +
+      `in \`/config\` → Channels → Set Leaderboard.`
     );
 
   container.addTextDisplayComponents(titleText, descText);
@@ -26,7 +27,8 @@ function buildLeaderboardEmbed() {
   const howItWorksText = new TextDisplayBuilder()
     .setContent(
       '**How it works**\n' +
-      'The bot can publish daily (00:05) embeds with rankings. Guild leaderboard shows win/loss rates, while ELO leaderboards show competitive ratings with pagination.'
+      'The bot can publish daily (00:05) embeds with rankings. ' +
+      'Guild leaderboard shows win/loss rates with pagination.'
     );
   container.addTextDisplayComponents(howItWorksText);
 

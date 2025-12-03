@@ -47,7 +47,10 @@ function buildWarSystemEmbed() {
   const dodgeText = new TextDisplayBuilder()
     .setContent(
       '**Dodge Flow**\n' +
-      'Only Hosters/Moderators can mark a war as Dodge using the Dodge button. They must select which guild dodged and confirm before applying penalties (dodger -16 ELO, opponent +8 ELO). Configure the War Dodge Channel in `/config` → Channels to receive automatic notifications.'
+      'Only Hosters/Moderators can mark a war as Dodge using the Dodge ' +
+      'button. They must select which guild dodged and confirm. ' +
+      'Configure the War Dodge Channel in `/config` → Channels ' +
+      'to receive automatic notifications.'
     );
   container.addTextDisplayComponents(dodgeText);
 
@@ -55,7 +58,8 @@ function buildWarSystemEmbed() {
   const adminText = new TextDisplayBuilder()
     .setContent(
       '**Admin War Commands**\n' +
-      '`/admin war adjust-elo`, `/admin war mark-dodge`, `/admin war undo-dodge`, `/admin war revert-result`'
+      '`/admin war mark-dodge`, `/admin war undo-dodge`, ' +
+      '`/admin war revert-result`'
     );
   container.addTextDisplayComponents(adminText);
 

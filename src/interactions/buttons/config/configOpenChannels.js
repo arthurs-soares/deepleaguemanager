@@ -37,6 +37,7 @@ async function handle(interaction) {
         `**War Logs Channel:** ${cfg.warLogsChannelId ? `<#${cfg.warLogsChannelId}>` : '—'}\n` +
         `**Guild Rosters Forum:** ${cfg.rosterForumChannelId ? `<#${cfg.rosterForumChannelId}>` : '—'}\n` +
         `**Guild Leaderboard Channel:** ${cfg.leaderboardChannelId ? `<#${cfg.leaderboardChannelId}>` : '—'}\n` +
+        `**Wager Leaderboard Channel:** ${cfg.wagerLeaderboardChannelId ? `<#${cfg.wagerLeaderboardChannelId}>` : '—'}\n` +
         `**Event Points Leaderboard:** ${cfg.eventPointsLeaderboardChannelId ? `<#${cfg.eventPointsLeaderboardChannelId}>` : '—'}`
       );
 
@@ -89,6 +90,11 @@ async function handle(interaction) {
           .setDescription('Channel for guild leaderboard auto-updates')
           .setValue('leaderboard')
           .setEmoji('🏆'),
+        new StringSelectMenuOptionBuilder()
+          .setLabel('Wager Leaderboard Channel')
+          .setDescription('Channel for wager leaderboard auto-updates')
+          .setValue('wagerLeaderboard')
+          .setEmoji('🎲'),
         new StringSelectMenuOptionBuilder()
           .setLabel('Event Points Leaderboard')
           .setDescription('Channel for event points leaderboard')
