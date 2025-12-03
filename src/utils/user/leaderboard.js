@@ -5,7 +5,6 @@ const { getOrCreateServerSettings, setLeaderboardMessage } = require('../system/
 const { sortByRanking, calcRatio } = require('../war/warRanking');
 const { getRankEmoji, createWinRateBar, formatWinRateDisplay, formatGuildName } = require('../leaderboard/visualFormatting');
 const { calculateLeaderboardStats, formatStatsDisplay, getPerformanceTrend } = require('../leaderboard/leaderboardStats');
-const { getGuildBadges, formatBadgesCompact } = require('../badges/badgeDisplay');
 
 /**
  * Builds the leaderboard container for a server
@@ -35,12 +34,7 @@ async function buildLeaderboardEmbed(discordGuild) {
     const winRateBar = createWinRateBar(rate);
     const formattedName = formatGuildName(g.name, 18);
 
-    // Get guild badges for display
-    const guildBadges = await getGuildBadges(discordGuild.id, g._id);
-    const badgesDisplay = formatBadgesCompact(guildBadges, 2);
-    const badgesSuffix = badgesDisplay !== '—' ? ` ${badgesDisplay}` : '';
-
-    return `${rankEmoji} **#${rank}** ${formattedName}${badgesSuffix} ${trend}\n` +
+    return `${rankEmoji} **#${rank}** ${formattedName} ${trend}\n` +
            `\`\`\`${winRateBar}\`\`\`` +
            `**${w}W/${l}L** • ${winRateDisplay}`;
   }));

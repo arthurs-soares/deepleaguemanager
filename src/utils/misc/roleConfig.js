@@ -7,6 +7,7 @@ function buildInMemoryDefault(discordGuildId) {
     discordGuildId,
     leadersRoleId: null,
     coLeadersRoleId: null,
+    managersRoleId: null,
     moderatorsRoleIds: [],
     hostersRoleIds: [],
     supportRoleIds: [],

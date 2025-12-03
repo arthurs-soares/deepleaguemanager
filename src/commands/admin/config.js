@@ -43,6 +43,7 @@ module.exports = {
           `Logs: ${channelsCfg.logsChannelId ? `<#${channelsCfg.logsChannelId}>` : '—'}\n` +
           `DM Warning: ${channelsCfg.dmWarningChannelId ? `<#${channelsCfg.dmWarningChannelId}>` : '—'}\n` +
           `War Dodge: ${channelsCfg.warDodgeChannelId ? `<#${channelsCfg.warDodgeChannelId}>` : '—'}\n` +
+          `Wager Dodge: ${channelsCfg.wagerDodgeChannelId ? `<#${channelsCfg.wagerDodgeChannelId}>` : '—'}\n` +
           `Leaderboard: ${channelsCfg.leaderboardChannelId ? `<#${channelsCfg.leaderboardChannelId}>` : '—'}\n` +
           `Event Points Leaderboard: ${channelsCfg.eventPointsLeaderboardChannelId ? `<#${channelsCfg.eventPointsLeaderboardChannelId}>` : '—'}`
         );
@@ -52,11 +53,11 @@ module.exports = {
           '**Roles (IDs)**\n' +
           `Leaders: ${rolesCfg.leadersRoleId ? `<@&${rolesCfg.leadersRoleId}>` : '—'}\n` +
           `Co-leaders: ${rolesCfg.coLeadersRoleId ? `<@&${rolesCfg.coLeadersRoleId}>` : '—'}\n` +
+          `Managers: ${rolesCfg.managersRoleId ? `<@&${rolesCfg.managersRoleId}>` : '—'}\n` +
           `Moderators: ${rolesCfg.moderatorsRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
           `Hosters: ${rolesCfg.hostersRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
           `Support: ${rolesCfg.supportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-          `Admin Support: ${rolesCfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-          `Tag Role (DLSA): ${rolesCfg.tagRoleId ? `<@&${rolesCfg.tagRoleId}>` : '—'}`
+          `Admin Support: ${rolesCfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}`
         );
 
       const statsText = new TextDisplayBuilder()
@@ -76,8 +77,7 @@ module.exports = {
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('config:roles').setStyle(ButtonStyle.Secondary).setLabel('Roles'),
-        new ButtonBuilder().setCustomId('config:channels').setStyle(ButtonStyle.Secondary).setLabel('Channels'),
-        new ButtonBuilder().setCustomId('config:badges').setStyle(ButtonStyle.Secondary).setLabel('Badges')
+        new ButtonBuilder().setCustomId('config:channels').setStyle(ButtonStyle.Secondary).setLabel('Channels')
       );
 
       await interaction.reply({

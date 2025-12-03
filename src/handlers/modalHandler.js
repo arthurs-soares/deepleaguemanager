@@ -24,21 +24,6 @@ async function handleModalInteraction(interaction) {
       return handler.handle(interaction);
     }
 
-    if (customId.startsWith('config:badges:create:')) {
-      const handler = require('../interactions/modals/badgeCreateModal');
-      return handler.handle(interaction);
-    }
-
-    if (customId.startsWith('config:badges:update:')) {
-      const handler = require('../interactions/modals/badgeUpdateModal');
-      return handler.handle(interaction);
-    }
-
-    if (customId.startsWith('awardBadge:reason:')) {
-      const handler = require('../interactions/modals/awardBadgeReason');
-      return handler.handle(interaction);
-    }
-
     if (customId.startsWith('wl:rm:')) {
       const handler = require('../interactions/modals/warLogModal');
       return handler.handle(interaction);

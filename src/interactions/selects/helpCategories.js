@@ -19,7 +19,7 @@ const LoggerService = require('../../services/LoggerService');
  * StringSelectMenu handler for /help
  * CustomId: help:categories
  * Values: whats_new | commands | logs | leaderboard | profile | admin_panel |
- *         war_system | elo_system | wager_system | betting_system | security
+ *         war_system | wager_system | security
  * @param {StringSelectMenuInteraction} interaction
  */
 async function handle(interaction) {

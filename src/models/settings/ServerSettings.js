@@ -23,6 +23,7 @@ const serverSettingsSchema = new mongoose.Schema({
   eventPointsLeaderboardChannelId: { type: String, default: null },
   eventPointsLeaderboardMessageId: { type: String, default: null },
   warDodgeChannelId: { type: String, default: null },
+  wagerDodgeChannelId: { type: String, default: null },
   dmWarningChannelId: { type: String, default: null },
   warLogsChannelId: { type: String, default: null },
 }, { timestamps: true });

@@ -13,11 +13,20 @@ async function findGuildByName(name, discordGuildId) {
   }
 }
 
+/**
+ * Find guilds where user is leader, co-leader, or manager
+ * @param {string} userId - Discord user ID
+ * @param {string} discordGuildId - Discord server ID
+ * @returns {Promise<Array>}
+ */
 async function findGuildsByUser(userId, discordGuildId) {
   if (!isMongoConnected()) return [];
   return Guild.find({
     discordGuildId,
-    members: { $elemMatch: { userId, role: { $in: ['lider', 'vice-lider'] } } },
+    $or: [
+      { members: { $elemMatch: { userId, role: { $in: ['lider', 'vice-lider'] } } } },
+      { managers: userId }
+    ]
   }).sort({ createdAt: -1 });
 }
 

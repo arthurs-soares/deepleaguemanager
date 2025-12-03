@@ -100,10 +100,13 @@ module.exports = {
         });
       }
 
-      // Without name: search for guilds where the user is owner/co-owner (interpreted as leader/co-leader/registrar)
+      // Without name: search for guilds where the user is leader/co-leader/manager
       const userGuilds = await findGuildsByUser(interaction.user.id, interaction.guild.id);
       if (!userGuilds || userGuilds.length === 0) {
-        const container = createInfoEmbed('No associated guild', 'You are not the owner or co-owner of any guild on this server.');
+        const container = createInfoEmbed(
+          'No associated guild',
+          'You are not the leader, co-leader, or manager of any guild on this server.'
+        );
         return interaction.editReply({
           components: [container],
           flags: MessageFlags.IsComponentsV2

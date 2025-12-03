@@ -3,6 +3,7 @@ const { buildWagerDodgeEmbed } = require('../../../utils/embeds/wagerDodgeEmbed'
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
+const { sendWagerDodgeLog } = require('../../../utils/tickets/wagerDodgeLog');
 const { buildWagerCloseButtonRow } = require('../../../utils/tickets/closeButtons');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
@@ -61,6 +62,18 @@ async function handle(interaction) {
     ticket.dodgedByUserId = dodgerUserId;
     await ticket.save();
 
+    // Get user info for embeds and logs
+    const opponentId = ticket.initiatorUserId === dodgerUserId
+      ? ticket.opponentUserId
+      : ticket.initiatorUserId;
+    let dodgerUser = null, opponentUser = null;
+    try {
+      [dodgerUser, opponentUser] = await Promise.all([
+        interaction.client.users.fetch(dodgerUserId).catch(() => null),
+        interaction.client.users.fetch(opponentId).catch(() => null)
+      ]);
+    } catch (_) {}
+
     // Update original message and ticket channel
     try {
       const ch = interaction.guild.channels.cache.get(ticket.channelId);
@@ -71,31 +84,43 @@ async function handle(interaction) {
         } catch (_) {}
       }
       if (ch && ch.type === ChannelType.GuildText) {
-        const opponentId = ticket.initiatorUserId === dodgerUserId ? ticket.opponentUserId : ticket.initiatorUserId;
-        let dodgerUser = null, opponentUser = null;
-        try {
-          [dodgerUser, opponentUser] = await Promise.all([
-            interaction.client.users.fetch(dodgerUserId).catch(() => null),
-            interaction.client.users.fetch(opponentId).catch(() => null)
-          ]);
-        } catch (_) {}
-        const { container, attachment } = await buildWagerDodgeEmbed(dodgerUser, opponentUser, interaction.user.id, new Date());
+        const { container, attachment } = await buildWagerDodgeEmbed(
+          dodgerUser,
+          opponentUser,
+          interaction.user.id,
+          new Date()
+        );
 
-        // Send container with buttons (Components v2 doesn't support files in same message)
+        // Send container with attachment in same message for attachment:// to work
         await ch.send({
           components: [container, buildWagerCloseButtonRow(ticket._id)],
           flags: MessageFlags.IsComponentsV2,
-          content: 'Use the button below to close the ticket (the transcript will be saved).'
+          content: 'Use the button below to close the ticket.',
+          files: attachment ? [attachment] : []
         });
 
-        // Send attachment in separate message if present
-        if (attachment) {
-          await ch.send({ files: [attachment] });
-        }
-
-        try { await sendTranscriptToLogs(interaction.guild, ch, `Wager Ticket ${ticket._id} marked as dodge by <@${dodgerUserId}>`); } catch (_) {}
+        // Send log to transcript channel
+        try {
+          await sendTranscriptToLogs(
+            interaction.guild,
+            ch,
+            `Wager Ticket ${ticket._id} marked as dodge by <@${dodgerUserId}>`
+          );
+        } catch (_) {}
       }
     } catch (_) {}
+
+    // Send log to wager dodge channel (always attempt this)
+    try {
+      await sendWagerDodgeLog(
+        interaction.guild,
+        dodgerUser,
+        opponentUser,
+        interaction.user.id
+      );
+    } catch (logErr) {
+      LoggerService.warn('Failed to send dodge log:', { error: logErr?.message });
+    }
 
     try {
       return await interaction.editReply({ content: '✅ Dodge recorded.' });

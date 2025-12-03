@@ -50,6 +50,9 @@ async function sendDmOrFallback(client, discordGuildId, targetUserId, dmPayload,
     }).catch(() => null);
     if (!thread) return { ok: false, via: 'dm' };
 
+    // Add target user to the thread first (so they can see/respond)
+    try { await thread.members.add(targetUserId); } catch (_) {}
+
     // Mention target user only; staff can be notified via the Call Support button
     const header = `<@${targetUserId}>\nThe bot could not send a DM due to privacy settings. Original message is below:`.trim();
 
@@ -58,9 +61,6 @@ async function sendDmOrFallback(client, discordGuildId, targetUserId, dmPayload,
     // Send a single header message including the close/call buttons, then the original payload
     try { await thread.send({ content: header, components }); } catch (_) {}
     try { await thread.send(dmPayload); } catch (_) {}
-
-    // Add target user to the thread (so they can see/respond)
-    try { await thread.members.add(targetUserId); } catch (_) {}
 
     // Log fallback de DM
     try {

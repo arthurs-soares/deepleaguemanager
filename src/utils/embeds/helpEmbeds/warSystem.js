@@ -14,7 +14,7 @@ function buildWarSystemEmbed() {
   const titleText = new TextDisplayBuilder()
     .setContent('# ⚔️ War System');
   const descText = new TextDisplayBuilder()
-    .setContent('Ticket flow and war-related functionalities.');
+    .setContent('Complete ticket flow and war management functionalities.');
 
   container.addTextDisplayComponents(titleText, descText);
   container.addSeparatorComponents(new SeparatorBuilder());

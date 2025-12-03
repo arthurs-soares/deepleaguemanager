@@ -15,6 +15,7 @@ function resolveSelectHandler(customId) {
   if (customId.startsWith('transfer_leader_user_select:')) return '../interactions/user-selects/transferLeaderUserSelect';
   if (customId.startsWith('add_co_leader_user_select:')) return '../interactions/user-selects/addCoLeaderUserSelect';
   if (customId.startsWith('change_co_leader_user_select:')) return '../interactions/user-selects/changeCoLeaderUserSelect';
+  if (customId.startsWith('add_manager_user_select:')) return '../interactions/user-selects/addManagerUserSelect';
 
   if (customId.startsWith('war:selectOpponent:')) return '../interactions/selects/warSelectOpponent';
   if (customId.startsWith('war:dodge:select:')) return '../interactions/selects/warDodgeSelect';
@@ -34,24 +35,11 @@ function resolveSelectHandler(customId) {
   if (customId === 'config:channels:selectWagerCategory') return '../interactions/channel-selects/configWagerCategorySelect';
   if (customId === 'config:channels:selectGeneralTicketsCategory') return '../interactions/channel-selects/configGeneralTicketsCategorySelect';
   if (customId === 'config:channels:selectWarDodge') return '../interactions/channel-selects/configWarDodgeSelect';
+  if (customId === 'config:channels:selectWagerDodge') return '../interactions/channel-selects/configWagerDodgeSelect';
   if (customId === 'config:channels:selectDmWarning') return '../interactions/channel-selects/configDmWarningSelect';
   if (customId === 'config:channels:selectWagerLeaderboard') return '../interactions/channel-selects/configWagerLeaderboardSelect';
   if (customId === 'config:channels:selectEventPointsLeaderboard') return '../interactions/channel-selects/configEventPointsLeaderboardSelect';
   if (customId === 'config:channels:selectWarLogs') return '../interactions/channel-selects/configWarLogsSelect';
-
-  // Badges
-  if (customId === 'config:badges:selectEdit') return '../interactions/string-selects/configBadgesEditSelect';
-  if (customId === 'config:badges:selectDelete') return '../interactions/string-selects/configBadgesDeleteSelect';
-
-  // Award badge flow
-  if (customId === 'awardBadge:selectBadge') return '../interactions/string-selects/awardBadgeSelectBadge';
-  if (customId.startsWith('awardBadge:selectGuild:')) return '../interactions/string-selects/awardBadgeSelectGuild';
-  if (customId.startsWith('awardBadge:selectUser:')) return '../interactions/user-selects/awardBadgeSelectUser';
-
-  // Manage awards filters
-  if (customId === 'badges_awards:filter') return '../interactions/string-selects/badgesAwardsFilter';
-  if (customId === 'badges_awards:sort') return '../interactions/string-selects/badgesAwardsSort';
-  if (customId.startsWith('badges_awards:removeSelect:')) return '../interactions/string-selects/badgesAwardsRemoveSelect';
 
   // New dropdown-based configuration selectors
   if (customId === 'config:channels:select') return '../interactions/string-selects/configChannelSelect';

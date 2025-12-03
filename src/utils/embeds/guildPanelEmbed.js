@@ -4,6 +4,16 @@ const { ButtonStyle } = require('discord.js');
 const { colors } = require('../../config/botConfig');
 const { formatRosterCounts } = require('../roster/rosterUtils');
 
+/**
+ * Format managers list for display
+ * @param {string[]} managers - Array of manager user IDs
+ * @returns {string}
+ */
+function formatManagersList(managers) {
+  if (!Array.isArray(managers) || managers.length === 0) return '—';
+  return managers.map(id => `<@${id}>`).join(', ');
+}
+
 
 
 /**
@@ -83,7 +93,22 @@ async function buildGuildPanelDisplayComponents(guild, _discordGuild) {
       .setStyle(ButtonStyle.Primary)
   );
   container.addSectionComponents(rostersSection);
-  // Members count directly below Rosters (before separator)
+
+  // Managers section with inline Manage Managers button
+  const managersArray = Array.isArray(guild.managers) ? guild.managers : [];
+  const managersText = new TextDisplayBuilder()
+    .setContent(`**Managers (${managersArray.length}/2)**\n${formatManagersList(managersArray)}`);
+  const managersSection = new SectionBuilder()
+    .addTextDisplayComponents(managersText);
+  managersSection.setButtonAccessory(button =>
+    button
+      .setCustomId(`guild_panel:manage_managers:${guildId}`)
+      .setLabel('Manage Managers')
+      .setStyle(ButtonStyle.Secondary)
+  );
+  container.addSectionComponents(managersSection);
+
+  // Members count directly below Managers (before separator)
   const mainRoster = Array.isArray(guild.mainRoster) ? guild.mainRoster : [];
   const subRoster = Array.isArray(guild.subRoster) ? guild.subRoster : [];
   const uniqueIds = new Set([...mainRoster, ...subRoster]);

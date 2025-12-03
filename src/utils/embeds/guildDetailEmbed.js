@@ -1,8 +1,6 @@
 const { ContainerBuilder, TextDisplayBuilder, SectionBuilder, SeparatorBuilder } = require('@discordjs/builders');
 const { colors, emojis } = require('../../config/botConfig');
-const { formatRosterCounts } = require('../roster/rosterUtils');
 const { normalizeRoleToPortuguese } = require('../core/roleMapping');
-const { getGuildBadges, formatBadgesForDisplay } = require('../badges/badgeDisplay');
 
 
 /**
@@ -11,20 +9,16 @@ const { getGuildBadges, formatBadgesForDisplay } = require('../badges/badgeDispl
  * - Uses SectionBuilder for organized information display
  * - Includes all existing functionality with modern components
  * @param {Object} guild - Guild document
- * @param {import('discord.js').Guild} discordGuild - Discord guild object
+ * @param {import('discord.js').Guild} _discordGuild - Discord guild object
  * @returns {Promise<ContainerBuilder>}
  */
-async function buildGuildDetailDisplayComponents(guild, discordGuild) {
+async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
 
   const members = Array.isArray(guild.members) ? guild.members : [];
   const leaderMember = members.find(m => normalizeRoleToPortuguese(m.role) === 'lider');
   const coLeader = members.find(m => normalizeRoleToPortuguese(m.role) === 'vice-lider');
   const mainRoster = Array.isArray(guild.mainRoster) ? guild.mainRoster : [];
   const subRoster = Array.isArray(guild.subRoster) ? guild.subRoster : [];
-
-  // Get guild badges
-  const guildBadges = await getGuildBadges(discordGuild?.id, guild._id);
-  const badgesDisplay = formatBadgesForDisplay(guildBadges);
 
   const color = guild.color ? parseInt(guild.color.replace('#', ''), 16) : colors.primary;
 
@@ -50,11 +44,9 @@ async function buildGuildDetailDisplayComponents(guild, discordGuild) {
     .setContent(`**${emojis.leader} Leader**\n${leaderMember?.userId ? `<@${leaderMember.userId}>` : (guild.leader || '—')}`);
   const coLeaderText = new TextDisplayBuilder()
     .setContent(`**${emojis.coLeader} Co-leader**\n${coLeader?.userId ? `<@${coLeader.userId}>` : (coLeader?.username || '—')}`);
-  const statusText = new TextDisplayBuilder()
-    .setContent(`**${emojis.status} Status**\n${guild.status || '—'}`);
 
   const leadershipSection = new SectionBuilder()
-    .addTextDisplayComponents(leaderText, coLeaderText, statusText);
+    .addTextDisplayComponents(leaderText, coLeaderText);
 
   // SectionBuilder requires an accessory; always set a thumbnail accessory
   const accessoryThumbnailUrl = guild.iconUrl || guild.bannerUrl ||
@@ -68,20 +60,13 @@ async function buildGuildDetailDisplayComponents(guild, discordGuild) {
   container.addSectionComponents(leadershipSection);
 
   // Statistics section - use individual TextDisplayBuilder components
-  const rostersText = new TextDisplayBuilder()
-    .setContent(`**${emojis.rosters} Rosters**\n${formatRosterCounts(guild)}`);
   const winsLossesText = new TextDisplayBuilder()
     .setContent(
       `**${emojis.winsLosses} Wins/Losses**\n${guild.wins||0} / ${guild.losses||0}`
     );
 
   // Add individual statistics text components
-  container.addTextDisplayComponents(rostersText, winsLossesText);
-
-  // Badges section
-  const badgesText = new TextDisplayBuilder()
-    .setContent(`**🏅 Badges**\n${badgesDisplay}`);
-  container.addTextDisplayComponents(badgesText);
+  container.addTextDisplayComponents(winsLossesText);
 
   // Add separator before rosters
   const separator = new SeparatorBuilder();

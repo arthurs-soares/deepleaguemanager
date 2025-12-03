@@ -34,6 +34,7 @@ async function handle(interaction) {
         `**Logs Channel:** ${cfg.logsChannelId ? `<#${cfg.logsChannelId}>` : '—'}\n` +
         `**DM Warning Channel:** ${cfg.dmWarningChannelId ? `<#${cfg.dmWarningChannelId}>` : '—'}\n` +
         `**War Dodge Channel:** ${cfg.warDodgeChannelId ? `<#${cfg.warDodgeChannelId}>` : '—'}\n` +
+        `**Wager Dodge Channel:** ${cfg.wagerDodgeChannelId ? `<#${cfg.wagerDodgeChannelId}>` : '—'}\n` +
         `**War Logs Channel:** ${cfg.warLogsChannelId ? `<#${cfg.warLogsChannelId}>` : '—'}\n` +
         `**Guild Rosters Forum:** ${cfg.rosterForumChannelId ? `<#${cfg.rosterForumChannelId}>` : '—'}\n` +
         `**Guild Leaderboard Channel:** ${cfg.leaderboardChannelId ? `<#${cfg.leaderboardChannelId}>` : '—'}\n` +
@@ -117,6 +118,11 @@ async function handle(interaction) {
           .setDescription('Channel for war dodge notifications')
           .setValue('warDodge')
           .setEmoji('📢'),
+        new StringSelectMenuOptionBuilder()
+          .setLabel('Wager Dodge Channel')
+          .setDescription('Channel for wager dodge notifications')
+          .setValue('wagerDodge')
+          .setEmoji('🎲'),
         new StringSelectMenuOptionBuilder()
           .setLabel('War Logs Channel')
           .setDescription('Channel for war log messages')

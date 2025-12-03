@@ -2,18 +2,13 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const {
   ContainerBuilder,
   TextDisplayBuilder,
-  SectionBuilder,
-  SeparatorBuilder
+  SectionBuilder
 } = require('@discordjs/builders');
 const { colors, emojis } = require('../../config/botConfig');
 const { getOrCreateUserProfile } = require('../user/userProfile');
 const { getUserGuildInfo } = require('../guilds/userGuildInfo');
 const { getRoleDisplayLabel } = require('../core/roleMapping');
 const UserProfile = require('../../models/user/UserProfile');
-const {
-  getUserBadges,
-  formatBadgesForDisplay
-} = require('../badges/badgeDisplay');
 
 // Small helpers to keep functions short and readable
 function formatTs(d, style = 'd') {
@@ -84,15 +79,6 @@ function buildAccountField(member, user) {
   };
 }
 
-async function buildBadgesField(discordGuildId, userId) {
-  const awards = await getUserBadges(discordGuildId, userId);
-  const display = formatBadgesForDisplay(
-    awards,
-    { showNames: true, maxBadges: 6 }
-  );
-  return { name: '🏅 Badges', value: display, inline: true };
-}
-
 async function buildActionComponents(isSelf, hasGuild) {
   if (!isSelf) return [];
   const row = new ActionRowBuilder().addComponents(
@@ -122,7 +108,6 @@ async function buildUserProfileDisplayComponents(
     .catch(() => null);
 
   const guildField = await buildGuildInfoField(discordGuild.id, targetUser.id);
-  const badgesField = await buildBadgesField(discordGuild.id, targetUser.id);
 
   const wager = computeWagerStats(profile);
   const rank = await getServerRank(discordGuild, targetUser.id);
@@ -171,14 +156,6 @@ async function buildUserProfileDisplayComponents(
     t.setURL(avatarUrl).setDescription(`${displayName} avatar`)
   );
   container.addSectionComponents(section);
-
-  // Add separator before badges
-  container.addSeparatorComponents(new SeparatorBuilder());
-
-  // Badges
-  const badgesText = new TextDisplayBuilder()
-    .setContent(`**${badgesField.name}**\n${badgesField.value}`);
-  container.addTextDisplayComponents(badgesText);
 
   // Optional banner preview as accessory section
   if (typeof profile.bannerUrl === 'string'

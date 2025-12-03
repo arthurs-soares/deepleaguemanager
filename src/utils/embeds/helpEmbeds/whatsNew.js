@@ -34,8 +34,8 @@ function buildWhatsNewEmbed() {
       '### ⚡ Latest Updates\n' +
       '- **Components v2** — All interfaces now use the new Discord Components v2\n' +
       '- **Improved Help System** — Better navigation and more information\n' +
-      '- **Shop Cooldowns** — Item purchase cooldowns are now available\n' +
-      '- **Daily Rewards** — Automatic daily reward system'
+      '- **Simplified System** — Removed ELO and Betting features for a cleaner experience\n' +
+      '- **Enhanced Wagers** — Improved player-to-player wager system'
     );
   container.addTextDisplayComponents(updatesText);
 

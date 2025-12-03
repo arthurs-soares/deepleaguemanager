@@ -1,5 +1,11 @@
 const { AttachmentBuilder } = require('discord.js');
-const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('@discordjs/builders');
+const {
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SeparatorBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder
+} = require('@discordjs/builders');
 const { colors } = require('../../config/botConfig');
 
 const { createDodgeImage } = require('./canvas/wagerDodgeCanvas');
@@ -35,16 +41,19 @@ async function buildWagerDodgeEmbed(dodgerUser, opponentUser, markedByUserId, wh
     container.addTextDisplayComponents(titleText, descText);
     container.addSeparatorComponents(new SeparatorBuilder());
 
-    // Note: Image will be sent as attachment, referenced in content
-    // setImageAccessory() doesn't exist in the Discord.js API
-    const imageNote = new TextDisplayBuilder()
-      .setContent('*See attached image for dodge notification*');
-    container.addTextDisplayComponents(imageNote);
+    // Image gallery using attachment protocol
+    const imageGallery = new MediaGalleryBuilder()
+      .addItems(
+        new MediaGalleryItemBuilder()
+          .setURL('attachment://wager-dodge.png')
+          .setDescription('Wager Dodge Notification')
+      );
+    container.addMediaGalleryComponents(imageGallery);
 
     // Marked by if provided
     if (markedByUserId) {
       const markedByText = new TextDisplayBuilder()
-        .setContent(`**Marked by**\n<@${markedByUserId}>`);
+        .setContent(`**Marked by:** <@${markedByUserId}>`);
       container.addTextDisplayComponents(markedByText);
     }
 

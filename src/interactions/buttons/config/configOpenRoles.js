@@ -27,11 +27,11 @@ async function handle(interaction) {
       .setContent(
         `**Leaders:** ${cfg.leadersRoleId ? `<@&${cfg.leadersRoleId}>` : '—'}\n` +
         `**Co-leaders:** ${cfg.coLeadersRoleId ? `<@&${cfg.coLeadersRoleId}>` : '—'}\n` +
+        `**Managers:** ${cfg.managersRoleId ? `<@&${cfg.managersRoleId}>` : '—'}\n` +
         `**Moderators:** ${cfg.moderatorsRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
         `**Hosters:** ${cfg.hostersRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
         `**Support:** ${cfg.supportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-        `**Admin Support:** ${cfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-        `**Tag Role (DLSA):** ${cfg.tagRoleId ? `<@&${cfg.tagRoleId}>` : '—'}`
+        `**Admin Support:** ${cfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}`
       );
 
     container.addTextDisplayComponents(titleText, descText);
@@ -53,6 +53,11 @@ async function handle(interaction) {
           .setLabel('Co-leaders Role')
           .setDescription('Role for guild co-leaders')
           .setValue('coLeader')
+          .setEmoji('👑'),
+        new StringSelectMenuOptionBuilder()
+          .setLabel('Managers Role')
+          .setDescription('Role for guild managers')
+          .setValue('manager')
           .setEmoji('👑'),
 
 
@@ -76,14 +81,7 @@ async function handle(interaction) {
           .setLabel('Admin Support Roles')
           .setDescription('Roles for admin support (multiple selection)')
           .setValue('adminSupport')
-          .setEmoji('🛡️'),
-
-        // 🏷️ Automatic Roles
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Tag Role (DLSA)')
-          .setDescription('Auto-assigned to members with DLSA tag in nickname')
-          .setValue('tagRole')
-          .setEmoji('🏷️')
+          .setEmoji('🛡️')
       ]);
 
     const row = new ActionRowBuilder().addComponents(roleSelect);

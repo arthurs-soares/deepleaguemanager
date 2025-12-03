@@ -22,6 +22,12 @@ async function handle(interaction) {
         minValues: 1,
         maxValues: 1
       },
+      manager: {
+        customId: 'config:roles:singleSelect:managersRoleId',
+        placeholder: 'Select the managers role',
+        minValues: 1,
+        maxValues: 1
+      },
       moderators: {
         customId: 'config:roles:multiSelect:moderatorsRoleIds',
         placeholder: 'Select moderator roles (1-25)',
@@ -45,12 +51,6 @@ async function handle(interaction) {
         placeholder: 'Select admin support roles (1-25)',
         minValues: 1,
         maxValues: 25
-      },
-      tagRole: {
-        customId: 'config:roles:singleSelect:tagRoleId',
-        placeholder: 'Select the tag role (DLSA)',
-        minValues: 1,
-        maxValues: 1
       }
     };
 

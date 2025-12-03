@@ -12,6 +12,7 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('guild_panel:change_co_leader:')) return '../interactions/buttons/guild/changeCoLeader';
   if (customId.startsWith('guild_panel:add_co_leader:')) return '../interactions/buttons/guild/addCoLeader';
   if (customId.startsWith('guild_panel:edit_data:')) return '../interactions/buttons/guild/editGuildData';
+  if (customId.startsWith('guild_panel:manage_managers:')) return '../interactions/buttons/guild/manageManagers';
   if (customId.startsWith('coLeader:removeConfirm:')) return '../interactions/buttons/guild/coLeaderRemoveConfirm';
 
   // Leaderboards pagination
@@ -51,14 +52,17 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('rosterInvite:accept:')) return '../interactions/buttons/roster/inviteAccept';
   if (customId.startsWith('rosterInvite:decline:')) return '../interactions/buttons/roster/inviteDecline';
 
+  // Manager invite flow
+  if (customId.startsWith('managerInvite:accept:')) return '../interactions/buttons/guild/managerInviteAccept';
+  if (customId.startsWith('managerInvite:decline:')) return '../interactions/buttons/guild/managerInviteDecline';
+  if (customId.startsWith('manager:remove:')) return '../interactions/buttons/guild/removeManager';
+
   if (customId === 'profile:edit') return '../interactions/buttons/profile/editProfile';
   if (customId === 'profile:leaveGuild') return '../interactions/buttons/profile/leaveGuild';
   if (customId.startsWith('profile:confirmLeave:')) return '../interactions/buttons/profile/confirmLeaveGuild';
 
   if (customId === 'config:roles') return '../interactions/buttons/config/configOpenRoles';
   if (customId === 'config:channels') return '../interactions/buttons/config/configOpenChannels';
-  if (customId === 'config:badges') return '../interactions/buttons/config/configOpenBadges';
-  if (customId === 'config:badges:user' || customId === 'config:badges:guild') return '../interactions/buttons/config/configOpenBadgeModal';
   if (customId === 'config:channels:setRosterForum') return '../interactions/buttons/config/configSetRosterForum';
   if (customId === 'config:channels:setWarTickets') return '../interactions/buttons/config/configSetWarTickets';
   if (customId === 'config:channels:setWagerTickets') return '../interactions/buttons/config/configSetWagerTickets';
@@ -70,16 +74,6 @@ function resolveButtonHandler(customId) {
   if (customId === 'config:channels:setDmWarning') return '../interactions/buttons/config/configSetDmWarning';
   if (customId === 'config:roles:setLeader' || customId === 'config:roles:setCoLeader') return '../interactions/buttons/config/configRolesSetSingle';
   if (customId === 'config:roles:setModerators' || customId === 'config:roles:setHosters' || customId === 'config:roles:setSupport') return '../interactions/buttons/config/configRolesSetMulti';
-
-  // Badges awards viewer open
-  if (customId === 'config:badges:awards') return '../interactions/buttons/config/configOpenAwards';
-
-  // Badges awards pagination and actions
-  if (customId.startsWith('badges_awards:')) return '../interactions/buttons/config/badgesAwardsPagination';
-  if (customId.startsWith('badges_awards:removeConfirm:')) return '../interactions/buttons/config/badgesAwardsRemoveConfirm';
-
-  // Badges delete confirm
-  if (customId.startsWith('config:badges:confirmDelete:')) return '../interactions/buttons/config/configBadgeDeleteConfirm';
 
   // General Tickets
   if (customId.startsWith('ticket:open:')) return '../interactions/buttons/ticket/ticketOpen';

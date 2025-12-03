@@ -70,6 +70,11 @@ async function handle(interaction) {
         placeholder: 'Select a text channel for war dodge notifications',
         types: [ChannelType.GuildText]
       },
+      wagerDodge: {
+        customId: 'config:channels:selectWagerDodge',
+        placeholder: 'Select a text channel for wager dodge notifications',
+        types: [ChannelType.GuildText]
+      },
       warLogs: {
         customId: 'config:channels:selectWarLogs',
         placeholder: 'Select a text channel for war logs',

@@ -87,10 +87,10 @@ module.exports = {
     const featuresText = new TextDisplayBuilder()
       .setContent(
         '### ⭐ Key Features\n' +
-        `${emojis.war} **Wars** — Ticket system with ELO tracking\n` +
-        `${emojis.leaderboard} **Leaderboards** — Auto-updating rankings\n` +
-        `🎲 **Wagers** — 1v1 competitive matches\n` +
-        `🎰 **Betting** — Create betting pools`
+        `${emojis.war} **Wars** — Complete ticket system for guild wars\n` +
+        `${emojis.leaderboard} **Leaderboards** — Auto-updating guild rankings\n` +
+        `🎲 **Wagers** — 1v1 competitive player matches\n` +
+        `${emojis.guild} **Guilds** — Full guild management system`
       );
     container.addTextDisplayComponents(featuresText);
 

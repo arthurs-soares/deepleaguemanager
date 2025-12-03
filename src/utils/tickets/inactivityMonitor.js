@@ -4,6 +4,7 @@ const WagerTicket = require('../../models/wager/WagerTicket');
 const { getWagerMentions, getWarMentions } = require('./participants');
 const { sendTranscriptToLogs } = require('./transcript');
 const { buildWagerDodgeEmbed } = require('../embeds/wagerDodgeEmbed');
+const { sendWagerDodgeLog } = require('./wagerDodgeLog');
 const LoggerService = require('../../services/LoggerService');
 
 // In-memory rate limit to avoid spamming reminders per channel
@@ -179,14 +180,12 @@ async function applyAutoDodge(client, ticket, guild) {
       // Build and send the dodge embed
       const { container, attachment } = await buildWagerDodgeEmbed(dodgerUser, opponentUser, client.user.id, new Date());
 
+      // Send container with attachment in same message for attachment:// to work
       await channel.send({
         components: [container],
-        flags: MessageFlags.IsComponentsV2
+        flags: MessageFlags.IsComponentsV2,
+        files: attachment ? [attachment] : []
       });
-
-      if (attachment) {
-        await channel.send({ files: [attachment] });
-      }
 
       // Send transcript to logs
       try {
@@ -197,8 +196,17 @@ async function applyAutoDodge(client, ticket, guild) {
           ticket
         );
       } catch (err) {
-        console.warn('Failed to send auto-dodge transcript:', err?.message);
+        LoggerService.warn('Failed to send auto-dodge transcript:', { error: err?.message });
       }
+
+      // Send log to wager dodge channel if configured
+      await sendWagerDodgeLog(
+        guild,
+        dodgerUser,
+        opponentUser,
+        client.user.id,
+        '⏰ **Auto-Dodge** (2 weeks timeout)'
+      );
 
       // Delete the channel after a short delay
       setTimeout(async () => {

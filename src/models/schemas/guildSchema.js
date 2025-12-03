@@ -100,6 +100,16 @@ const guildSchema = new mongoose.Schema({
     default: []
   },
 
+  // Guild managers (Discord user IDs, max 2)
+  managers: {
+    type: [String],
+    default: [],
+    validate: {
+      validator: v => !v || v.length <= 2,
+      message: 'Maximum of 2 managers allowed.'
+    }
+  },
+
   // War statistics
   wins: { type: Number, default: 0, min: 0 },
   losses: { type: Number, default: 0, min: 0 },
