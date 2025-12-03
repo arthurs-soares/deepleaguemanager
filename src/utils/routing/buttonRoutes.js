@@ -26,6 +26,7 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('war:dodge:apply:')) return '../interactions/buttons/war/warDodgeApply';
   if (customId.startsWith('war:dodge:cancel:')) return '../interactions/buttons/war/warDodgeCancel';
   if (customId.startsWith('war:declareWinner:')) return '../interactions/buttons/war/warDeclareWinner';
+  if (customId.startsWith('war:claim:')) return '../interactions/buttons/war/warClaimTicket';
   if (customId.startsWith('war:closeTicket:confirm:')) return '../interactions/buttons/war/warCloseTicketConfirm';
   if (customId.startsWith('war:closeTicket:cancel:')) return '../interactions/buttons/war/warCloseTicketCancel';
   if (customId.startsWith('war:closeTicket:')) return '../interactions/buttons/war/warCloseTicket';

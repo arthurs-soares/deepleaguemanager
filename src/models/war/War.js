@@ -21,6 +21,9 @@ const warSchema = new mongoose.Schema({
   // Acceptance tracking to prevent multiple acceptances
   acceptedAt: { type: Date, default: null },
   acceptedByUserId: { type: String, default: null },
+  // Claim tracking for hosters
+  claimedAt: { type: Date, default: null },
+  claimedByUserId: { type: String, default: null },
 }, { timestamps: true });
 
 // Indexes for common queries

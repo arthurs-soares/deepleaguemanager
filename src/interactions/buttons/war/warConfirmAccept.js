@@ -144,6 +144,7 @@ async function handle(interaction) {
         );
 
         const controlRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId(`war:claim:${war._id}`).setStyle(ButtonStyle.Success).setLabel('Claim Ticket'),
           new ButtonBuilder().setCustomId(`war:confirm:dodge:${war._id}`).setStyle(ButtonStyle.Danger).setLabel('Mark Dodge'),
           new ButtonBuilder().setCustomId(`war:closeTicket:${war._id}`).setStyle(ButtonStyle.Secondary).setLabel('Close + Transcript')
         );
