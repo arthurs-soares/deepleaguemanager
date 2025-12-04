@@ -23,7 +23,7 @@ module.exports = {
     error: '<:dl_x:1446181293896503399>',
     warning: '<:dl_warn:1446181291988095036>',
     loading: '<:dl_loading:1446181299235721226>',
-    info: '<:dl_info:1446181293896503399>',
+    info: 'ℹ️',
     guild: '<:dl_leader:1446150269531459604>',
     leader: '<:dl_leader:1446150269531459604>',
     coLeader: '<:dl_coleader:1446150271808835745>',
