@@ -96,7 +96,7 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
       const rankEmoji = getRankEmoji(rank);
 
       return `${rankEmoji} **#${rank}** <@${u.discordUserId}>\n` +
-             `� **${wagers}** wagers • **${w}W/${l}L** (${wr}%)`;
+             `🎲 **${wagers}** wagers • **${w}W/${l}L** (${wr}%)`;
     });
 
     const leaderboardText = new TextDisplayBuilder()
@@ -127,7 +127,8 @@ async function upsertWagerLeaderboardMessage(discordGuild) {
   const container = await buildWagerLeaderboardEmbed(discordGuild);
   const payload = {
     components: [container],
-    flags: MessageFlags.IsComponentsV2
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { parse: [] }
   };
 
   // If we have a saved message id, try to edit it
