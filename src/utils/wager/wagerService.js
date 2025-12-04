@@ -3,7 +3,7 @@ const {
   TextDisplayBuilder,
   SeparatorBuilder
 } = require('@discordjs/builders');
-const { colors } = require('../../config/botConfig');
+const { colors, emojis } = require('../../config/botConfig');
 const { createErrorEmbed } = require('../embeds/embedBuilder');
 const { auditAdminAction } = require('../misc/adminAudit');
 const { getOrCreateUserProfile } = require('../user/userProfile');
@@ -75,7 +75,7 @@ async function recordWager(discordGuild, actorId, winnerId, loserId, client) {
   container.setAccentColor(primaryColor);
 
   const titleText = new TextDisplayBuilder()
-    .setContent('# 🎲 Wager Result Recorded');
+    .setContent(`# ${emojis.depthsWager} Wager Result Recorded`);
 
   const wName = wUser ? `<@${wUser.id}>` : `<@${winnerId}>`;
   const lName = lUser ? `<@${lUser.id}>` : `<@${loserId}>`;

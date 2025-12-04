@@ -2,7 +2,7 @@ const { ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags 
 const { ContainerBuilder, TextDisplayBuilder, SectionBuilder, SeparatorBuilder } = require('@discordjs/builders');
 const War = require('../../../models/war/War');
 const Guild = require('../../../models/guild/Guild');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 const { sendLog } = require('../../../utils/core/logger');
 const { getOpponentGuildId } = require('../../../utils/war/warUtils');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
@@ -24,7 +24,7 @@ function buildWarResultContainer(war, guildA, guildB) {
     : colors.primary;
   container.setAccentColor(primaryColor);
 
-  const titleText = new TextDisplayBuilder().setContent('# ⚔️ War Result');
+  const titleText = new TextDisplayBuilder().setContent(`# ${emojis.swords} War Result`);
   const descText = new TextDisplayBuilder()
     .setContent(
       `War between ${guildA?.name} and ${guildB?.name}\n` +

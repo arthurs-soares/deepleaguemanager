@@ -3,7 +3,7 @@ const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { isModeratorOrHoster } = require('../../../utils/core/permissions');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const GeneralTicket = require('../../../models/ticket/GeneralTicket');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 /**
  * Show confirmation dialog before closing a ticket
@@ -70,7 +70,7 @@ async function handle(interaction) {
     container.setAccentColor(warningColor);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# ⚠️ Confirm Ticket Closure');
+      .setContent(`# ${emojis.warning} Confirm Ticket Closure`);
 
     const descText = new TextDisplayBuilder()
       .setContent('Are you sure you want to close this ticket? This action cannot be undone.');

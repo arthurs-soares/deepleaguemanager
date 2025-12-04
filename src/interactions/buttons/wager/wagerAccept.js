@@ -2,7 +2,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, Messa
 const { ContainerBuilder, TextDisplayBuilder, SectionBuilder, SeparatorBuilder } = require('@discordjs/builders');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
@@ -118,7 +118,7 @@ async function handle(interaction) {
     container.setAccentColor(primaryColor);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# ⚔️ Winner Decision');
+      .setContent(`# ${emojis.depthsWager} Winner Decision`);
 
     const descText = new TextDisplayBuilder()
       .setContent('Select the winner (Depths). Only Hosters/Moderators can click.');

@@ -5,7 +5,7 @@ const {
   SeparatorBuilder
 } = require('@discordjs/builders');
 const { getOrCreateServerSettings } = require('../../../utils/system/serverSettings');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
 const { warLogSessions } = require('../../../commands/admin/log');
 const WarLog = require('../../../models/war/WarLog');
@@ -204,7 +204,7 @@ function buildFinalContainer(data, logId) {
   // Overall winner
   const overallWinner = getOverallWinner(rounds, guildA, guildB);
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`## **${overallWinner} WINS** ⚔️`)
+    new TextDisplayBuilder().setContent(`## **${overallWinner} WINS** ${emojis.swords}`)
   );
 
   // MVP

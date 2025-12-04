@@ -2,7 +2,7 @@ const { PermissionFlagsBits, ChannelType, MessageFlags, ActionRowBuilder, Button
 const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const WagerTicket = require('../../../models/wager/WagerTicket');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 const { isDatabaseConnected, withDatabase } = require('../../../config/database');
 
@@ -61,7 +61,7 @@ async function handle(interaction) {
     container.setAccentColor(warningColor);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# ⚠️ Confirm Wager Ticket Closure');
+      .setContent(`# ${emojis.warning} Confirm Wager Ticket Closure`);
 
     const descText = new TextDisplayBuilder()
       .setContent('Are you sure you want to close this wager ticket? This action cannot be undone.');

@@ -13,7 +13,7 @@ const { replyEphemeral } = require('../../../utils/core/reply');
 const War = require('../../../models/war/War');
 const Guild = require('../../../models/guild/Guild');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
 
 /**
@@ -70,7 +70,7 @@ async function handle(interaction) {
     container.setAccentColor(warningColor);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# ⚠️ Confirm Winner Declaration');
+      .setContent(`# ${emojis.warning} Confirm Winner Declaration`);
 
     const descText = new TextDisplayBuilder()
       .setContent(

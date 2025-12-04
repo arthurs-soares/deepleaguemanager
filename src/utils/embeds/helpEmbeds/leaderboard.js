@@ -15,7 +15,7 @@ function buildLeaderboardEmbed() {
   container.setAccentColor(primaryColor);
 
   const titleText = new TextDisplayBuilder()
-    .setContent('# 🏆 Leaderboards');
+    .setContent(`# ${emojis.trophy} Leaderboards`);
   const descText = new TextDisplayBuilder()
     .setContent(
       `${emojis.info} View and manage server rankings.`

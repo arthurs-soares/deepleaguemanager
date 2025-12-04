@@ -15,7 +15,7 @@ function buildWarSystemEmbed() {
   container.setAccentColor(primaryColor);
 
   const titleText = new TextDisplayBuilder()
-    .setContent('# ⚔️ War System');
+    .setContent(`# ${emojis.swords} War System`);
   const descText = new TextDisplayBuilder()
     .setContent('War ticket flow and management.');
 

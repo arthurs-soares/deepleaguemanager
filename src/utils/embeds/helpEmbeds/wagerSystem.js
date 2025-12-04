@@ -4,7 +4,7 @@ const {
   SeparatorBuilder
 } = require('@discordjs/builders');
 const { SeparatorSpacingSize } = require('discord.js');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 function buildWagerSystemEmbed() {
   const container = new ContainerBuilder();
@@ -15,7 +15,7 @@ function buildWagerSystemEmbed() {
   container.setAccentColor(primaryColor);
 
   const titleText = new TextDisplayBuilder()
-    .setContent('# 🎲 Wager System');
+    .setContent(`# ${emojis.dice} Wager System`);
   const descText = new TextDisplayBuilder()
     .setContent('Player-to-player competitive matches.');
 

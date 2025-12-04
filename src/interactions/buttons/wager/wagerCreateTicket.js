@@ -7,7 +7,7 @@ const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const { countOpenWagerTickets } = require('../../../utils/wager/wagerTicketLimits');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const LoggerService = require('../../../services/LoggerService');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 const MAX_OPEN_WAGER_TICKETS_PER_USER = 4;
 
@@ -81,7 +81,7 @@ async function handle(interaction) {
     container.setAccentColor(colors.primary);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# 🎲 Wager Ticket');
+      .setContent(`# ${emojis.depthsWager} Wager Ticket`);
 
     const descText = new TextDisplayBuilder()
       .setContent('Use this channel to coordinate the wager. When finished or cancelled, a moderator/hoster can close the ticket.');

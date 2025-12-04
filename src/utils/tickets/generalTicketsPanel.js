@@ -1,6 +1,6 @@
 const { ButtonStyle, MessageFlags } = require('discord.js');
 const { ContainerBuilder, TextDisplayBuilder, SectionBuilder, SeparatorBuilder } = require('@discordjs/builders');
-const { colors } = require('../../config/botConfig');
+const { colors, emojis } = require('../../config/botConfig');
 
 /**
  * Build general tickets panel (Components v2 with inline buttons)
@@ -17,11 +17,11 @@ function buildGeneralTicketsPanel() {
 
   // Header
   const titleText = new TextDisplayBuilder()
-    .setContent('# 🎫 General Tickets');
+    .setContent(`# ${emojis.ticket} General Tickets`);
 
   const descText = new TextDisplayBuilder()
     .setContent(
-      'ℹ️ Select a ticket category below to open a support ticket.\n\n' +
+      `${emojis.info} Select a ticket category below to open a support ticket.\n\n` +
       'The bot will create a private channel where you can discuss your issue with the support team.'
     );
 
@@ -89,7 +89,7 @@ function buildGeneralTicketsPanel() {
   container.addSeparatorComponents(new SeparatorBuilder());
 
   const footerText = new TextDisplayBuilder()
-    .setContent('*🎫 Support Ticket System*');
+    .setContent(`*${emojis.ticket} Support Ticket System*`);
   container.addTextDisplayComponents(footerText);
 
   return container;

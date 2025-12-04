@@ -4,7 +4,7 @@ const {
   SeparatorBuilder
 } = require('@discordjs/builders');
 const { SeparatorSpacingSize } = require('discord.js');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 /**
  * Build the commands help embed with organized structure
@@ -20,7 +20,7 @@ function buildCommandsEmbed(_client) {
   container.setAccentColor(primaryColor);
 
   const titleText = new TextDisplayBuilder()
-    .setContent('# 📁 Commands Reference');
+    .setContent(`# ${emojis.commands} Commands Reference`);
   const descText = new TextDisplayBuilder()
     .setContent('All commands organized by domain.');
 

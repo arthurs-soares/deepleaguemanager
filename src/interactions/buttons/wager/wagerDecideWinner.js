@@ -13,7 +13,7 @@ const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 /**
  * Show confirmation dialog before deciding wager winner
@@ -85,7 +85,7 @@ async function handle(interaction) {
     container.setAccentColor(warningColor);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# ⚠️ Confirm Wager Result');
+      .setContent(`# ${emojis.warning} Confirm Wager Result`);
 
     const descText = new TextDisplayBuilder()
       .setContent(

@@ -3,7 +3,7 @@ const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const War = require('../../../models/war/War');
 const Guild = require('../../../models/guild/Guild');
-const { colors } = require('../../../config/botConfig');
+const { colors, emojis } = require('../../../config/botConfig');
 
 // Helpers to keep the handler lean
 async function hasClosePermission(member, guildId) {
@@ -60,7 +60,7 @@ async function handle(interaction) {
     container.setAccentColor(warningColor);
 
     const titleText = new TextDisplayBuilder()
-      .setContent('# ⚠️ Confirm War Ticket Closure');
+      .setContent(`# ${emojis.warning} Confirm War Ticket Closure`);
 
     const descText = new TextDisplayBuilder()
       .setContent('Are you sure you want to close this war ticket? This action cannot be undone.');

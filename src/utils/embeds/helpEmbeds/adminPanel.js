@@ -15,7 +15,7 @@ function buildAdminPanelEmbed() {
   container.setAccentColor(primaryColor);
 
   const titleText = new TextDisplayBuilder()
-    .setContent('# 🛡️ Administration Panel');
+    .setContent(`# ${emojis.admin} Administration Panel`);
   const descText = new TextDisplayBuilder()
     .setContent(
       `${emojis.info} Admins or Moderators can manage any guild ` +
