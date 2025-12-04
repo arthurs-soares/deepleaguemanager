@@ -40,7 +40,7 @@ function buildWarTicketsPanel() {
       '• Click the button below to start\n' +
       '• Select the opponent guild\n' +
       '• Enter war date and time\n\n' +
-      `${emojis.channel} The bot will create a private channel in the ` +
+      'The bot will create a private channel in the ' +
       'configured category to organize the details.'
     );
 
@@ -51,7 +51,7 @@ function buildWarTicketsPanel() {
   const startWarSection = new SectionBuilder();
   const startWarText = new TextDisplayBuilder()
     .setContent(
-      '**🌊 Start War**\n' +
+      `**${emojis.warTicket} Start War**\n` +
       'Create a new war between guilds'
     );
   startWarSection.addTextDisplayComponents(startWarText);

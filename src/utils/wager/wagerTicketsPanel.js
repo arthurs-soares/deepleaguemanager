@@ -31,7 +31,7 @@ function buildWagerTicketsPanel() {
       `${emojis.info} Use this panel to initiate a wager challenge between players.\n\n` +
       '• Click the button below to start\n' +
       '• Choose opponent and basic details\n\n' +
-      `${emojis.channel} The bot will create a private channel in the configured category to coordinate the wager.`
+      'The bot will create a private channel in the configured category to coordinate the wager.'
     );
 
   container.addTextDisplayComponents(titleText, descText);
@@ -41,7 +41,7 @@ function buildWagerTicketsPanel() {
   const startWagerSection = new SectionBuilder();
   const startWagerText = new TextDisplayBuilder()
     .setContent(
-      '**⚔️ Start Wager**\n' +
+      `**${emojis.depthsWager} Start Wager**\n` +
       'Create a new wager between players'
     );
   startWagerSection.addTextDisplayComponents(startWagerText);
