@@ -2,6 +2,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const War = require('../../models/war/War');
 const Guild = require('../../models/guild/Guild');
 const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Handle select for choosing which guild dodged
@@ -51,11 +52,11 @@ async function handle(interaction) {
     const dName = dodger?.name || 'Selected Guild';
 
     return interaction.update({
-      content: `You selected: ${dName} dodged the war between ${aName} vs ${bName}.\nPenalty: -16 ELO (dodger), +8 ELO (opponent).\nDo you confirm?`,
+      content: `You selected: ${dName} dodged the war between ${aName} vs ${bName}.\nDo you confirm?`,
       components: [row]
     });
   } catch (error) {
-    console.error('Error in select war:dodge:select:', error);
+    LoggerService.error('Error in select war:dodge:select:', error);
     const msg = { content: '❌ Could not process the selection.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

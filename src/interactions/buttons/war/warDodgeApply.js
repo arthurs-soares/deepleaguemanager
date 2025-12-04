@@ -5,6 +5,7 @@ const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
 const { sendLog } = require('../../../utils/core/logger');
 const { buildWarDodgeEmbed } = require('../../../utils/embeds/warDodgeEmbed');
+const { sendWarDodgeLog } = require('../../../utils/tickets/warDodgeLog');
 
 
 /**
@@ -108,6 +109,14 @@ async function handle(interaction) {
         'War Dodge',
         `War ${war._id}: ${dodgerName} dodged vs ${opponentName}. ` +
         `By <@${interaction.user.id}>.`
+      );
+
+      // Send to configured war dodge channel
+      await sendWarDodgeLog(
+        interaction.guild,
+        dodgerName,
+        opponentName,
+        interaction.user.id
       );
     } catch (_) {}
 

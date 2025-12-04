@@ -10,10 +10,10 @@ const { findGuildsByUser } = require('../../../utils/guilds/guildManager');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 
 const REGIONS = [
-  { label: `${emojis.region} NA East`, value: 'NA East' },
-  { label: `${emojis.region} NA West`, value: 'NA West' },
-  { label: `${emojis.region} South America`, value: 'South America' },
-  { label: `${emojis.region} Europe`, value: 'Europe' }
+  { label: '🌍 NA East', value: 'NA East' },
+  { label: '🌍 NA West', value: 'NA West' },
+  { label: '🌍 South America', value: 'South America' },
+  { label: '🌍 Europe', value: 'Europe' }
 ];
 
 /**
