@@ -10,6 +10,7 @@ const { sendLog } = require('../core/logger');
 const {
   upsertEventPointsLeaderboard
 } = require('../leaderboard/eventPointsLeaderboard');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Add event points to a user
@@ -51,7 +52,11 @@ async function handleAddPoints(interaction) {
       `**New Balance:** ${updated.points.toLocaleString()} points\n` +
       `**Reason:** ${reason}`).catch(() => {});
 
-    upsertEventPointsLeaderboard(interaction.guild).catch(() => {});
+    upsertEventPointsLeaderboard(interaction.guild).catch(err => {
+      LoggerService.error('Failed to update event leaderboard after add', {
+        error: err?.message
+      });
+    });
   } catch (_) {
     return interaction.editReply({ content: '❌ Failed to add points.' });
   }
@@ -98,7 +103,11 @@ async function handleRemovePoints(interaction) {
       `**New Balance:** ${updated.points.toLocaleString()} points\n` +
       `**Reason:** ${reason}`).catch(() => {});
 
-    upsertEventPointsLeaderboard(interaction.guild).catch(() => {});
+    upsertEventPointsLeaderboard(interaction.guild).catch(err => {
+      LoggerService.error('Failed to update event leaderboard after remove', {
+        error: err?.message
+      });
+    });
   } catch (_) {
     return interaction.editReply({ content: '❌ Failed to remove points.' });
   }

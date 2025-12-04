@@ -13,6 +13,7 @@ const {
 } = require('../system/serverSettings');
 const { getRankEmoji } = require('./visualFormatting');
 const { paginate } = require('../misc/pagination');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Fetch users ordered by event points for a Discord server
@@ -181,44 +182,56 @@ async function buildEventPointsLeaderboardEmbed(
  * @returns {Promise<Object>} Result object
  */
 async function upsertEventPointsLeaderboard(discordGuild) {
-  const settings = await getOrCreateServerSettings(discordGuild.id);
-  if (!settings.eventPointsLeaderboardChannelId) {
-    return { ok: false, reason: 'no-channel' };
-  }
-
-  const channel = discordGuild.channels.cache.get(
-    settings.eventPointsLeaderboardChannelId
-  );
-  if (!channel || !channel.isTextBased?.()) {
-    return { ok: false, reason: 'invalid-channel' };
-  }
-
-  const container = await buildEventPointsLeaderboardEmbed(discordGuild);
-
-  // Try to edit existing message
-  if (settings.eventPointsLeaderboardMessageId) {
-    try {
-      const msg = await channel.messages.fetch(
-        settings.eventPointsLeaderboardMessageId
-      );
-      await msg.edit({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2
-      });
-      return { ok: true, updated: true };
-    } catch (_) {
-      // Message not found, create new one
+  try {
+    const settings = await getOrCreateServerSettings(discordGuild.id);
+    if (!settings.eventPointsLeaderboardChannelId) {
+      return { ok: false, reason: 'no-channel' };
     }
-  }
 
-  // Send new message
-  const sent = await channel.send({
-    components: [container],
-    flags: MessageFlags.IsComponentsV2
-  });
-  await setEventPointsLeaderboardMessage(discordGuild.id, sent.id);
-  try { await sent.pin(); } catch (_) {}
-  return { ok: true, created: true };
+    const channel = discordGuild.channels.cache.get(
+      settings.eventPointsLeaderboardChannelId
+    );
+    if (!channel || !channel.isTextBased?.()) {
+      return { ok: false, reason: 'invalid-channel' };
+    }
+
+    const container = await buildEventPointsLeaderboardEmbed(discordGuild);
+
+    // Try to edit existing message
+    if (settings.eventPointsLeaderboardMessageId) {
+      try {
+        const msg = await channel.messages.fetch(
+          settings.eventPointsLeaderboardMessageId
+        );
+        await msg.edit({
+          components: [container],
+          flags: MessageFlags.IsComponentsV2
+        });
+        return { ok: true, updated: true };
+      } catch (fetchErr) {
+        // Message not found or deleted, clear stored ID and create new one
+        LoggerService.warn('Event leaderboard message not found, creating new', {
+          error: fetchErr?.message
+        });
+        await setEventPointsLeaderboardMessage(discordGuild.id, null);
+      }
+    }
+
+    // Send new message
+    const sent = await channel.send({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2
+    });
+    await setEventPointsLeaderboardMessage(discordGuild.id, sent.id);
+    try { await sent.pin(); } catch (_) {}
+    return { ok: true, created: true };
+  } catch (error) {
+    LoggerService.error('Failed to upsert event points leaderboard', {
+      guildId: discordGuild?.id,
+      error: error?.message
+    });
+    return { ok: false, reason: 'error', error: error?.message };
+  }
 }
 
 module.exports = {
