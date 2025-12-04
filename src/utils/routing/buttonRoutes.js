@@ -72,6 +72,7 @@ function resolveButtonHandler(customId) {
 
   if (customId === 'config:roles') return '../interactions/buttons/config/configOpenRoles';
   if (customId === 'config:channels') return '../interactions/buttons/config/configOpenChannels';
+  if (customId === 'config:ranks') return '../interactions/buttons/config/configOpenRanks';
   if (customId === 'config:channels:setRosterForum') return '../interactions/buttons/config/configSetRosterForum';
   if (customId === 'config:channels:setWarTickets') return '../interactions/buttons/config/configSetWarTickets';
   if (customId === 'config:channels:setWagerTickets') return '../interactions/buttons/config/configSetWagerTickets';

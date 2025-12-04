@@ -7,6 +7,7 @@ const { colors } = require('../../config/botConfig');
 const { createErrorEmbed } = require('../embeds/embedBuilder');
 const { auditAdminAction } = require('../misc/adminAudit');
 const { getOrCreateUserProfile } = require('../user/userProfile');
+const { updateRanksAfterWager } = require('../../services/rankService');
 
 /**
  * Helper to fetch a user from client
@@ -51,6 +52,11 @@ async function recordWager(discordGuild, actorId, winnerId, loserId, client) {
   loserProfile.wagerLossStreak = (loserProfile.wagerLossStreak || 0) + 1;
   loserProfile.wagerWinStreak = 0;
   await loserProfile.save();
+
+  // Update rank roles based on new wager wins
+  try {
+    await updateRanksAfterWager(discordGuild, winnerId, winnerProfile.wagerWins);
+  } catch (_) {}
 
   const wUser = await getUser(client, winnerId);
   const lUser = await getUser(client, loserId);

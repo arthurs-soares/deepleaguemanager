@@ -3,6 +3,7 @@ const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('@dis
 const { colors } = require('../../config/botConfig');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
+const { getOrCreateRankConfig } = require('../../utils/misc/rankConfig');
 const Guild = require('../../models/guild/Guild');
 
 module.exports = {
@@ -16,9 +17,10 @@ module.exports = {
 
   async execute(interaction) {
     try {
-      const [channelsCfg, rolesCfg, guildCount] = await Promise.all([
+      const [channelsCfg, rolesCfg, ranksCfg, guildCount] = await Promise.all([
         getOrCreateServerSettings(interaction.guild.id),
         getOrCreateRoleConfig(interaction.guild.id),
+        getOrCreateRankConfig(interaction.guild.id),
         Guild.countDocuments({ discordGuildId: interaction.guild.id })
       ]);
 
@@ -31,62 +33,58 @@ module.exports = {
       const titleText = new TextDisplayBuilder()
         .setContent('# ⚙️ Bot Configuration');
 
-      const channelsText = new TextDisplayBuilder()
-        .setContent(
-          '**Channels**\n' +
-          `War Tickets: ${channelsCfg.warTicketsChannelId ? `<#${channelsCfg.warTicketsChannelId}>` : '—'}\n` +
-          `Wager Tickets: ${channelsCfg.wagerTicketsChannelId ? `<#${channelsCfg.wagerTicketsChannelId}>` : '—'}\n` +
-          `General Tickets: ${channelsCfg.generalTicketsChannelId ? `<#${channelsCfg.generalTicketsChannelId}>` : '—'}\n` +
-          `War Category (SA): ${channelsCfg.warCategorySAId ? `<#${channelsCfg.warCategorySAId}>` : '—'}\n` +
-          `War Category (NAE): ${channelsCfg.warCategoryNAEId ? `<#${channelsCfg.warCategoryNAEId}>` : '—'}\n` +
-          `War Category (NAW): ${channelsCfg.warCategoryNAWId ? `<#${channelsCfg.warCategoryNAWId}>` : '—'}\n` +
-          `War Category (EU): ${channelsCfg.warCategoryEUId ? `<#${channelsCfg.warCategoryEUId}>` : '—'}\n` +
-          `Wager Category: ${channelsCfg.wagerCategoryId ? `<#${channelsCfg.wagerCategoryId}>` : '—'}\n` +
-          `General Tickets Category: ${channelsCfg.generalTicketsCategoryId ? `<#${channelsCfg.generalTicketsCategoryId}>` : '—'}\n` +
-          `War Transcripts: ${channelsCfg.warTranscriptsChannelId ? `<#${channelsCfg.warTranscriptsChannelId}>` : '—'}\n` +
-          `Wager Transcripts: ${channelsCfg.wagerTranscriptsChannelId ? `<#${channelsCfg.wagerTranscriptsChannelId}>` : '—'}\n` +
-          `General Transcripts: ${channelsCfg.generalTranscriptsChannelId ? `<#${channelsCfg.generalTranscriptsChannelId}>` : '—'}\n` +
-          `Bot Logs: ${channelsCfg.logsChannelId ? `<#${channelsCfg.logsChannelId}>` : '—'}\n` +
-          `DM Warning: ${channelsCfg.dmWarningChannelId ? `<#${channelsCfg.dmWarningChannelId}>` : '—'}\n` +
-          `War Dodge: ${channelsCfg.warDodgeChannelId ? `<#${channelsCfg.warDodgeChannelId}>` : '—'}\n` +
-          `Wager Dodge: ${channelsCfg.wagerDodgeChannelId ? `<#${channelsCfg.wagerDodgeChannelId}>` : '—'}\n` +
-          `Leaderboard: ${channelsCfg.leaderboardChannelId ? `<#${channelsCfg.leaderboardChannelId}>` : '—'}\n` +
-          `Event Points Leaderboard: ${channelsCfg.eventPointsLeaderboardChannelId ? `<#${channelsCfg.eventPointsLeaderboardChannelId}>` : '—'}\n` +
-          `Roster Forum (SA): ${channelsCfg.rosterForumSAChannelId ? `<#${channelsCfg.rosterForumSAChannelId}>` : '—'}\n` +
-          `Roster Forum (NA): ${channelsCfg.rosterForumNAChannelId ? `<#${channelsCfg.rosterForumNAChannelId}>` : '—'}\n` +
-          `Roster Forum (EU): ${channelsCfg.rosterForumEUChannelId ? `<#${channelsCfg.rosterForumEUChannelId}>` : '—'}`
-        );
+      // Simplified channels summary - count configured vs total
+      const channelFields = [
+        'warTicketsChannelId', 'wagerTicketsChannelId', 'generalTicketsChannelId',
+        'warCategorySAId', 'warCategoryNAEId', 'warCategoryNAWId', 'warCategoryEUId',
+        'wagerCategoryId', 'generalTicketsCategoryId', 'logsChannelId',
+        'warTranscriptsChannelId', 'wagerTranscriptsChannelId', 'generalTranscriptsChannelId',
+        'dmWarningChannelId', 'warDodgeChannelId', 'wagerDodgeChannelId',
+        'leaderboardChannelId', 'eventPointsLeaderboardChannelId',
+        'rosterForumSAChannelId', 'rosterForumNAChannelId', 'rosterForumEUChannelId'
+      ];
+      const configuredChannels = channelFields.filter(f => channelsCfg[f]).length;
 
-      const rolesText = new TextDisplayBuilder()
-        .setContent(
-          '**Roles (IDs)**\n' +
-          `Leaders: ${rolesCfg.leadersRoleId ? `<@&${rolesCfg.leadersRoleId}>` : '—'}\n` +
-          `Co-leaders: ${rolesCfg.coLeadersRoleId ? `<@&${rolesCfg.coLeadersRoleId}>` : '—'}\n` +
-          `Managers: ${rolesCfg.managersRoleId ? `<@&${rolesCfg.managersRoleId}>` : '—'}\n` +
-          `Moderators: ${rolesCfg.moderatorsRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-          `Hosters: ${rolesCfg.hostersRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-          `Support: ${rolesCfg.supportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-          `Admin Support: ${rolesCfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}`
-        );
+      // Simplified roles summary
+      const singleRoleFields = ['leadersRoleId', 'coLeadersRoleId', 'managersRoleId'];
+      const multiRoleFields = ['moderatorsRoleIds', 'hostersRoleIds', 'supportRoleIds', 'adminSupportRoleIds'];
+      const configuredSingleRoles = singleRoleFields.filter(f => rolesCfg[f]).length;
+      const configuredMultiRoles = multiRoleFields.filter(f => rolesCfg[f]?.length > 0).length;
+      const totalConfiguredRoles = configuredSingleRoles + configuredMultiRoles;
 
-      const statsText = new TextDisplayBuilder()
-        .setContent(`**Statistics**\nRegistered guilds: **${guildCount}**`);
+      // Simplified ranks summary
+      const rankFields = [
+        'iron1RoleId', 'iron2RoleId', 'iron3RoleId',
+        'silver1RoleId', 'silver2RoleId', 'silver3RoleId',
+        'gold1RoleId', 'gold2RoleId', 'gold3RoleId',
+        'platinum1RoleId', 'platinum2RoleId', 'platinum3RoleId',
+        'diamond1RoleId', 'diamond2RoleId',
+        'masterRoleId', 'grandMasterRoleId', 'top10RoleId'
+      ];
+      const configuredRanks = rankFields.filter(f => ranksCfg[f]).length;
+
+      const summaryText = new TextDisplayBuilder()
+        .setContent(
+          '**📊 Configuration Summary**\n\n' +
+          `📁 **Channels:** ${configuredChannels}/${channelFields.length} configured\n` +
+          `👥 **Roles:** ${totalConfiguredRoles}/${singleRoleFields.length + multiRoleFields.length} configured\n` +
+          `🏅 **Ranks:** ${configuredRanks}/${rankFields.length} configured\n` +
+          `🏰 **Guilds:** ${guildCount} registered`
+        );
 
       const footerText = new TextDisplayBuilder()
-        .setContent('*Use the buttons below to change the settings.*');
+        .setContent('*Use the buttons below to configure each section.*');
 
-      container.addTextDisplayComponents(
-        titleText,
-        channelsText,
-        rolesText,
-        statsText
-      );
+      container.addTextDisplayComponents(titleText);
+      container.addSeparatorComponents(new SeparatorBuilder());
+      container.addTextDisplayComponents(summaryText);
       container.addSeparatorComponents(new SeparatorBuilder());
       container.addTextDisplayComponents(footerText);
 
       const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('config:roles').setStyle(ButtonStyle.Secondary).setLabel('Roles'),
-        new ButtonBuilder().setCustomId('config:channels').setStyle(ButtonStyle.Secondary).setLabel('Channels')
+        new ButtonBuilder().setCustomId('config:roles').setStyle(ButtonStyle.Secondary).setLabel('Roles').setEmoji('👥'),
+        new ButtonBuilder().setCustomId('config:channels').setStyle(ButtonStyle.Secondary).setLabel('Channels').setEmoji('📁'),
+        new ButtonBuilder().setCustomId('config:ranks').setStyle(ButtonStyle.Secondary).setLabel('Ranks').setEmoji('🏅')
       );
 
       await interaction.reply({

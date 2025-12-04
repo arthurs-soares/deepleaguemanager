@@ -54,6 +54,10 @@ function resolveSelectHandler(customId) {
   // New dropdown-based configuration selectors
   if (customId === 'config:channels:select') return '../interactions/string-selects/configChannelSelect';
   if (customId === 'config:roles:select') return '../interactions/string-selects/configRoleSelect';
+  if (customId === 'config:ranks:select') return '../interactions/string-selects/configRankSelect';
+
+  // Rank role selection
+  if (customId.startsWith('config:ranks:roleSelect:')) return '../interactions/role-selects/configRankRoleSelect';
 
   // War Log MVP
   if (customId.startsWith('wl:mvpSelect:')) return '../interactions/user-selects/warLogMvpSelect';
