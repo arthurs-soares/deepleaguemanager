@@ -39,7 +39,6 @@ module.exports = {
     page: '<:dl_page:1446181307397832838>',
     ticket: '<:dl_ticket:1446181346505392199>',
     region: '<:dl_region:1446183250308501644>'
-    
   },
 
   // Cooldowns (in seconds)
