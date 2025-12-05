@@ -84,7 +84,10 @@ async function handle(interaction) {
       .setContent(`# ${emojis.depthsWager} Wager Ticket`);
 
     const descText = new TextDisplayBuilder()
-      .setContent('Use this channel to coordinate the wager. When finished or cancelled, a moderator/hoster can close the ticket.');
+      .setContent(
+        '⚠️ **Chat is locked** until the wager is accepted or marked as dodge.\n\n' +
+        'Use the buttons below to accept, close, or mark dodge.'
+      );
 
     const timestampText = new TextDisplayBuilder()
       .setContent(`*<t:${Math.floor(Date.now() / 1000)}:F>*`);

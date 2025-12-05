@@ -16,6 +16,7 @@ const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const { isDatabaseConnected } = require('../../../config/database');
 const { colors, emojis } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
+const { unlockChannelForUsers } = require('../../../utils/wager/wagerChannelManager');
 const {
   buildParticipantsMention,
   getAllParticipantIds,
@@ -99,6 +100,10 @@ async function handle(interaction) {
     ticket.acceptedAt = new Date();
     ticket.acceptedByUserId = interaction.user.id;
     await ticket.save();
+
+    // Unlock chat for all participants
+    const participantIds = getAllParticipantIds(ticket);
+    await unlockChannelForUsers(channel, participantIds);
 
     // Disable the Accept button - rebuild with Components v2 showing accepted state
     try {

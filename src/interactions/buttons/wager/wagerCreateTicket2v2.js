@@ -131,8 +131,8 @@ async function handle(interaction) {
 
     const descText = new TextDisplayBuilder()
       .setContent(
-        'Use this channel to coordinate the 2v2 wager. ' +
-        'When finished or cancelled, a moderator/hoster can close the ticket.'
+        '⚠️ **Chat is locked** until the wager is accepted or marked as dodge.\n\n' +
+        'Use the buttons below to accept, close, or mark dodge.'
       );
 
     const timestampText = new TextDisplayBuilder()

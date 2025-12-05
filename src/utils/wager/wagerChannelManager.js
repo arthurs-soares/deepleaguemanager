@@ -24,7 +24,7 @@ function generate2v2ChannelName(initiatorTag, teammateTag) {
 }
 
 /**
- * Create permission overwrites for users
+ * Create permission overwrites for users (locked - no SendMessages until accept)
  * @param {import('discord.js').Guild} guild
  * @param {Set<string>|string[]} userIds
  * @param {string[]} roleIdsHosters
@@ -39,6 +39,7 @@ async function createPermissionOverwritesForUsers(
     { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] }
   ];
 
+  // Users can view but NOT send messages until wager is accepted
   for (const uid of userIds) {
     try {
       const member = await guild.members.fetch(uid);
@@ -47,15 +48,16 @@ async function createPermissionOverwritesForUsers(
           id: uid,
           allow: [
             PermissionFlagsBits.ViewChannel,
-            PermissionFlagsBits.SendMessages,
             PermissionFlagsBits.ReadMessageHistory,
             PermissionFlagsBits.AttachFiles
-          ]
+          ],
+          deny: [PermissionFlagsBits.SendMessages]
         });
       }
     } catch (_) {}
   }
 
+  // Hosters/mods can always send messages
   for (const rid of roleIdsHosters || []) {
     const role = guild.roles.cache.get(rid);
     if (role) {
@@ -72,6 +74,21 @@ async function createPermissionOverwritesForUsers(
   }
 
   return overwrites;
+}
+
+/**
+ * Unlock chat for participants (grant SendMessages)
+ * @param {import('discord.js').TextChannel} channel
+ * @param {string[]} userIds - Array of user IDs to unlock
+ */
+async function unlockChannelForUsers(channel, userIds) {
+  for (const uid of userIds) {
+    try {
+      await channel.permissionOverwrites.edit(uid, {
+        SendMessages: true
+      });
+    } catch (_) {}
+  }
 }
 
 /**
@@ -153,5 +170,9 @@ async function createWagerChannel2v2(
   });
 }
 
-module.exports = { createWagerChannel, createWagerChannel2v2 };
+module.exports = {
+  createWagerChannel,
+  createWagerChannel2v2,
+  unlockChannelForUsers
+};
 

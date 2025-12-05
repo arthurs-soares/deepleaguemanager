@@ -1,4 +1,4 @@
-const { ChannelType, MessageFlags } = require('discord.js');
+const { ChannelType, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const { buildWagerDodgeEmbed } = require('../../../utils/embeds/wagerDodgeEmbed');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
@@ -7,6 +7,7 @@ const { sendWagerDodgeLog } = require('../../../utils/tickets/wagerDodgeLog');
 const { buildWagerCloseButtonRow } = require('../../../utils/tickets/closeButtons');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
+const { unlockChannelForUsers } = require('../../../utils/wager/wagerChannelManager');
 
 /**
  * Apply wager dodge after confirmation
@@ -21,30 +22,35 @@ async function handle(interaction) {
     const dodgerUserId = parts[4];
     const sourceMessageId = parts[5] && parts[5] !== '0' ? parts[5] : null;
 
-    if (!ticketId || !dodgerUserId) return interaction.editReply({ content: '❌ Invalid parameters.' });
+    if (!ticketId || !dodgerUserId) {
+      return interaction.editReply({ content: '❌ Invalid parameters.' });
+    }
 
-    // Check database connection
     if (!isDatabaseConnected()) {
-      return interaction.editReply({ content: '❌ Database is temporarily unavailable.' });
+      return interaction.editReply({ content: '❌ Database unavailable.' });
     }
 
-    // Permissions: only Moderators/Hosters
+    // Check permissions
     const rolesCfg = await getOrCreateRoleConfig(interaction.guild.id);
-    const allowedRoleIds = new Set([...(rolesCfg?.hostersRoleIds || []), ...(rolesCfg?.moderatorsRoleIds || [])]);
-    const hasAllowedRole = interaction.member.roles.cache.some(r => allowedRoleIds.has(r.id));
-    if (!hasAllowedRole) {
-      return interaction.editReply({ content: '❌ Only hosters or moderators can mark a wager as dodge.' });
+    const allowedRoleIds = new Set([
+      ...(rolesCfg?.hostersRoleIds || []),
+      ...(rolesCfg?.moderatorsRoleIds || [])
+    ]);
+    const member = interaction.member;
+    const isAdmin = member.permissions?.has(PermissionFlagsBits.Administrator);
+    const isStaff = isAdmin || member.roles.cache.some(r => allowedRoleIds.has(r.id));
+
+    // Allow self-dodge: user can mark themselves as dodger
+    const isSelfDodge = interaction.user.id === dodgerUserId;
+
+    if (!isStaff && !isSelfDodge) {
+      return interaction.editReply({
+        content: '❌ Only staff can mark others as dodge.'
+      });
     }
 
-    // Try to find by ID first, then by channel as fallback
     let ticket = await WagerTicket.findById(ticketId).catch(() => null);
-
-    // Fallback: find by channel ID if the ticket ID lookup fails
     if (!ticket) {
-      LoggerService.warn('Ticket not found by ID, trying channel fallback', {
-        ticketId,
-        channelId: interaction.channel?.id
-      });
       ticket = await WagerTicket.findOne({
         discordGuildId: interaction.guild.id,
         channelId: interaction.channel.id,
@@ -53,26 +59,48 @@ async function handle(interaction) {
     }
 
     if (!ticket) {
-      LoggerService.warn('Ticket not found', { ticketId, channelId: interaction.channel?.id });
       return interaction.editReply({ content: '❌ Ticket not found.' });
     }
-    if (ticket.status !== 'open') return interaction.editReply({ content: '⚠️ This ticket is not open.' });
+
+    if (ticket.status !== 'open') {
+      return interaction.editReply({ content: '⚠️ Ticket not open.' });
+    }
+
+    // If self-dodge, verify user is opponent (challenged player)
+    if (isSelfDodge && !isStaff) {
+      const isOpponent = ticket.opponentUserId === interaction.user.id ||
+        (ticket.is2v2 && ticket.opponentTeammateId === interaction.user.id);
+      if (!isOpponent) {
+        return interaction.editReply({
+          content: '❌ Only challenged players can self-dodge.'
+        });
+      }
+    }
 
     ticket.status = 'dodge';
     ticket.dodgedByUserId = dodgerUserId;
     await ticket.save();
 
+    // Unlock chat after dodge (so users can communicate if needed)
+    const ch = interaction.guild.channels.cache.get(ticket.channelId);
+    if (ch) {
+      const participantIds = [
+        ticket.initiatorUserId,
+        ticket.opponentUserId,
+        ticket.initiatorTeammateId,
+        ticket.opponentTeammateId
+      ].filter(Boolean);
+      await unlockChannelForUsers(ch, participantIds);
+    }
+
     // Get user info for embeds and logs
     const opponentId = ticket.initiatorUserId === dodgerUserId
       ? ticket.opponentUserId
       : ticket.initiatorUserId;
-    let dodgerUser = null, opponentUser = null;
-    try {
-      [dodgerUser, opponentUser] = await Promise.all([
-        interaction.client.users.fetch(dodgerUserId).catch(() => null),
-        interaction.client.users.fetch(opponentId).catch(() => null)
-      ]);
-    } catch (_) {}
+    const [dodgerUser, opponentUser] = await Promise.all([
+      interaction.client.users.fetch(dodgerUserId).catch(() => null),
+      interaction.client.users.fetch(opponentId).catch(() => null)
+    ]);
 
     // Update original message and ticket channel
     try {
