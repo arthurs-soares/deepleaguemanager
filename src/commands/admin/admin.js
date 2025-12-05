@@ -10,22 +10,6 @@ const adminWager = require('../../utils/commands/adminWager');
 const adminSystem = require('../../utils/commands/adminSystem');
 const adminSettings = require('../../utils/commands/adminSettings');
 
-async function warMarkDodge(interaction) {
-  return adminWar.markDodge(interaction);
-}
-
-async function warUndoDodge(interaction) {
-  return adminWar.undoDodge(interaction);
-}
-
-async function warRevertResult(interaction) {
-  return adminWar.revertResult(interaction);
-}
-
-async function wagerRecord(interaction) {
-  return adminWager.record(interaction);
-}
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('admin')
@@ -94,6 +78,19 @@ module.exports = {
           .setName('loser')
           .setDescription('Loser')
           .setRequired(true))
+      )
+      .addSubcommand(sc => sc
+        .setName('set-wins')
+        .setDescription('Set wager wins for a user')
+        .addUserOption(o => o
+          .setName('user')
+          .setDescription('Target user')
+          .setRequired(true))
+        .addIntegerOption(o => o
+          .setName('wins')
+          .setDescription('Number of wins to set')
+          .setRequired(true)
+          .setMinValue(0))
       )
     )
 
@@ -192,27 +189,18 @@ module.exports = {
       const group = interaction.options.getSubcommandGroup();
       const sub = interaction.options.getSubcommand();
 
-      if (group === 'war' && sub === 'mark-dodge') return warMarkDodge(interaction);
-      if (group === 'war' && sub === 'undo-dodge') return warUndoDodge(interaction);
-      if (group === 'war' && sub === 'revert-result') {
-        return warRevertResult(interaction);
-      }
+      if (group === 'war' && sub === 'mark-dodge') return adminWar.markDodge(interaction);
+      if (group === 'war' && sub === 'undo-dodge') return adminWar.undoDodge(interaction);
+      if (group === 'war' && sub === 'revert-result') return adminWar.revertResult(interaction);
 
-      if (group === 'wager' && sub === 'record') return wagerRecord(interaction);
+      if (group === 'wager' && sub === 'record') return adminWager.record(interaction);
+      if (group === 'wager' && sub === 'set-wins') return adminWager.setWins(interaction);
 
-      if (group === 'system' && sub === 'sync') {
-        return adminSystem.sync(interaction);
-      }
-      if (group === 'system' && sub === 'db-status') {
-        return adminSystem.dbStatus(interaction);
-      }
-      if (group === 'system' && sub === 'db-reset') {
-        return adminSystem.dbReset(interaction);
-      }
+      if (group === 'system' && sub === 'sync') return adminSystem.sync(interaction);
+      if (group === 'system' && sub === 'db-status') return adminSystem.dbStatus(interaction);
+      if (group === 'system' && sub === 'db-reset') return adminSystem.dbReset(interaction);
 
-      if (group === 'settings' && sub === 'hostping') {
-        return adminSettings.hostping(interaction);
-      }
+      if (group === 'settings' && sub === 'hostping') return adminSettings.hostping(interaction);
 
       return replyEphemeral(interaction, { content: 'Unknown subcommand.' });
     } catch (error) {
