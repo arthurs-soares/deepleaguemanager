@@ -57,6 +57,12 @@ async function handle(interaction) {
         placeholder: 'Select registration access roles (1-25)',
         minValues: 1,
         maxValues: 25
+      },
+      noWagers: {
+        customId: 'config:roles:singleSelect:noWagersRoleId',
+        placeholder: 'Select the no wagers role',
+        minValues: 1,
+        maxValues: 1
       }
     };
 

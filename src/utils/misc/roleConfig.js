@@ -13,7 +13,8 @@ function buildInMemoryDefault(discordGuildId) {
     supportRoleIds: [],
     adminSupportRoleIds: [],
     tagRoleId: null,
-    registrationAccessRoleIds: []
+    registrationAccessRoleIds: [],
+    noWagersRoleId: null
   };
 }
 

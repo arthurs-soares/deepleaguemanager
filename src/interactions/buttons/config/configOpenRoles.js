@@ -32,7 +32,8 @@ async function handle(interaction) {
         `**Hosters:** ${cfg.hostersRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
         `**Support:** ${cfg.supportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
         `**Admin Support:** ${cfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
-        `**Registration Access:** ${cfg.registrationAccessRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}`
+        `**Registration Access:** ${cfg.registrationAccessRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
+        `**No Wagers:** ${cfg.noWagersRoleId ? `<@&${cfg.noWagersRoleId}>` : '—'}`
       );
 
     container.addTextDisplayComponents(titleText, descText);
@@ -89,7 +90,14 @@ async function handle(interaction) {
           .setLabel('Registration Access Roles')
           .setDescription('Roles that can create roster tickets (multiple)')
           .setValue('registrationAccess')
-          .setEmoji('📝')
+          .setEmoji('📝'),
+
+        // 🚫 Restriction Roles
+        new StringSelectMenuOptionBuilder()
+          .setLabel('No Wagers Role')
+          .setDescription('Role that restricts users from creating wagers')
+          .setValue('noWagers')
+          .setEmoji('🚫')
       ]);
 
     const row = new ActionRowBuilder().addComponents(roleSelect);

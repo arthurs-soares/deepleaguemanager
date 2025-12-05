@@ -29,6 +29,17 @@ const { colors, emojis } = require('../../../config/botConfig');
 const MAX_OPEN_WAGER_TICKETS_PER_USER = 4;
 
 /**
+ * Check if a member has the no-wagers role
+ * @param {GuildMember} member - Guild member
+ * @param {string} noWagersRoleId - Role ID from config
+ * @returns {boolean}
+ */
+function hasNoWagersRole(member, noWagersRoleId) {
+  if (!member || !noWagersRoleId) return false;
+  return member.roles.cache.has(noWagersRoleId);
+}
+
+/**
  * Create 2v2 wager ticket channel and panel
  * CustomId: wager:createTicket2v2:<teammateId>:<opponent1Id>:<opponent2Id>
  */
@@ -62,6 +73,19 @@ async function handle(interaction) {
     }
 
     const roleCfg = await getOrCreateRoleConfig(guildId);
+
+    // Check if any participant has no-wagers role
+    const members = await Promise.all(
+      allUserIds.map(uid => interaction.guild.members.fetch(uid).catch(() => null))
+    );
+    for (let i = 0; i < allUserIds.length; i++) {
+      if (hasNoWagersRole(members[i], roleCfg?.noWagersRoleId)) {
+        return interaction.editReply({
+          content: `❌ <@${allUserIds[i]}> has opted out of wagers.`
+        });
+      }
+    }
+
     const settings = await getOrCreateServerSettings(guildId);
 
     const catId = settings.wagerCategoryId;

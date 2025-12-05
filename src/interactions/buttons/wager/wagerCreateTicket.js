@@ -12,6 +12,17 @@ const { colors, emojis } = require('../../../config/botConfig');
 const MAX_OPEN_WAGER_TICKETS_PER_USER = 4;
 
 /**
+ * Check if a member has the no-wagers role
+ * @param {GuildMember} member - Guild member
+ * @param {string} noWagersRoleId - Role ID from config
+ * @returns {boolean}
+ */
+function hasNoWagersRole(member, noWagersRoleId) {
+  if (!member || !noWagersRoleId) return false;
+  return member.roles.cache.has(noWagersRoleId);
+}
+
+/**
  * Create wager ticket channel and panel
  * CustomId: wager:createTicket:<opponentUserId>
  */
@@ -45,6 +56,24 @@ async function handle(interaction) {
 
     // War wagers removed: no leader/co-leader restrictions for wagers
     const roleCfg = await getOrCreateRoleConfig(interaction.guild.id);
+
+    // Check if initiator has no-wagers role
+    const initiatorMember = await interaction.guild.members
+      .fetch(initiatorId).catch(() => null);
+    if (hasNoWagersRole(initiatorMember, roleCfg?.noWagersRoleId)) {
+      return interaction.editReply({
+        content: '❌ You have opted out of wagers. Remove the no-wagers role.'
+      });
+    }
+
+    // Check if opponent has no-wagers role
+    const opponentMember = await interaction.guild.members
+      .fetch(opponentUserId).catch(() => null);
+    if (hasNoWagersRole(opponentMember, roleCfg?.noWagersRoleId)) {
+      return interaction.editReply({
+        content: `❌ <@${opponentUserId}> has opted out of wagers.`
+      });
+    }
 
     const settings = await getOrCreateServerSettings(interaction.guild.id);
 

@@ -10,12 +10,24 @@ const { colors, emojis } = require('../../config/botConfig');
 const { getOrCreateUserProfile } = require('../user/userProfile');
 const { getUserGuildInfo } = require('../guilds/userGuildInfo');
 const { getRoleDisplayLabel } = require('../core/roleMapping');
+const { getOrCreateRoleConfig } = require('../misc/roleConfig');
 const UserProfile = require('../../models/user/UserProfile');
 
 // Small helpers to keep functions short and readable
 function formatTs(d, style = 'd') {
   try { return `<t:${Math.floor(new Date(d).getTime() / 1000)}:${style}>`; }
   catch { return null; }
+}
+
+/**
+ * Check if user has the no-wagers role
+ * @param {GuildMember} member - Guild member
+ * @param {string} noWagersRoleId - Role ID from config
+ * @returns {boolean}
+ */
+function hasNoWagersRole(member, noWagersRoleId) {
+  if (!member || !noWagersRoleId) return false;
+  return member.roles.cache.has(noWagersRoleId);
 }
 
 async function buildGuildInfoField(discordGuildId, targetUserId) {
@@ -114,6 +126,11 @@ async function buildUserProfileDisplayComponents(
   const wager = computeWagerStats(profile);
   const rank = await getServerRank(discordGuild, targetUser.id);
 
+  // Check wager opt status
+  const roleCfg = await getOrCreateRoleConfig(discordGuild.id);
+  const isOptedOut = hasNoWagersRole(member, roleCfg?.noWagersRoleId);
+  const wagerStatus = isOptedOut ? '🚫 **Opted Out**' : '✅ **Opted In**';
+
   // Resolve accent color (hex string or number)
   const color = (() => {
     const c = profile.color || colors.info;
@@ -137,7 +154,7 @@ async function buildUserProfileDisplayComponents(
 
   // Core stats in a section with avatar accessory
   const statsText = new TextDisplayBuilder().setContent(
-    `**📊 Wager Stats**\n` +
+    `**📊 Wager Stats** — ${wagerStatus}\n` +
     `Games: **${wager.games}** • W/L: **${wager.wins}/${wager.losses}** ` +
     `(${wager.rate}%) • Streak: ${wager.streak}\n` +
     `Rank: **#${rank.rank}** of ${rank.total}`
