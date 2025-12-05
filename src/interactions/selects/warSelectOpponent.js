@@ -12,7 +12,8 @@ async function handle(interaction) {
   try {
     const parts = interaction.customId.split(':');
     const guildAId = parts[2];
-    const region = parts[3];
+    // Decode region (underscores back to spaces)
+    const region = parts[3]?.replace(/_/g, ' ');
     const guildBId = interaction.values?.[0];
     if (!guildAId || !guildBId) return interaction.deferUpdate();
 
@@ -39,9 +40,12 @@ async function handle(interaction) {
 
     container.addTextDisplayComponents(titleText, descText, footerText);
 
+    // Encode region for safe customId (replace spaces with underscores)
+    const safeRegion = region.replace(/ /g, '_');
+
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`war:openScheduleModal:${guildA._id}:${guildB._id}:${region}`)
+        .setCustomId(`war:openScheduleModal:${guildA._id}:${guildB._id}:${safeRegion}`)
         .setStyle(ButtonStyle.Secondary)
         .setLabel('Set Schedule')
         .setEmoji('📅')

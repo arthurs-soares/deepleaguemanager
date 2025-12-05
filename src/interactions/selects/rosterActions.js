@@ -19,7 +19,8 @@ async function handle(interaction) {
   try {
     const parts = interaction.customId.split(':');
     const guildId = parts[1];
-    const region = parts[2];
+    // Decode region (underscores back to spaces)
+    const region = parts[2]?.replace(/_/g, ' ');
     if (!guildId || !region) {
       const embed = createErrorEmbed('Invalid', 'Missing data.');
       return interaction.reply({
@@ -74,10 +75,13 @@ async function handle(interaction) {
 
     const { mainRoster, subRoster } = getRegionRosters(guildDoc, region);
 
+    // Encode region for safe customId (replace spaces with underscores)
+    const safeRegion = region.replace(/ /g, '_');
+
     if (['add_main', 'add_sub'].includes(action)) {
       const row = new ActionRowBuilder().addComponents(
         new UserSelectMenuBuilder()
-          .setCustomId(`roster_user_select:${guildId}:${action}:${source}:${region}`)
+          .setCustomId(`roster_user_select:${guildId}:${action}:${source}:${safeRegion}`)
           .setPlaceholder('Select a user')
           .setMinValues(1)
           .setMaxValues(1)
@@ -107,7 +111,7 @@ async function handle(interaction) {
 
       const row = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
-          .setCustomId(`roster_member_select:${guildId}:${action}:${source}:${region}`)
+          .setCustomId(`roster_member_select:${guildId}:${action}:${source}:${safeRegion}`)
           .setPlaceholder('Select member to remove')
           .addOptions(options.slice(0, 25))
       );

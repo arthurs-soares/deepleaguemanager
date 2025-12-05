@@ -19,7 +19,8 @@ async function handle(interaction) {
     const roster = parts[3];
     const userId = parts[4];
     const decision = parts[5];
-    const region = parts[6]; // New: region parameter
+    // Decode region (underscores back to spaces)
+    const region = parts[6]?.replace(/_/g, ' ');
 
     if (!guildId || !roster || !userId || !decision || !region) {
       const embed = createErrorEmbed('Invalid data', 'Missing confirmation.');

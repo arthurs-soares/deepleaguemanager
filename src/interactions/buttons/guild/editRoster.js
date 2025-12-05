@@ -92,8 +92,11 @@ async function handle(interaction) {
  * @param {string} region
  */
 async function showRosterActions(interaction, guildId, region) {
+  // Encode region for safe customId (replace spaces with underscores)
+  const safeRegion = region.replace(/ /g, '_');
+
   const menu = new StringSelectMenuBuilder()
-    .setCustomId(`roster_actions:${guildId}:${region}`)
+    .setCustomId(`roster_actions:${guildId}:${safeRegion}`)
     .setPlaceholder(`Manage rosters for ${region}`)
     .addOptions([
       {

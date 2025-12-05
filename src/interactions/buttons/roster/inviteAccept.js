@@ -20,7 +20,8 @@ async function handle(interaction) {
     const guildId = parts[2];
     const roster = parts[3] === 'main' ? 'main' : 'sub';
     const inviterId = parts[4] || null;
-    const region = parts[5]; // New: region parameter
+    // Decode region (underscores back to spaces)
+    const region = parts[5]?.replace(/_/g, ' ');
 
     if (!guildId || !region) {
       const embed = createErrorEmbed('Invalid invitation', 'Missing data.');

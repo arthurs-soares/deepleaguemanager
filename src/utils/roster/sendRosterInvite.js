@@ -116,16 +116,19 @@ async function sendRosterInvite(
     container.addTextDisplayComponents(footerText);
     container.addTextDisplayComponents(timestampText);
 
+    // Encode region for safe customId (replace spaces with underscores)
+    const safeRegion = region.replace(/ /g, '_');
+
     // Include region in button customIds
     const accept = new ButtonBuilder()
       .setCustomId(
-        `rosterInvite:accept:${guildDoc._id}:${roster}:${inviter?.id || 'unknown'}:${region}`
+        `rosterInvite:accept:${guildDoc._id}:${roster}:${inviter?.id || 'unknown'}:${safeRegion}`
       )
       .setLabel('Join Guild')
       .setStyle(ButtonStyle.Success);
 
     const decline = new ButtonBuilder()
-      .setCustomId(`rosterInvite:decline:${guildDoc._id}:${roster}:${region}`)
+      .setCustomId(`rosterInvite:decline:${guildDoc._id}:${roster}:${safeRegion}`)
       .setLabel("Don't Join")
       .setStyle(ButtonStyle.Secondary);
 

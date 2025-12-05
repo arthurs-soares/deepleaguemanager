@@ -24,7 +24,8 @@ async function handle(interaction) {
     const guildId = parts[1];
     const action = parts[2];
     const source = parts[3];
-    const region = parts[4];
+    // Decode region (underscores back to spaces)
+    const region = parts[4]?.replace(/_/g, ' ');
 
     if (!guildId || !action || !region) {
       const embed = createErrorEmbed('Invalid', 'Missing data.');

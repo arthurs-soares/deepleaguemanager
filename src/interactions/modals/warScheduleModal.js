@@ -21,7 +21,8 @@ async function handle(interaction) {
     const parts = interaction.customId.split(':');
     const guildAId = parts[2];
     const guildBId = parts[3];
-    const region = parts[4] || null;
+    // Decode region (underscores back to spaces)
+    const region = parts[4]?.replace(/_/g, ' ') || null;
     const day = interaction.fields.getTextInputValue('day');
     const month = interaction.fields.getTextInputValue('month');
     const year = interaction.fields.getTextInputValue('year');

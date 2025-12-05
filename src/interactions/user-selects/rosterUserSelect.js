@@ -28,7 +28,8 @@ async function handle(interaction) {
     const guildId = parts[1];
     const action = parts[2];
     const source = parts[3];
-    const region = parts[4];
+    // Decode region (underscores back to spaces)
+    const region = parts[4]?.replace(/_/g, ' ');
 
     if (!guildId || !action || !region) {
       const embed = createErrorEmbed('Invalid', 'Missing data.');
@@ -110,13 +111,16 @@ async function handle(interaction) {
       new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)
     );
 
+    // Encode region for safe customId (replace spaces with underscores)
+    const safeRegion = region.replace(/ /g, '_');
+
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId('rosterInvite:sendConfirm:' + guildId + ':' + roster + ':' + selectedUserId + ':yes:' + region)
+        .setCustomId('rosterInvite:sendConfirm:' + guildId + ':' + roster + ':' + selectedUserId + ':yes:' + safeRegion)
         .setLabel('Send Invite')
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
-        .setCustomId('rosterInvite:sendConfirm:' + guildId + ':' + roster + ':' + selectedUserId + ':no:' + region)
+        .setCustomId('rosterInvite:sendConfirm:' + guildId + ':' + roster + ':' + selectedUserId + ':no:' + safeRegion)
         .setLabel('Cancel')
         .setStyle(ButtonStyle.Secondary)
     );

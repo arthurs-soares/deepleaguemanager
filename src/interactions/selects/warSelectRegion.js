@@ -75,13 +75,16 @@ async function handle(interaction) {
 
     const optionChunks = chunkArray(opponents, 25).slice(0, 5);
 
+    // Encode region for safe customId (replace spaces with underscores)
+    const safeRegion = selectedRegion.replace(/ /g, '_');
+
     const rows = optionChunks.map((chunk, idx) => {
       const placeholder = idx === 0
         ? 'Select opponent guild'
         : `More options (${idx + 1}/${optionChunks.length})`;
 
       const select = new StringSelectMenuBuilder()
-        .setCustomId(`war:selectOpponent:${guildAId}:${selectedRegion}:${idx}`)
+        .setCustomId(`war:selectOpponent:${guildAId}:${safeRegion}:${idx}`)
         .setPlaceholder(placeholder)
         .addOptions(chunk.map(g => ({
           label: g.name,
