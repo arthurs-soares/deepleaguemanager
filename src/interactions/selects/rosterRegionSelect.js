@@ -1,6 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const { createErrorEmbed } = require('../../utils/embeds/embedBuilder');
-const { showRosterActions } = require('../../buttons/guild/editRoster');
+const { showRosterActions } = require('../buttons/guild/editRoster');
 const LoggerService = require('../../services/LoggerService');
 
 /**
