@@ -157,11 +157,12 @@ async function updateTop10Ranks(discordGuild) {
       .keys()];
 
     // Get top 10 users by wager wins (must have at least 1 win)
+    // Sort: more wins first, fewer losses second
     const topUsers = await UserProfile.find({
       discordUserId: { $in: memberIds },
       wagerWins: { $gt: 0 }
     })
-      .sort({ wagerWins: -1 })
+      .sort({ wagerWins: -1, wagerLosses: 1, discordUserId: 1 })
       .limit(10)
       .lean();
 

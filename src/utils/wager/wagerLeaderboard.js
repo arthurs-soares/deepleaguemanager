@@ -47,8 +47,8 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
   })
     .sort({
       wagerWins: -1,
-      wagerGamesPlayed: -1,
       wagerLosses: 1,
+      wagerGamesPlayed: -1,
       discordUserId: 1
     })
     .limit(15);
