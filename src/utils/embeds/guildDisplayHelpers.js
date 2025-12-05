@@ -19,7 +19,7 @@ const { emojis } = require('../../config/botConfig');
  */
 function getRegionStatsForDisplay(guild, selectedRegion) {
   if (!guild?.regions?.length) {
-    return { region: '—', wins: 0, losses: 0, elo: 1000 };
+    return { region: '—', wins: 0, losses: 0 };
   }
 
   if (selectedRegion) {
@@ -63,7 +63,6 @@ function buildRegionStatsText(regionStats, activeRegions, useH3 = false) {
   const regionLabel = regionStats?.region || '—';
   const regionWins = regionStats?.wins ?? 0;
   const regionLosses = regionStats?.losses ?? 0;
-  const regionElo = regionStats?.elo ?? 1000;
 
   const regionsListText = activeRegions.length > 0
     ? activeRegions.map(r => r.region).join(', ')
@@ -76,7 +75,7 @@ function buildRegionStatsText(regionStats, activeRegions, useH3 = false) {
   return new TextDisplayBuilder().setContent(
     `${header}\n` +
     `**Regions:** ${regionsListText}\n` +
-    `**${emojis.winsLosses} W/L:** ${regionWins}/${regionLosses} | **ELO:** ${regionElo}`
+    `**${emojis.winsLosses} W/L:** ${regionWins}/${regionLosses}`
   );
 }
 
