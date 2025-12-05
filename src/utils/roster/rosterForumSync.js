@@ -132,13 +132,20 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
   if (!forum || forum.type !== ChannelType.GuildForum) return;
 
   // Build query filter based on region (only active guilds)
+  // Multi-region guilds use regions array with region objects
   const query = {
     discordGuildId: discordGuild.id,
     status: { $in: ['ativa', 'active'] }
   };
   const regionValues = getRegionValues(regionFilter);
   if (regionValues) {
-    query.region = { $in: regionValues };
+    // Query guilds that have at least one active region matching filter
+    query['regions'] = {
+      $elemMatch: {
+        region: { $in: regionValues },
+        status: 'active'
+      }
+    };
   }
 
   const guilds = await Guild.find(query).sort({ createdAt: 1 });

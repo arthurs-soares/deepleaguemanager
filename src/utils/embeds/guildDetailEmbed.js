@@ -8,6 +8,12 @@ const {
 } = require('@discordjs/builders');
 const { colors, emojis } = require('../../config/botConfig');
 const { normalizeRoleToPortuguese } = require('../core/roleMapping');
+const {
+  getRegionStatsForDisplay,
+  formatUserList,
+  buildRegionStatsText,
+  buildRegionSelector
+} = require('./guildDisplayHelpers');
 
 
 /**
@@ -17,9 +23,10 @@ const { normalizeRoleToPortuguese } = require('../core/roleMapping');
  * - Includes all existing functionality with modern components
  * @param {Object} guild - Guild document
  * @param {import('discord.js').Guild} _discordGuild - Discord guild object
+ * @param {string} [selectedRegion] - Selected region for stats display
  * @returns {Promise<ContainerBuilder>}
  */
-async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
+async function buildGuildDetailDisplayComponents(guild, _discordGuild, selectedRegion = null) {
 
   const members = Array.isArray(guild.members) ? guild.members : [];
   const leaderMember = members.find(m => normalizeRoleToPortuguese(m.role) === 'lider');
@@ -27,6 +34,10 @@ async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
   const mainRoster = Array.isArray(guild.mainRoster) ? guild.mainRoster : [];
   const subRoster = Array.isArray(guild.subRoster) ? guild.subRoster : [];
   const managers = Array.isArray(guild.managers) ? guild.managers : [];
+
+  const guildId = guild.id || guild._id;
+  const regionStats = getRegionStatsForDisplay(guild, selectedRegion);
+  const activeRegions = (guild.regions || []).filter(r => r.status === 'active');
 
   const color = guild.color ? parseInt(guild.color.replace('#', ''), 16) : colors.primary;
 
@@ -77,19 +88,14 @@ async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
     container.addTextDisplayComponents(managersText);
   }
 
-  // Region section
-  const regionText = new TextDisplayBuilder()
-    .setContent(`**${emojis.region} Region**\n${guild.region || '—'}`);
-  container.addTextDisplayComponents(regionText);
+  // Region stats section with multi-region support
+  const regionLabel = regionStats?.region || '—';
+  const regionStatsText = buildRegionStatsText(regionStats, activeRegions, false);
+  container.addTextDisplayComponents(regionStatsText);
 
-  // Statistics section - use individual TextDisplayBuilder components
-  const winsLossesText = new TextDisplayBuilder()
-    .setContent(
-      `**${emojis.winsLosses} Wins/Losses**\n${guild.wins||0} / ${guild.losses||0}`
-    );
-
-  // Add individual statistics text components
-  container.addTextDisplayComponents(winsLossesText);
+  // Add region selector if guild has multiple active regions
+  const regionRow = buildRegionSelector('guild_view', guildId, activeRegions, regionLabel);
+  if (regionRow) container.addActionRowComponents(regionRow);
 
   // Add separator before rosters
   const separator = new SeparatorBuilder();
@@ -117,13 +123,6 @@ async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
   }
 
   return container;
-}
-
-function formatUserList(ids) {
-  if (!ids || ids.length === 0) return '—';
-  const items = ids.map(id => `<@${id}>`);
-  const text = items.join('\n');
-  return text.length > 1000 ? text.slice(0, 1000) + '…' : text;
 }
 
 module.exports = { buildGuildDetailDisplayComponents };

@@ -4,89 +4,18 @@ const {
   SectionBuilder,
   SeparatorBuilder,
   MediaGalleryBuilder,
-  MediaGalleryItemBuilder,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
-  ActionRowBuilder
+  MediaGalleryItemBuilder
 } = require('@discordjs/builders');
 const { ButtonStyle } = require('discord.js');
 
 const { colors, emojis } = require('../../config/botConfig');
 const { formatRosterCounts } = require('../roster/rosterUtils');
-const { getFirstActiveRegion } = require('../../models/statics/guildStatics');
-
-/**
- * Format managers list for display
- * @param {string[]} managers - Array of manager user IDs
- * @returns {string}
- */
-function formatManagersList(managers) {
-  if (!Array.isArray(managers) || managers.length === 0) return '—';
-  return managers.map(id => `<@${id}>`).join(', ');
-}
-
-/**
- * Get region stats for display
- * @param {Object} guild - Guild document
- * @param {string} selectedRegion - Selected region name
- * @returns {Object} Region stats
- */
-function getRegionStatsForDisplay(guild, selectedRegion) {
-  if (!guild?.regions?.length) {
-    return { region: '—', wins: 0, losses: 0, elo: 1000 };
-  }
-
-  if (selectedRegion) {
-    const found = guild.regions.find(r => r.region === selectedRegion);
-    if (found) return found;
-  }
-
-  return getFirstActiveRegion(guild) || guild.regions[0];
-}
-
-/**
- * Build region stats section components
- * @param {ContainerBuilder} container - Container to add to
- * @param {Object} guild - Guild document
- * @param {Object} regionStats - Region stats object
- * @param {Array} activeRegions - Active regions array
- * @param {string} guildId - Guild ID
- */
-function buildRegionStatsSection(container, guild, regionStats, activeRegions, guildId) {
-  const regionLabel = regionStats?.region || '—';
-  const regionWins = regionStats?.wins ?? 0;
-  const regionLosses = regionStats?.losses ?? 0;
-  const regionElo = regionStats?.elo ?? 1000;
-
-  const regionsListText = activeRegions.length > 0
-    ? activeRegions.map(r => r.region).join(', ')
-    : '—';
-
-  const regionStatsText = new TextDisplayBuilder()
-    .setContent(
-      `### 🌍 Region Stats: **${regionLabel}**\n` +
-      `**Regions:** ${regionsListText}\n` +
-      `**W/L:** ${regionWins}/${regionLosses} | **ELO:** ${regionElo}`
-    );
-  container.addTextDisplayComponents(regionStatsText);
-
-  if (activeRegions.length > 1) {
-    const regionSelect = new StringSelectMenuBuilder()
-      .setCustomId(`guild_panel:select_region:${guildId}`)
-      .setPlaceholder('Switch Region');
-
-    for (const r of activeRegions) {
-      const option = new StringSelectMenuOptionBuilder()
-        .setLabel(r.region)
-        .setValue(r.region)
-        .setDefault(r.region === regionLabel);
-      regionSelect.addOptions(option);
-    }
-
-    const regionRow = new ActionRowBuilder().addComponents(regionSelect);
-    container.addActionRowComponents(regionRow);
-  }
-}
+const {
+  getRegionStatsForDisplay,
+  formatManagersList,
+  buildRegionStatsText,
+  buildRegionSelector
+} = require('./guildDisplayHelpers');
 
 
 /**
@@ -214,8 +143,13 @@ async function buildGuildPanelDisplayComponents(guild, _discordGuild, selectedRe
   const separator = new SeparatorBuilder();
   container.addSeparatorComponents(separator);
 
-  // Region Stats Section
-  buildRegionStatsSection(container, guild, regionStats, activeRegions, guildId);
+  // Region Stats Section using shared helpers
+  const regionLabel = regionStats?.region || '—';
+  const regionStatsText = buildRegionStatsText(regionStats, activeRegions, true);
+  container.addTextDisplayComponents(regionStatsText);
+
+  const regionRow = buildRegionSelector('guild_panel', guildId, activeRegions, regionLabel);
+  if (regionRow) container.addActionRowComponents(regionRow);
 
   // Separator before description
   container.addSeparatorComponents(new SeparatorBuilder());
