@@ -4,12 +4,9 @@ const { getOrCreateServerSettings } = require('../../../utils/system/serverSetti
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { createWagerChannel } = require('../../../utils/wager/wagerChannelManager');
 const { sendAndPin } = require('../../../utils/tickets/pinUtils');
-const { countOpenWagerTickets } = require('../../../utils/wager/wagerTicketLimits');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const LoggerService = require('../../../services/LoggerService');
 const { colors, emojis } = require('../../../config/botConfig');
-
-const MAX_OPEN_WAGER_TICKETS_PER_USER = 4;
 
 /**
  * Check if a member has the no-wagers role
@@ -34,25 +31,6 @@ async function handle(interaction) {
     if (!opponentUserId) return interaction.editReply({ content: '❌ Missing opponent.' });
 
     const initiatorId = interaction.user.id;
-    const guildId = interaction.guild.id;
-
-    // Check ticket limit for both initiator and opponent
-    const [initiatorCount, opponentCount] = await Promise.all([
-      countOpenWagerTickets(guildId, initiatorId),
-      countOpenWagerTickets(guildId, opponentUserId)
-    ]);
-
-    if (initiatorCount >= MAX_OPEN_WAGER_TICKETS_PER_USER) {
-      return interaction.editReply({
-        content: `❌ You have reached the maximum of **${MAX_OPEN_WAGER_TICKETS_PER_USER}** open wager tickets.`
-      });
-    }
-
-    if (opponentCount >= MAX_OPEN_WAGER_TICKETS_PER_USER) {
-      return interaction.editReply({
-        content: `❌ <@${opponentUserId}> has reached the maximum of **${MAX_OPEN_WAGER_TICKETS_PER_USER}** open wager tickets.`
-      });
-    }
 
     // War wagers removed: no leader/co-leader restrictions for wagers
     const roleCfg = await getOrCreateRoleConfig(interaction.guild.id);
