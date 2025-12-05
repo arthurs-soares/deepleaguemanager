@@ -70,6 +70,10 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('coLeaderInvite:accept:')) return '../interactions/buttons/guild/coLeaderInviteAccept';
   if (customId.startsWith('coLeaderInvite:decline:')) return '../interactions/buttons/guild/coLeaderInviteDecline';
 
+  // Leader invite flow (leadership transfer confirmation)
+  if (customId.startsWith('leaderInvite:accept:')) return '../interactions/buttons/guild/leaderInviteAccept';
+  if (customId.startsWith('leaderInvite:decline:')) return '../interactions/buttons/guild/leaderInviteDecline';
+
   if (customId === 'profile:edit') return '../interactions/buttons/profile/editProfile';
   if (customId === 'profile:leaveGuild') return '../interactions/buttons/profile/leaveGuild';
   if (customId.startsWith('profile:confirmLeave:')) return '../interactions/buttons/profile/confirmLeaveGuild';
