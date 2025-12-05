@@ -119,16 +119,22 @@ async function handle(interaction) {
     const ch = interaction.guild.channels.cache.get(ticket.channelId);
     if (ch) {
       try {
+        const resultMsg = ticket.is2v2
+          ? `✅ Result recorded by <@${interaction.user.id}>. Points applied to all 4 players.`
+          : `✅ Result recorded by <@${interaction.user.id}>. Points applied.`;
         await ch.send({
-          content: `✅ Result recorded by <@${interaction.user.id}>.`,
+          content: resultMsg,
           components: [embed, buildWagerCloseButtonRow(ticket._id)],
           flags: MessageFlags.IsComponentsV2
         });
       } catch (_) {}
     }
 
+    const confirmMsg = ticket.is2v2
+      ? '✅ Result applied. Points updated for all 4 players.'
+      : '✅ Result applied. Points updated for both players.';
     return interaction.followUp({
-      content: '✅ Result applied.',
+      content: confirmMsg,
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
