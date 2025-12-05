@@ -1,6 +1,7 @@
 const { MessageFlags } = require('discord.js');
-const { createErrorEmbed } = require('../../../utils/embeds/embedBuilder');
+const { createErrorEmbed } = require('../../utils/embeds/embedBuilder');
 const { showRosterActions } = require('../../buttons/guild/editRoster');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Region selector for roster management
@@ -24,7 +25,7 @@ async function handle(interaction) {
     // Show roster actions for the selected region
     return showRosterActions(interaction, guildId, selectedRegion);
   } catch (error) {
-    console.error('Error in roster region select:', error);
+    LoggerService.error('Error in roster region select:', error);
     const embed = createErrorEmbed('Error', 'Could not process selection.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({
