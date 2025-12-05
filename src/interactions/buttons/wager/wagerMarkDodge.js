@@ -56,19 +56,22 @@ async function handle(interaction) {
     const isAdmin = member.permissions?.has(PermissionFlagsBits.Administrator);
     const isStaff = isAdmin || member.roles.cache.some(r => allowedRoleIds.has(r.id));
 
-    // Check if user is opponent (challenged user)
+    // Check if user is a participant (initiator or opponent)
+    const isInitiator = ticket.initiatorUserId === interaction.user.id ||
+      (ticket.is2v2 && ticket.initiatorTeammateId === interaction.user.id);
     const isOpponent = ticket.opponentUserId === interaction.user.id ||
       (ticket.is2v2 && ticket.opponentTeammateId === interaction.user.id);
+    const isParticipant = isInitiator || isOpponent;
 
-    // Only staff or opponent can use this button
-    if (!isStaff && !isOpponent) {
+    // Only staff or participants can use this button
+    if (!isStaff && !isParticipant) {
       return interaction.editReply({
-        content: '❌ Only hosters, moderators, or challenged players can mark dodge.'
+        content: '❌ Only hosters, moderators, or wager participants can mark dodge.'
       });
     }
 
-    // If opponent clicks, auto-dodge themselves (no selector needed)
-    if (isOpponent && !isStaff) {
+    // If participant clicks, auto-dodge themselves (no selector needed)
+    if (isParticipant && !isStaff) {
       return handleSelfDodge(interaction, ticket);
     }
 

@@ -66,13 +66,15 @@ async function handle(interaction) {
       return interaction.editReply({ content: '⚠️ Ticket not open.' });
     }
 
-    // If self-dodge, verify user is opponent (challenged player)
+    // If self-dodge, verify user is a participant (initiator or opponent)
     if (isSelfDodge && !isStaff) {
+      const isInitiator = ticket.initiatorUserId === interaction.user.id ||
+        (ticket.is2v2 && ticket.initiatorTeammateId === interaction.user.id);
       const isOpponent = ticket.opponentUserId === interaction.user.id ||
         (ticket.is2v2 && ticket.opponentTeammateId === interaction.user.id);
-      if (!isOpponent) {
+      if (!isInitiator && !isOpponent) {
         return interaction.editReply({
-          content: '❌ Only challenged players can self-dodge.'
+          content: '❌ Only wager participants can self-dodge.'
         });
       }
     }

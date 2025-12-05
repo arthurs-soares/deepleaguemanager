@@ -24,9 +24,12 @@ const {
  * @param {Object} guild - Guild document
  * @param {import('discord.js').Guild} _discordGuild - Discord guild object
  * @param {string} [selectedRegion] - Selected region for stats display
+ * @param {Object} [options] - Display options
+ * @param {boolean} [options.showRegionSelector=true] - Show region selector
  * @returns {Promise<ContainerBuilder>}
  */
-async function buildGuildDetailDisplayComponents(guild, _discordGuild, selectedRegion = null) {
+async function buildGuildDetailDisplayComponents(guild, _discordGuild, selectedRegion = null, options = {}) {
+  const { showRegionSelector = true } = options;
 
   const members = Array.isArray(guild.members) ? guild.members : [];
   const leaderMember = members.find(m => normalizeRoleToPortuguese(m.role) === 'lider');
@@ -93,9 +96,11 @@ async function buildGuildDetailDisplayComponents(guild, _discordGuild, selectedR
   const regionStatsText = buildRegionStatsText(regionStats, activeRegions, false);
   container.addTextDisplayComponents(regionStatsText);
 
-  // Add region selector if guild has multiple active regions
-  const regionRow = buildRegionSelector('guild_view', guildId, activeRegions, regionLabel);
-  if (regionRow) container.addActionRowComponents(regionRow);
+  // Add region selector if guild has multiple active regions (and option enabled)
+  if (showRegionSelector) {
+    const regionRow = buildRegionSelector('guild_view', guildId, activeRegions, regionLabel);
+    if (regionRow) container.addActionRowComponents(regionRow);
+  }
 
   // Add separator before rosters
   const separator = new SeparatorBuilder();

@@ -8,9 +8,16 @@ const LoggerService = require('../../services/LoggerService');
  * Render the roster post content for a guild using Components v2
  * @param {Object} guildDoc - Guild document from database
  * @param {import('discord.js').Guild} discordGuild - Discord guild for icon fallback
+ * @param {string} [regionFilter] - Region to display stats for
  */
-async function buildRosterPostContent(guildDoc, discordGuild) {
-  const container = await buildGuildDetailDisplayComponents(guildDoc, discordGuild);
+async function buildRosterPostContent(guildDoc, discordGuild, regionFilter = null) {
+  // For forum posts, pass the specific region and disable region selector
+  const container = await buildGuildDetailDisplayComponents(
+    guildDoc,
+    discordGuild,
+    regionFilter,
+    { showRegionSelector: false }
+  );
   // Return Components v2 payload
   return { components: [container], flags: MessageFlags.IsComponentsV2 };
 }
@@ -29,6 +36,25 @@ function getRegionValues(regionFilter) {
     default:
       return null; // All regions
   }
+}
+
+/**
+ * Get the display region for a guild based on the forum filter
+ * For multi-region guilds, returns the first matching region for the filter
+ * @param {Object} guildDoc - Guild document
+ * @param {string} regionFilter - Region filter ('South America', 'NA', 'Europe')
+ * @returns {string|null} Region name to display
+ */
+function getDisplayRegionForForum(guildDoc, regionFilter) {
+  if (!regionFilter) return null;
+
+  const regionValues = getRegionValues(regionFilter);
+  if (!regionValues) return null;
+
+  const activeRegions = (guildDoc.regions || []).filter(r => r.status === 'active');
+  const matchingRegion = activeRegions.find(r => regionValues.includes(r.region));
+
+  return matchingRegion?.region || null;
 }
 
 /**
@@ -151,32 +177,73 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
   const guilds = await Guild.find(query).sort({ createdAt: 1 });
 
   // Map existing threads by title (guild name) - active and archived
+  // Also track duplicates to delete them
   const titleToThread = new Map();
+  const duplicatesToDelete = [];
+
   const active = await forum.threads.fetchActive();
-  active.threads.forEach(t => titleToThread.set(t.name, t));
+  active.threads.forEach(t => {
+    if (titleToThread.has(t.name)) {
+      // Duplicate found - mark older one for deletion (keep newer)
+      const existing = titleToThread.get(t.name);
+      if (t.createdTimestamp > existing.createdTimestamp) {
+        duplicatesToDelete.push(existing);
+        titleToThread.set(t.name, t);
+      } else {
+        duplicatesToDelete.push(t);
+      }
+    } else {
+      titleToThread.set(t.name, t);
+    }
+  });
 
   // Also fetch archived threads to clean them up
   try {
     const archived = await forum.threads.fetchArchived({ fetchAll: true });
     archived.threads.forEach(t => {
-      if (!titleToThread.has(t.name)) {
+      if (titleToThread.has(t.name)) {
+        // Duplicate - delete the archived one
+        duplicatesToDelete.push(t);
+      } else {
         titleToThread.set(t.name, t);
       }
     });
   } catch (_) { /* ignore */ }
+
+  // Delete duplicate threads
+  for (const dup of duplicatesToDelete) {
+    try {
+      await dup.delete('Duplicate roster thread cleanup');
+      LoggerService.info('Deleted duplicate roster thread', { name: dup.name });
+    } catch (_) { /* ignore */ }
+  }
 
   const expectedTitles = new Set(guilds.map(g => g.name));
 
   // Create/update
   for (const g of guilds) {
     const title = g.name;
+    // Get the specific region to display for this forum
+    const displayRegion = getDisplayRegionForForum(g, regionFilter);
+
     let thread = titleToThread.get(title);
     if (!thread) {
       // Create thread
-      thread = await forum.threads.create({
-        name: title,
-        message: await buildRosterPostContent(g, discordGuild)
-      });
+      try {
+        thread = await forum.threads.create({
+          name: title,
+          message: await buildRosterPostContent(g, discordGuild, displayRegion)
+        });
+        // Add to map to prevent duplicates in same run
+        titleToThread.set(title, thread);
+      } catch (createErr) {
+        // Thread might already exist (race condition), try to find it
+        LoggerService.warn('Failed to create roster thread, may already exist', {
+          guildName: title,
+          error: createErr?.message
+        });
+        continue;
+      }
     } else {
       // Unarchive if archived
       if (thread.archived) {
@@ -186,7 +253,7 @@ async function syncRosterForum(discordGuild, regionFilter = null) {
       try {
         const starterMessage = await thread.fetchStarterMessage();
         if (starterMessage) {
-          const payload = await buildRosterPostContent(g, discordGuild);
+          const payload = await buildRosterPostContent(g, discordGuild, displayRegion);
           await starterMessage.edit(payload);
         }
       } catch (_) { /* ignore */ }
