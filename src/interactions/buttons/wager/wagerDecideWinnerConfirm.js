@@ -1,7 +1,7 @@
 const { PermissionFlagsBits, MessageFlags } = require('discord.js');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const { recordWager } = require('../../../utils/wager/wagerService');
+const { recordWager, recordWager2v2 } = require('../../../utils/wager/wagerService');
 const { buildWagerCloseButtonRow } = require('../../../utils/tickets/closeButtons');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
@@ -70,21 +70,41 @@ async function handle(interaction) {
       });
     }
 
-    const winnerId = winnerKey === 'initiator'
-      ? ticket.initiatorUserId
-      : ticket.opponentUserId;
-    const loserId = winnerKey === 'initiator'
-      ? ticket.opponentUserId
-      : ticket.initiatorUserId;
+    let embed;
 
-    // Apply ELO via existing service
-    const embed = await recordWager(
-      interaction.guild,
-      interaction.user.id,
-      winnerId,
-      loserId,
-      interaction.client
-    );
+    if (ticket.is2v2) {
+      // 2v2 wager: determine winning and losing teams
+      const winnerIds = winnerKey === 'initiator'
+        ? [ticket.initiatorUserId, ticket.initiatorTeammateId]
+        : [ticket.opponentUserId, ticket.opponentTeammateId];
+      const loserIds = winnerKey === 'initiator'
+        ? [ticket.opponentUserId, ticket.opponentTeammateId]
+        : [ticket.initiatorUserId, ticket.initiatorTeammateId];
+
+      embed = await recordWager2v2(
+        interaction.guild,
+        interaction.user.id,
+        winnerIds,
+        loserIds,
+        interaction.client
+      );
+    } else {
+      // 1v1 wager
+      const winnerId = winnerKey === 'initiator'
+        ? ticket.initiatorUserId
+        : ticket.opponentUserId;
+      const loserId = winnerKey === 'initiator'
+        ? ticket.opponentUserId
+        : ticket.initiatorUserId;
+
+      embed = await recordWager(
+        interaction.guild,
+        interaction.user.id,
+        winnerId,
+        loserId,
+        interaction.client
+      );
+    }
 
     // Close ticket
     ticket.status = 'closed';

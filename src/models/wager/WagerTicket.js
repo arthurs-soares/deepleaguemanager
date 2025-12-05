@@ -1,13 +1,17 @@
 const mongoose = require('mongoose');
 
 /**
- * Wager Ticket between two users
+ * Wager Ticket between two users (1v1) or four users (2v2)
  */
 const wagerTicketSchema = new mongoose.Schema({
   discordGuildId: { type: String, required: true, index: true },
   channelId: { type: String, required: true, index: true },
   initiatorUserId: { type: String, required: true },
   opponentUserId: { type: String, required: true },
+  // 2v2 wager support
+  is2v2: { type: Boolean, default: false },
+  initiatorTeammateId: { type: String, default: null },
+  opponentTeammateId: { type: String, default: null },
   // Distinguish war wagers from regular wagers
   isWar: { type: Boolean, default: false },
   dodgedByUserId: { type: String, default: null },

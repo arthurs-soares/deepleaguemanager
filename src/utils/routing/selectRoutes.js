@@ -21,6 +21,8 @@ function resolveSelectHandler(customId) {
   if (customId.startsWith('war:selectOpponent:')) return '../interactions/selects/warSelectOpponent';
   if (customId.startsWith('war:dodge:select:')) return '../interactions/selects/warDodgeSelect';
   if (customId === 'wager:selectOpponent') return '../interactions/selects/wagerSelectOpponent';
+  if (customId === 'wager:select2v2Teammate') return '../interactions/user-selects/wagerSelect2v2Teammate';
+  if (customId.startsWith('wager:select2v2Opponents:')) return '../interactions/user-selects/wagerSelect2v2Opponents';
   if (customId.startsWith('wager:dodge:select:')) return '../interactions/selects/wagerDodgeSelect';
 
   if (customId.startsWith('config:roles:singleSelect:')) return '../interactions/role-selects/configRoleSingleSelect';

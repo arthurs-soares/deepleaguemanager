@@ -1,12 +1,27 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { ContainerBuilder, TextDisplayBuilder, SectionBuilder, SeparatorBuilder } = require('@discordjs/builders');
+const {
+  PermissionFlagsBits,
+  MessageFlags,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require('discord.js');
+const {
+  ContainerBuilder,
+  TextDisplayBuilder
+} = require('@discordjs/builders');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { getOrCreateServerSettings } = require('../../../utils/system/serverSettings');
-const { colors, emojis } = require('../../../config/botConfig');
 const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const { isDatabaseConnected } = require('../../../config/database');
+const { colors, emojis } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
+const {
+  buildParticipantsMention,
+  getAllParticipantIds,
+  buildWinnerDecisionPanel,
+  buildWagerControlRow
+} = require('../../../utils/wager/wagerAcceptUtils');
 
 /**
  * Accept the wager and post the pinned control panel
@@ -59,19 +74,21 @@ async function handle(interaction) {
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const isAdmin = member.permissions?.has(PermissionFlagsBits.Administrator);
     const isTeam = isAdmin || member.roles.cache.some(r => allowedTeam.has(r.id));
-    const isOpponent = ticket.opponentUserId === interaction.user.id;
     const isInitiator = ticket.initiatorUserId === interaction.user.id;
+    const isInitiatorTeammate = ticket.is2v2 && ticket.initiatorTeammateId === interaction.user.id;
+    const isOpponent = ticket.opponentUserId === interaction.user.id ||
+      (ticket.is2v2 && ticket.opponentTeammateId === interaction.user.id);
 
-    // Initiator cannot accept their own wager (only opponent or team can)
-    if (isInitiator && !isTeam) {
+    // Initiator team cannot accept their own wager (only opponent or team can)
+    if ((isInitiator || isInitiatorTeammate) && !isTeam) {
       return interaction.editReply({
-        content: '❌ You cannot accept your own wager. Only the challenged user can accept.'
+        content: '❌ You cannot accept your own wager. Only the challenged team can accept.'
       });
     }
 
     if (!isTeam && !isOpponent) {
       return interaction.editReply({
-        content: '❌ Only the challenged user, hosters, moderators or administrators can accept the wager.'
+        content: '❌ Only challenged team, hosters, moderators or admins can accept.'
       });
     }
 
@@ -83,11 +100,32 @@ async function handle(interaction) {
     ticket.acceptedByUserId = interaction.user.id;
     await ticket.save();
 
-    // Disable the Accept button on the original message to prevent multiple acceptances
+    // Disable the Accept button - rebuild with Components v2 showing accepted state
     try {
-      await interaction.message.edit({ components: [] });
+      const acceptedContainer = new ContainerBuilder()
+        .setAccentColor(colors.success)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder()
+            .setContent(`# ${emojis.depthsWager} Wager Ticket\n✅ **Accepted** by <@${interaction.user.id}>`)
+        );
+
+      const disabledRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`wager:closeTicket:${ticket._id}`)
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel('Close Ticket'),
+        new ButtonBuilder()
+          .setCustomId(`wager:markDodge:${ticket._id}`)
+          .setStyle(ButtonStyle.Danger)
+          .setLabel('Mark Dodge')
+      );
+
+      await interaction.message.edit({
+        components: [acceptedContainer, disabledRow],
+        flags: MessageFlags.IsComponentsV2
+      });
     } catch (err) {
-      LoggerService.warn('Failed to disable accept button:', { error: err?.message });
+      LoggerService.warn('Failed to update accept message:', { error: err?.message });
     }
 
     // Check if hoster pings are enabled for this server
@@ -99,7 +137,7 @@ async function handle(interaction) {
     const hostersMention = hosterPingEnabled && hosterRoleIds.length
       ? hosterRoleIds.map(id => `<@&${id}>`).join(' ')
       : null;
-    const participantsMention = `<@${ticket.initiatorUserId}> vs <@${ticket.opponentUserId}>`;
+    const participantsMention = buildParticipantsMention(ticket);
 
     if (hostersMention) {
       try {
@@ -118,66 +156,23 @@ async function handle(interaction) {
     }
 
     // Pinned decision/control panel
-    const container = new ContainerBuilder();
-    const primaryColor = typeof colors.primary === 'string'
-      ? parseInt(colors.primary.replace('#', ''), 16)
-      : colors.primary;
-    container.setAccentColor(primaryColor);
+    const container = buildWinnerDecisionPanel(ticket);
+    const controlRow = buildWagerControlRow(ticket._id);
 
-    const titleText = new TextDisplayBuilder()
-      .setContent(`# ${emojis.depthsWager} Winner Decision`);
-
-    const descText = new TextDisplayBuilder()
-      .setContent('Select the winner (Depths). Only Hosters/Moderators can click.');
-
-    const timestampText = new TextDisplayBuilder()
-      .setContent(`*<t:${Math.floor(Date.now() / 1000)}:F>*`);
-
-    container.addTextDisplayComponents(titleText, descText, timestampText);
-    container.addSeparatorComponents(new SeparatorBuilder());
-
-    // Initiator winner section with inline button
-    const initiatorSection = new SectionBuilder();
-    const initiatorText = new TextDisplayBuilder()
-      .setContent(`**Initiator:** <@${ticket.initiatorUserId}>`);
-    initiatorSection.addTextDisplayComponents(initiatorText);
-    initiatorSection.setButtonAccessory(button =>
-      button
-        .setCustomId(`wager:decideWinner:${ticket._id}:initiator:depths`)
-        .setStyle(ButtonStyle.Success)
-        .setLabel('Initiator Won')
-    );
-    container.addSectionComponents(initiatorSection);
-
-    // Opponent winner section with inline button
-    const opponentSection = new SectionBuilder();
-    const opponentText = new TextDisplayBuilder()
-      .setContent(`**Opponent:** <@${ticket.opponentUserId}>`);
-    opponentSection.addTextDisplayComponents(opponentText);
-    opponentSection.setButtonAccessory(button =>
-      button
-        .setCustomId(`wager:decideWinner:${ticket._id}:opponent:depths`)
-        .setStyle(ButtonStyle.Primary)
-        .setLabel('Opponent Won')
-    );
-    container.addSectionComponents(opponentSection);
-
-    const controlRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId(`wager:claim:${ticket._id}`).setStyle(ButtonStyle.Success).setLabel('Claim Ticket'),
-      new ButtonBuilder().setCustomId(`wager:closeTicket:${ticket._id}`).setStyle(ButtonStyle.Secondary).setLabel('Close + Transcript'),
-      new ButtonBuilder().setCustomId(`wager:markDodge:${ticket._id}`).setStyle(ButtonStyle.Danger).setLabel('Mark Dodge')
+    await sendAndPin(
+      channel,
+      { components: [container, controlRow], flags: MessageFlags.IsComponentsV2 },
+      { unpinOld: true }
     );
 
-    await sendAndPin(channel, { components: [container, controlRow], flags: MessageFlags.IsComponentsV2 }, { unpinOld: true });
-
-    return interaction.editReply({ content: '✅ Pinned panel sent to ticket channel.' });
+    return interaction.editReply({ content: '✅ Pinned panel sent.' });
   } catch (error) {
-    LoggerService.error('Error in button wager:accept:', error);
-    const msg = { content: '❌ Could not accept the wager.', flags: MessageFlags.Ephemeral };
+    LoggerService.error('Error in wager:accept:', error);
+    const msg = { content: '❌ Could not accept wager.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }
 }
 
-module.exports = { handle };
+module.exports = { handle, getAllParticipantIds, buildParticipantsMention };
 

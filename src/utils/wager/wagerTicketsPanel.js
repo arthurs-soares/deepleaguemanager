@@ -1,5 +1,12 @@
 const { MessageFlags, ButtonStyle } = require('discord.js');
-const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SectionBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder } = require('@discordjs/builders');
+const {
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SeparatorBuilder,
+  SectionBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder
+} = require('@discordjs/builders');
 const { emojis, colors } = require('../../config/botConfig');
 
 /**
@@ -28,31 +35,48 @@ function buildWagerTicketsPanel() {
 
   const descText = new TextDisplayBuilder()
     .setContent(
-      `${emojis.info} Use this panel to initiate a wager challenge between players.\n\n` +
-      '• Click the button below to start\n' +
-      '• Choose opponent and basic details\n\n' +
-      'The bot will create a private channel in the configured category to coordinate the wager.'
+      `${emojis.info} Use this panel to initiate a wager challenge.\n\n` +
+      '• **1v1 Wager** - Challenge a single opponent\n' +
+      '• **2v2 Wager** - Team up with a friend and challenge two opponents\n\n' +
+      'The bot will create a private channel in the configured category.'
     );
 
   container.addTextDisplayComponents(titleText, descText);
   container.addSeparatorComponents(new SeparatorBuilder());
 
-  // Start Wager section with inline button
+  // Start 1v1 Wager section with inline button
   const startWagerSection = new SectionBuilder();
   const startWagerText = new TextDisplayBuilder()
     .setContent(
-      `**${emojis.depthsWager} Start Wager**\n` +
-      'Create a new wager between players'
+      `**${emojis.depthsWager} 1v1 Wager**\n` +
+      'Create a solo wager'
     );
   startWagerSection.addTextDisplayComponents(startWagerText);
   startWagerSection.setButtonAccessory(button =>
     button
       .setCustomId('wager:start')
       .setStyle(ButtonStyle.Primary)
-      .setLabel('Start Wager')
+      .setLabel('Start 1v1')
   );
 
   container.addSectionComponents(startWagerSection);
+
+  // Start 2v2 Wager section with inline button
+  const start2v2Section = new SectionBuilder();
+  const start2v2Text = new TextDisplayBuilder()
+    .setContent(
+      `**${emojis.depthsWager} 2v2 Wager**\n` +
+      'Team up with a friend'
+    );
+  start2v2Section.addTextDisplayComponents(start2v2Text);
+  start2v2Section.setButtonAccessory(button =>
+    button
+      .setCustomId('wager:start2v2')
+      .setStyle(ButtonStyle.Secondary)
+      .setLabel('Start 2v2')
+  );
+
+  container.addSectionComponents(start2v2Section);
   container.addSeparatorComponents(new SeparatorBuilder());
 
   const footerText = new TextDisplayBuilder()

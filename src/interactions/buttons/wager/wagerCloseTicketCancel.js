@@ -1,4 +1,10 @@
 const { MessageFlags } = require('discord.js');
+const {
+  ContainerBuilder,
+  TextDisplayBuilder
+} = require('@discordjs/builders');
+const { colors } = require('../../../config/botConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Cancel wager ticket closure
@@ -6,13 +12,18 @@ const { MessageFlags } = require('discord.js');
  */
 async function handle(interaction) {
   try {
+    const container = new ContainerBuilder()
+      .setAccentColor(colors.error)
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent('### ❌ Closure Cancelled')
+      );
+
     await interaction.update({
-      content: '❌ Wager ticket closure cancelled.',
-      components: [],
-      flags: MessageFlags.Ephemeral
+      components: [container],
+      flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
-    console.error('Error cancelling wager ticket closure:', error);
+    LoggerService.error('Error cancelling wager ticket closure:', { error });
     const msg = {
       content: '❌ An error occurred.',
       flags: MessageFlags.Ephemeral
