@@ -65,6 +65,9 @@ function resolveSelectHandler(customId) {
   // Guild view region selector
   if (customId.startsWith('guild_view:select_region:')) return '../interactions/string-selects/guild/viewSelectRegion';
 
+  // Profile leave guild region selector
+  if (customId.startsWith('profile:leaveGuild:selectRegion:')) return '../interactions/string-selects/profile/leaveGuildSelectRegion';
+
   // Rank role selection
   if (customId.startsWith('config:ranks:roleSelect:')) return '../interactions/role-selects/configRankRoleSelect';
 
