@@ -27,6 +27,7 @@ module.exports = {
     guild: '<:dl_leader:1446150269531459604>',
     leader: '<:dl_leader:1446150269531459604>',
     coLeader: '<:dl_coleader:1446150271808835745>',
+    manager: '👔',
     status: '<:dl_status:1446181295918157986>',
     members: '<:dl_users:1446181287848185976>',
     created: '<:dl_calendar:1446181295918157986>',

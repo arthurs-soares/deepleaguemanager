@@ -26,6 +26,7 @@ async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
   const coLeader = members.find(m => normalizeRoleToPortuguese(m.role) === 'vice-lider');
   const mainRoster = Array.isArray(guild.mainRoster) ? guild.mainRoster : [];
   const subRoster = Array.isArray(guild.subRoster) ? guild.subRoster : [];
+  const managers = Array.isArray(guild.managers) ? guild.managers : [];
 
   const color = guild.color ? parseInt(guild.color.replace('#', ''), 16) : colors.primary;
 
@@ -68,6 +69,13 @@ async function buildGuildDetailDisplayComponents(guild, _discordGuild) {
   );
 
   container.addSectionComponents(leadershipSection);
+
+  // Managers section (if any)
+  if (managers.length > 0) {
+    const managersText = new TextDisplayBuilder()
+      .setContent(`**${emojis.manager} Managers**\n${formatUserList(managers)}`);
+    container.addTextDisplayComponents(managersText);
+  }
 
   // Region section
   const regionText = new TextDisplayBuilder()
