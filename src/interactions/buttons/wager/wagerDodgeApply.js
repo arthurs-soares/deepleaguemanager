@@ -121,9 +121,12 @@ async function handle(interaction) {
           new Date()
         );
 
+        // Add close button to the container
+        container.addActionRowComponents(buildWagerCloseButtonRow(ticket._id));
+
         // Send container with attachment in same message for attachment:// to work
         await ch.send({
-          components: [container, buildWagerCloseButtonRow(ticket._id)],
+          components: [container],
           flags: MessageFlags.IsComponentsV2,
           content: 'Use the button below to close the ticket.',
           files: attachment ? [attachment] : []

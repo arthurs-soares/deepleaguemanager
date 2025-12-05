@@ -122,9 +122,13 @@ async function handle(interaction) {
         const resultMsg = ticket.is2v2
           ? `✅ Result recorded by <@${interaction.user.id}>. Points applied to all 4 players.`
           : `✅ Result recorded by <@${interaction.user.id}>. Points applied.`;
+
+        // Add close button to the container
+        embed.addActionRowComponents(buildWagerCloseButtonRow(ticket._id));
+
         await ch.send({
           content: resultMsg,
-          components: [embed, buildWagerCloseButtonRow(ticket._id)],
+          components: [embed],
           flags: MessageFlags.IsComponentsV2
         });
       } catch (_) {}
