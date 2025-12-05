@@ -85,8 +85,8 @@ async function handle(interaction) {
 
     const descText = new TextDisplayBuilder()
       .setContent(
-        '⚠️ **Chat is locked** until the wager is accepted or marked as dodge.\n\n' +
-        'Use the buttons below to accept, close, or mark dodge.'
+        '⚠️ **Chat is locked** until the wager is accepted.\n\n' +
+        'Use the buttons below to accept or close the ticket.'
       );
 
     const timestampText = new TextDisplayBuilder()
@@ -96,8 +96,7 @@ async function handle(interaction) {
 
     const actionRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`wager:accept:${ticket._id}`).setStyle(ButtonStyle.Success).setLabel('Accept Wager'),
-      new ButtonBuilder().setCustomId(`wager:closeTicket:${ticket._id}`).setStyle(ButtonStyle.Secondary).setLabel('Close Ticket'),
-      new ButtonBuilder().setCustomId(`wager:markDodge:${ticket._id}`).setStyle(ButtonStyle.Danger).setLabel('Mark Dodge')
+      new ButtonBuilder().setCustomId(`wager:closeTicket:${ticket._id}`).setStyle(ButtonStyle.Secondary).setLabel('Close Ticket')
     );
 
     try {
