@@ -113,8 +113,8 @@ async function handle(interaction) {
         .setLabel('Cancel')
     );
 
+    // Do not include a 'content' field when using Components v2 - the API rejects it.
     await interaction.editReply({
-      content: '',
       components: [container, actionRow],
       flags: MessageFlags.IsComponentsV2
     });
