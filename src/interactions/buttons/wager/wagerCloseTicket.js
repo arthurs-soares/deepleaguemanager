@@ -43,7 +43,7 @@ async function getWagerChannel(guild, ticketId, channelId) {
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await interaction.deferReply();
 
     const [, , ticketId] = interaction.customId.split(':');
     if (!ticketId) return interaction.editReply({ content: '❌ Ticket ID not provided.' });
@@ -109,7 +109,7 @@ async function handle(interaction) {
     await interaction.editReply({
       content: '',
       components: [container, actionRow],
-      flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
+      flags: MessageFlags.IsComponentsV2
     });
 
   } catch (error) {

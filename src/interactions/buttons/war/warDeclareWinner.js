@@ -22,7 +22,7 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await interaction.deferReply();
 
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const rolesCfg = await getOrCreateRoleConfig(interaction.guild.id);

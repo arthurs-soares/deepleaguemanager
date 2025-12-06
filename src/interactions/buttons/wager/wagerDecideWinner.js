@@ -21,7 +21,7 @@ const { colors, emojis } = require('../../../config/botConfig');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await interaction.deferReply();
 
     const parts = interaction.customId.split(':');
     const [, , ticketId, winnerKey] = parts;
