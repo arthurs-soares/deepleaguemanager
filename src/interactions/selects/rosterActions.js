@@ -8,7 +8,8 @@ const { createErrorEmbed } = require('../../utils/embeds/embedBuilder');
 const { isGuildAdmin } = require('../../utils/core/permissions');
 const {
   isGuildLeader,
-  isGuildCoLeader
+  isGuildCoLeader,
+  isGuildManager
 } = require('../../utils/guilds/guildMemberManager');
 const {
   getGuildById,
@@ -41,37 +42,29 @@ async function handle(interaction) {
     const value = interaction.values?.[0];
     if (!value) return interaction.deferUpdate();
 
-    const isAdmin = value.endsWith('_admin');
-    const action = isAdmin ? value.replace('_admin', '') : value;
-    const source = isAdmin ? 'admin' : 'guild';
+    const isAdminAction = value.endsWith('_admin');
+    const action = isAdminAction ? value.replace('_admin', '') : value;
 
-    if (!isAdmin) {
-      const hasPerms = isGuildLeader(guildDoc, interaction.user.id) ||
-        isGuildCoLeader(guildDoc, interaction.user.id);
-      if (!hasPerms) {
-        const embed = createErrorEmbed(
-          'Permission denied',
-          'You do not have permission.'
-        );
-        return interaction.reply({
-          components: [embed],
-          flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-        });
-      }
-    } else {
-      const mem = await interaction.guild.members.fetch(interaction.user.id);
-      const admin = await isGuildAdmin(mem, interaction.guild.id);
-      if (!admin) {
-        const embed = createErrorEmbed(
-          'Permission denied',
-          'Admins only.'
-        );
-        return interaction.reply({
-          components: [embed],
-          flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-        });
-      }
+    // Check permissions: server admin, guild leader, co-leader, or manager
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const isServerAdmin = await isGuildAdmin(member, interaction.guild.id);
+    const isLeader = isGuildLeader(guildDoc, interaction.user.id);
+    const isCoLeader = isGuildCoLeader(guildDoc, interaction.user.id);
+    const isManager = isGuildManager(guildDoc, interaction.user.id);
+
+    if (!isServerAdmin && !isLeader && !isCoLeader && !isManager) {
+      const embed = createErrorEmbed(
+        'Permission denied',
+        'Only guild leaders, co-leaders, managers, or server admins can manage rosters.'
+      );
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
     }
+
+    // Determine source for audit purposes
+    const source = isServerAdmin && !isLeader ? 'admin' : 'guild';
 
     const { mainRoster, subRoster } = getRegionRosters(guildDoc, region);
 
