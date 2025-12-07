@@ -97,23 +97,25 @@ async function handle(interaction) {
       });
     }
 
-    // Check if user has permission (Leader or Co-leader role configured on server)
+    // Check if user has permission (Leader, Co-leader or Manager role configured on server)
     const cfg = await getOrCreateRoleConfig(interaction.guild.id);
     const leaderId = cfg.leadersRoleId;
     const coLeaderId = cfg.coLeadersRoleId;
+    const managersRoleId = cfg.managersRoleId;
 
-    if (!leaderId && !coLeaderId) {
-      return interaction.editReply({ content: '⚠️ Leader/Co-leader roles not configured. Ask an administrator to configure them in Configure Roles.' });
+    if (!leaderId && !coLeaderId && !managersRoleId) {
+      return interaction.editReply({ content: '⚠️ Leader/Co-leader/Manager roles not configured. Ask an administrator to configure them in Configure Roles.' });
     }
 
     const member = interaction.member;
     const hasRole = Boolean(
       (leaderId && member.roles.cache.has(leaderId)) ||
-      (coLeaderId && member.roles.cache.has(coLeaderId))
+      (coLeaderId && member.roles.cache.has(coLeaderId)) ||
+      (managersRoleId && member.roles.cache.has(managersRoleId))
     );
 
     if (!hasRole) {
-      return interaction.editReply({ content: '❌ Only leaders/co-leaders can accept the war.' });
+      return interaction.editReply({ content: '❌ Only leaders, co-leaders or managers can accept the war.' });
     }
 
     // Determine the opponent guild (which must accept)
@@ -126,14 +128,17 @@ async function handle(interaction) {
     const requesterGuildId = String(war.requestedByGuildId);
     const { isLeaderOrCoLeader } = require('../../../utils/war/warUtils');
     const isRequesterLeader = await isLeaderOrCoLeader(interaction.user.id, requesterGuildId);
-    if (isRequesterLeader) {
-      return interaction.editReply({ content: '❌ You cannot accept the war on behalf of your own requesting guild. Only leaders/co-leaders of the opponent guild can accept.' });
+    const isRequesterManager = await Guild.findOne({ _id: requesterGuildId, managers: interaction.user.id });
+    if (isRequesterLeader || isRequesterManager) {
+      return interaction.editReply({ content: '❌ You cannot accept the war on behalf of your own requesting guild. Only leaders/co-leaders/managers of the opponent guild can accept.' });
     }
 
-    // Confirm that user is leader/co-leader of opponent guild
+    // Confirm that user is leader/co-leader or manager of opponent guild (or has server-level managers role)
     const isOpponentLeader = await isLeaderOrCoLeader(interaction.user.id, opponentGuildId);
-    if (!isOpponentLeader) {
-      return interaction.editReply({ content: '❌ Only leaders/co-leaders of the opponent guild can accept the war.' });
+    const isOpponentManager = await Guild.findOne({ _id: opponentGuildId, managers: interaction.user.id });
+    const hasManagersRole = Boolean(managersRoleId && member.roles.cache.has(managersRoleId));
+    if (!(isOpponentLeader || isOpponentManager || hasManagersRole)) {
+      return interaction.editReply({ content: '❌ Only leaders, co-leaders or managers of the opponent guild can accept the war.' });
     }
 
     // Find opponent guild to use name in logs
