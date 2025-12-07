@@ -250,26 +250,39 @@ async function removeFromRoster(guildId, roster, userId, region) {
     const doc = await Guild.findById(guildId);
     if (!doc) return { success: false, message: 'Guild not found.' };
 
-    const regionData = getRegionData(doc, region);
-    if (!regionData) {
-      return {
-        success: false,
-        message: `Guild is not registered in "${region}".`
-      };
-    }
-
     const field = roster === 'main' ? 'mainRoster' : 'subRoster';
-    const list = Array.isArray(regionData[field]) ? regionData[field] : [];
+    const regionData = getRegionData(doc, region);
 
-    if (!list.includes(userId)) {
+    // Check region-specific roster first
+    const regionList = regionData && Array.isArray(regionData[field])
+      ? regionData[field]
+      : [];
+
+    // Check legacy roster as fallback
+    const legacyList = Array.isArray(doc[field]) ? doc[field] : [];
+
+    // Determine where user is located
+    const inRegion = regionList.includes(userId);
+    const inLegacy = legacyList.includes(userId);
+
+    if (!inRegion && !inLegacy) {
       return {
         success: false,
         message: `User is not in ${roster} roster for ${region}.`
       };
     }
 
-    regionData[field] = list.filter(id => id !== userId);
-    ensureRegionsArray(doc);
+    // Remove from region-specific roster if present
+    if (inRegion && regionData) {
+      regionData[field] = regionList.filter(id => id !== userId);
+      ensureRegionsArray(doc);
+    }
+
+    // Remove from legacy roster if present (migration scenario)
+    if (inLegacy) {
+      doc[field] = legacyList.filter(id => id !== userId);
+    }
+
     await doc.save();
 
     try {
