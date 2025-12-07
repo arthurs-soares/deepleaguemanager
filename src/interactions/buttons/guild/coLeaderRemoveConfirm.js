@@ -1,6 +1,8 @@
 const { MessageFlags } = require('discord.js');
 const Guild = require('../../../models/guild/Guild');
 const { createErrorEmbed, createSuccessEmbed } = require('../../../utils/embeds/embedBuilder');
+const { isGuildLeader } = require('../../../utils/guilds/guildMemberManager');
+const { isGuildAdmin } = require('../../../utils/core/permissions');
 
 /**
  * Handle confirmation to remove co-leader who is not on current rosters
@@ -34,6 +36,22 @@ async function handle(interaction) {
     if (!guildDoc) {
       const embed = createErrorEmbed('Guild not found', 'Could not find the guild in the database.');
       if (interaction.deferred || interaction.replied) return interaction.followUp({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+      return interaction.reply({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+    }
+
+    // Permission check: server admin or guild leader
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const isServerAdmin = await isGuildAdmin(member, interaction.guild.id);
+    const isLeader = isGuildLeader(guildDoc, interaction.user.id);
+
+    if (!isServerAdmin && !isLeader) {
+      const embed = createErrorEmbed(
+        'Permission denied',
+        'Only the guild leader or server admin can remove co-leaders.'
+      );
+      if (interaction.deferred || interaction.replied) {
+        return interaction.followUp({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+      }
       return interaction.reply({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
     }
 

@@ -5,6 +5,12 @@ const {
 } = require('discord.js');
 const { createErrorEmbed } = require('../../../utils/embeds/embedBuilder');
 const Guild = require('../../../models/guild/Guild');
+const { isGuildAdmin } = require('../../../utils/core/permissions');
+const {
+  isGuildLeader,
+  isGuildCoLeader,
+  isGuildManager
+} = require('../../../utils/guilds/guildMemberManager');
 
 /**
  * "Edit Roster" button handler
@@ -28,6 +34,24 @@ async function handle(interaction) {
     const guildDoc = await Guild.findById(guildId);
     if (!guildDoc) {
       const embed = createErrorEmbed('Not found', 'Guild not found.');
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
+    }
+
+    // Permission check: server admin, leader, co-leader, or manager
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const isServerAdmin = await isGuildAdmin(member, interaction.guild.id);
+    const isLeader = isGuildLeader(guildDoc, interaction.user.id);
+    const isCoLeader = isGuildCoLeader(guildDoc, interaction.user.id);
+    const isMgr = isGuildManager(guildDoc, interaction.user.id);
+
+    if (!isServerAdmin && !isLeader && !isCoLeader && !isMgr) {
+      const embed = createErrorEmbed(
+        'Permission denied',
+        'Only guild leaders, co-leaders, managers, or server admins can edit rosters.'
+      );
       return interaction.reply({
         components: [embed],
         flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral

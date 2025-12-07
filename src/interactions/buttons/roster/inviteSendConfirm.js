@@ -5,6 +5,12 @@ const {
 } = require('../../../utils/embeds/embedBuilder');
 const { getGuildById } = require('../../../utils/roster/rosterManager');
 const { sendRosterInvite } = require('../../../utils/roster/sendRosterInvite');
+const { isGuildAdmin } = require('../../../utils/core/permissions');
+const {
+  isGuildLeader,
+  isGuildCoLeader,
+  isGuildManager
+} = require('../../../utils/guilds/guildMemberManager');
 const LoggerService = require('../../../services/LoggerService');
 
 /**
@@ -38,13 +44,34 @@ async function handle(interaction) {
       });
     }
 
-    await interaction.deferUpdate();
-
     const guildDoc = await getGuildById(guildId);
     if (!guildDoc) {
       const embed = createErrorEmbed('Not found', 'Guild not in database.');
-      return interaction.editReply({ components: [embed] });
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
     }
+
+    // Permission check: server admin, leader, co-leader, or manager
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const isServerAdmin = await isGuildAdmin(member, interaction.guild.id);
+    const isLeader = isGuildLeader(guildDoc, interaction.user.id);
+    const isCoLeader = isGuildCoLeader(guildDoc, interaction.user.id);
+    const isMgr = isGuildManager(guildDoc, interaction.user.id);
+
+    if (!isServerAdmin && !isLeader && !isCoLeader && !isMgr) {
+      const embed = createErrorEmbed(
+        'Permission denied',
+        'Only guild leaders, co-leaders, managers, or server admins can send roster invites.'
+      );
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
+    }
+
+    await interaction.deferUpdate();
 
     // Send DM invite with region
     const invite = await sendRosterInvite(

@@ -2,6 +2,13 @@ const { MessageFlags } = require('discord.js');
 const { createErrorEmbed } = require('../../utils/embeds/embedBuilder');
 const { showRosterActions } = require('../buttons/guild/editRoster');
 const LoggerService = require('../../services/LoggerService');
+const Guild = require('../../models/guild/Guild');
+const { isGuildAdmin } = require('../../utils/core/permissions');
+const {
+  isGuildLeader,
+  isGuildCoLeader,
+  isGuildManager
+} = require('../../utils/guilds/guildMemberManager');
 
 /**
  * Region selector for roster management
@@ -16,6 +23,33 @@ async function handle(interaction) {
 
     if (!guildId || !selectedRegion) {
       const embed = createErrorEmbed('Invalid data', 'Missing data.');
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
+    }
+
+    // Fetch guild and verify permissions
+    const guildDoc = await Guild.findById(guildId);
+    if (!guildDoc) {
+      const embed = createErrorEmbed('Not found', 'Guild not found.');
+      return interaction.reply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
+    }
+
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const isServerAdmin = await isGuildAdmin(member, interaction.guild.id);
+    const isLeader = isGuildLeader(guildDoc, interaction.user.id);
+    const isCoLeader = isGuildCoLeader(guildDoc, interaction.user.id);
+    const isMgr = isGuildManager(guildDoc, interaction.user.id);
+
+    if (!isServerAdmin && !isLeader && !isCoLeader && !isMgr) {
+      const embed = createErrorEmbed(
+        'Permission denied',
+        'Only guild leaders, co-leaders, managers, or server admins can manage rosters.'
+      );
       return interaction.reply({
         components: [embed],
         flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral

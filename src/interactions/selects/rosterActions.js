@@ -15,6 +15,7 @@ const {
   getGuildById,
   getRegionRosters
 } = require('../../utils/roster/rosterManager');
+const LoggerService = require('../../services/LoggerService');
 
 async function handle(interaction) {
   try {
@@ -96,10 +97,17 @@ async function handle(interaction) {
         });
       }
 
-      const options = list.map(id => ({
-        label: `User ${id.slice(-4)}`,
-        description: id,
-        value: id
+      const options = await Promise.all(list.map(async (id) => {
+        let username = `User ${id.slice(-4)}`;
+        try {
+          const user = await interaction.client.users.fetch(id);
+          username = user?.username || username;
+        } catch (_) { /* ignore fetch errors */ }
+        return {
+          label: username,
+          description: id,
+          value: id
+        };
       }));
 
       const row = new ActionRowBuilder().addComponents(
@@ -118,7 +126,7 @@ async function handle(interaction) {
 
     return interaction.deferUpdate();
   } catch (error) {
-    console.error('Error in roster actions:', error);
+    LoggerService.error('Error in roster actions:', { error: error.message });
     const embed = createErrorEmbed('Error', 'Could not process action.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({

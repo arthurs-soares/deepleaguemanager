@@ -42,9 +42,10 @@ async function getWagerChannel(guild, ticketId, channelId) {
  * CustomId: wager:closeTicket:<ticketId>
  */
 async function handle(interaction) {
-  try {
-    await interaction.deferReply();
+  // Defer immediately to avoid token expiration
+  await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
 
+  try {
     const [, , ticketId] = interaction.customId.split(':');
     if (!ticketId) return interaction.editReply({ content: '❌ Ticket ID not provided.' });
 

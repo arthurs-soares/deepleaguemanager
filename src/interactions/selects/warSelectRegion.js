@@ -27,16 +27,16 @@ async function handle(interaction) {
       });
     }
 
+    // Cross-region wars: show all active guilds, not just same region
     const opponents = await Guild.find({
       discordGuildId: interaction.guild.id,
       _id: { $ne: guildAId },
-      'regions.region': selectedRegion,
       'regions.status': 'active'
     }).select('name regions');
 
     if (!opponents.length) {
       return interaction.update({
-        content: `⚠️ No guilds found in the **${selectedRegion}** region.`,
+        content: '⚠️ No active guilds found to challenge.',
         components: []
       });
     }

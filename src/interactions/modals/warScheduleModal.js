@@ -46,30 +46,24 @@ async function handle(interaction) {
       return interaction.editReply({ content: guildValidation.message });
     }
 
-    // Determine war region (from customId or fallback to first common region)
+    // Determine war region (from customId - guildA's selected region)
     let warRegion = region;
     if (!warRegion) {
-      // Fallback: find first common active region between both guilds
+      // Fallback: use guildA's first active region
       const regionsA = (guildA.regions || [])
         .filter(r => r.status === 'active')
         .map(r => r.region);
-      const regionsB = (guildB.regions || [])
-        .filter(r => r.status === 'active')
-        .map(r => r.region);
-      warRegion = regionsA.find(r => regionsB.includes(r));
+      warRegion = regionsA[0] || null;
     }
 
-    // Validate both guilds are active in the war region
+    // Validate guildA is active in the selected war region
     const guildAInRegion = guildA.regions?.some(
       r => r.region === warRegion && r.status === 'active'
     );
-    const guildBInRegion = guildB.regions?.some(
-      r => r.region === warRegion && r.status === 'active'
-    );
 
-    if (!warRegion || !guildAInRegion || !guildBInRegion) {
+    if (!warRegion || !guildAInRegion) {
       return interaction.editReply({
-        content: `❌ Both guilds must be active in the same region.`
+        content: '❌ Your guild must be active in the selected region.'
       });
     }
 
