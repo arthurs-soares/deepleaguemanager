@@ -42,9 +42,13 @@ async function handleProfile(interaction) {
     LoggerService.error('Error in /user profile:', { error: error.message });
     const replied = interaction.deferred || interaction.replied;
     const method = replied ? 'editReply' : 'reply';
+    const errorContainer = createErrorEmbed(
+      'Error',
+      'An error occurred while loading the profile.'
+    );
     return interaction[method]({
-      content: '❌ An error occurred.',
-      flags: MessageFlags.Ephemeral
+      components: [errorContainer],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   }
 }

@@ -22,6 +22,7 @@ const {
   isGuildCoLeader,
   isGuildManager
 } = require('../../utils/guilds/guildMemberManager');
+const LoggerService = require('../../services/LoggerService');
 
 async function handle(interaction) {
   try {
@@ -121,7 +122,9 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
-    console.error('Error in roster user select:', error);
+    LoggerService.error('Error in roster user select:', {
+      error: error.message
+    });
     const embed = createErrorEmbed('Error', 'Could not process selection.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({
