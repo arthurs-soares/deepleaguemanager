@@ -191,13 +191,6 @@ async function buildGuildPanelDisplayComponents(guild, _discordGuild, selectedRe
     container.addTextDisplayComponents(descText);
   }
 
-
-
-
-
-
-
-
   // Guild statistics with inline Edit Data button next to Created
   const createdText = new TextDisplayBuilder()
     .setContent(`**Created**\n<t:${Math.floor(new Date(guild.createdAt).getTime() / 1000)}:F>`);
@@ -209,8 +202,6 @@ async function buildGuildPanelDisplayComponents(guild, _discordGuild, selectedRe
       .setStyle(ButtonStyle.Success)
   );
   container.addSectionComponents(createdSection);
-
-
 
   // Footer information
   if (guild.registeredBy) {
