@@ -1,5 +1,6 @@
 const { getOrCreateRoleConfig } = require('../misc/roleConfig');
 const { logRoleAssignment } = require('../core/roleLogger');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Ensures that a user receives the Leader role when registered as such
@@ -34,7 +35,7 @@ async function ensureLeaderDiscordRole(guild, userId, assignedBy = 'system') {
       );
     }
   } catch (error) {
-    console.error('Error assigning leader role:', error);
+    LoggerService.error('Error assigning leader role:', { error: error?.message, userId });
   }
 }
 

@@ -1,3 +1,5 @@
+const LoggerService = require('../services/LoggerService');
+
 /**
  * Routes autocomplete interactions to the command's autocomplete method
  * @param {AutocompleteInteraction} interaction
@@ -9,7 +11,7 @@ async function handleAutocomplete(interaction) {
 
     await command.autocomplete(interaction);
   } catch (error) {
-    console.error('Error in handleAutocomplete:', error);
+    LoggerService.error('Error in handleAutocomplete:', { error: error?.message });
     // Only try to respond if we haven't already responded
     try {
       if (!interaction.responded) {

@@ -2,6 +2,7 @@ const { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder
 const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('@discordjs/builders');
 const { colors } = require('../../../config/botConfig');
 const { getOrCreateRankConfig, buildRanksDisplayText } = require('../../../utils/misc/rankConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens Ranks panel
@@ -140,7 +141,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error opening ranks panel:', error);
+    LoggerService.error('Error opening ranks panel:', { error: error?.message });
     const msg = { content: '❌ Could not open the ranks panel.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

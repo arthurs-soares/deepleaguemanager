@@ -1,6 +1,7 @@
 const { Events, ChannelType } = require('discord.js');
 const { getOrCreateServerSettings } = require('../utils/system/serverSettings');
 const { buildSupportCloseButtonRow } = require('../utils/tickets/closeButtons');
+const LoggerService = require('../services/LoggerService');
 
 module.exports = {
   name: Events.ThreadUpdate,
@@ -31,9 +32,9 @@ module.exports = {
 
       const header = 'This DM support thread was reopened. Please take a look.';
 
-      try { await newThread.send({ content: header, components }); } catch (_) {}
+      try { await newThread.send({ content: header, components }); } catch (_) { }
     } catch (err) {
-      console.error('Error in ThreadUpdate handler:', err);
+      LoggerService.error('Error in ThreadUpdate handler:', { error: err?.message });
     }
   }
 };

@@ -4,6 +4,7 @@ const { isModeratorOrHoster } = require('../../../utils/core/permissions');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const GeneralTicket = require('../../../models/ticket/GeneralTicket');
 const { colors, emojis } = require('../../../config/botConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Show confirmation dialog before closing a ticket
@@ -104,7 +105,7 @@ async function handle(interaction) {
     });
 
   } catch (error) {
-    console.error('Error showing ticket close confirmation:', error);
+    LoggerService.error('Error showing ticket close confirmation:', { error: error?.message });
     const msg = { content: '❌ Could not show confirmation dialog.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

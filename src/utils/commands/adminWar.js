@@ -4,8 +4,7 @@ const { safeDeferEphemeral } = require('../core/ack');
 const { replyEphemeral } = require('../core/reply');
 const { isGuildAdmin } = require('../core/permissions');
 const { auditAdminAction } = require('../misc/adminAudit');
-const Guild = require('../../models/guild/Guild');
-const War = require('../../models/war/War');
+const WarService = require('../../services/WarService');
 
 /**
  * Build info container for responses
@@ -42,24 +41,14 @@ async function markDodge(interaction) {
     });
   }
 
-  const war = await War.findById(warId);
-  if (!war) {
-    return replyEphemeral(interaction, { content: '❌ War not found.' });
-  }
-  if (war.status !== 'aberta') {
-    return replyEphemeral(interaction, {
-      content: '⚠️ War is not open for dodge.'
-    });
+  let result;
+  try {
+    result = await WarService.markDodge(warId, dodgerGuildName);
+  } catch (error) {
+    return replyEphemeral(interaction, { content: `❌ ${error.message}` });
   }
 
-  const dodger = await Guild.findByName(dodgerGuildName, interaction.guild.id);
-  if (!dodger) {
-    return replyEphemeral(interaction, { content: '❌ Dodger guild not found.' });
-  }
-
-  war.status = 'dodge';
-  war.dodgedByGuildId = dodger._id;
-  await war.save();
+  const { war, dodger } = result;
 
   interaction._commandLogExtra = interaction._commandLogExtra || {};
   interaction._commandLogExtra.changes = [
@@ -81,7 +70,7 @@ async function markDodge(interaction) {
       'War Dodge Marked',
       { guildName: dodger.name, guildId: dodger._id, extra: `War ${war._id}` }
     );
-  } catch (_) {}
+  } catch (_) { }
 
   const container = buildInfoContainer([
     `✅ Marked war ${war._id} as Dodge`,
@@ -109,20 +98,15 @@ async function undoDodge(interaction) {
     });
   }
 
-  const war = await War.findById(warId);
-  if (!war) {
-    return replyEphemeral(interaction, { content: '❌ War not found.' });
-  }
-  if (war.status !== 'dodge' || !war.dodgedByGuildId) {
-    return replyEphemeral(interaction, {
-      content: '⚠️ War is not in dodge state.'
-    });
+  let result;
+  try {
+    result = await WarService.undoDodge(warId);
+  } catch (error) {
+    return replyEphemeral(interaction, { content: `❌ ${error.message}` });
   }
 
-  const beforeStatus = war.status;
-  war.status = 'aberta';
-  war.dodgedByGuildId = null;
-  await war.save();
+  const { war } = result;
+  const beforeStatus = 'dodge'; // Known prior state for logging (simplified)
 
   interaction._commandLogExtra = interaction._commandLogExtra || {};
   interaction._commandLogExtra.changes = [
@@ -144,7 +128,7 @@ async function undoDodge(interaction) {
       'War Dodge Reverted',
       { extra: `War ${war._id}` }
     );
-  } catch (_) {}
+  } catch (_) { }
 
   const container = buildInfoContainer([
     `✅ Reverted dodge for war ${war._id}`,
@@ -172,36 +156,15 @@ async function revertResult(interaction) {
     });
   }
 
-  const war = await War.findById(warId);
-  if (!war) {
-    return replyEphemeral(interaction, { content: '❌ War not found.' });
-  }
-  if (war.status !== 'finalizada' || !war.winnerGuildId) {
-    return replyEphemeral(interaction, {
-      content: '⚠️ War is not finalized or winner missing.'
-    });
+  let result;
+  try {
+    result = await WarService.revertResult(warId);
+  } catch (error) {
+    return replyEphemeral(interaction, { content: `❌ ${error.message}` });
   }
 
-  const winner = await Guild.findById(war.winnerGuildId);
-  const loserId = String(war.winnerGuildId) === String(war.guildAId)
-    ? war.guildBId
-    : war.guildAId;
-  const loser = await Guild.findById(loserId);
-  if (!winner || !loser) {
-    return replyEphemeral(interaction, { content: '❌ Guilds not found.' });
-  }
-
-  const winsPrev = Math.max(0, (winner.wins || 0) - 1);
-  const lossesPrev = Math.max(0, (loser.losses || 0) - 1);
-
-  winner.wins = winsPrev;
-  loser.losses = lossesPrev;
-
-  const beforeStatus = war.status;
-  war.status = 'aberta';
-  war.winnerGuildId = null;
-
-  await Promise.all([winner.save(), loser.save(), war.save()]);
+  const { war } = result;
+  const beforeStatus = 'finalizada'; // Known prior state
 
   interaction._commandLogExtra = interaction._commandLogExtra || {};
   interaction._commandLogExtra.changes = [
@@ -223,7 +186,7 @@ async function revertResult(interaction) {
       'War Result Reverted',
       { extra: `War ${war._id}` }
     );
-  } catch (_) {}
+  } catch (_) { }
 
   const container = buildInfoContainer([
     `✅ Reverted result for war ${war._id}`,

@@ -1,4 +1,5 @@
 const { MessageFlags } = require('discord.js');
+const LoggerService = require('../../services/LoggerService');
 const { createErrorEmbed, createSuccessEmbed } = require('../../utils/embeds/embedBuilder');
 const Guild = require('../../models/guild/Guild');
 const { isGuildLeader } = require('../../utils/guilds/guildMemberManager');
@@ -61,7 +62,7 @@ async function handle(interaction) {
       try {
         const user = await interaction.client.users.fetch(userId);
         username = user?.username || username;
-      } catch (_) {}
+      } catch (_) { }
       const newMember = {
         userId,
         username,
@@ -97,19 +98,19 @@ async function handle(interaction) {
           try {
             const oldMember = await interaction.guild.members.fetch(currentCoLeader.userId);
             if (oldMember && oldMember.roles.cache.has(coRoleId)) {
-              await oldMember.roles.remove(coRoleId).catch(() => {});
+              await oldMember.roles.remove(coRoleId).catch(() => { });
             }
-          } catch (_) {}
+          } catch (_) { }
 
           // Add role to new co-leader
           try {
             const newMember = await interaction.guild.members.fetch(userId);
             if (newMember && !newMember.roles.cache.has(coRoleId)) {
-              await newMember.roles.add(coRoleId).catch(() => {});
+              await newMember.roles.add(coRoleId).catch(() => { });
             }
-          } catch (_) {}
+          } catch (_) { }
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // Send notifications
@@ -128,13 +129,13 @@ async function handle(interaction) {
           oldCoLeaderId: currentCoLeader.userId,
           newCoLeaderId: userId,
         });
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const embed = createSuccessEmbed('Co-leader changed', `Co-leader successfully changed. <@${currentCoLeader.userId}> → <@${userId}>`);
     return interaction.reply({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error changing co-leader:', error);
+    LoggerService.error('Error changing co-leader:', { error: error?.message });
     const embed = createErrorEmbed('Error', 'Could not complete co-leader change.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
@@ -163,7 +164,7 @@ async function sendChangeNotifications(interaction, guildDoc, oldCoLeaderId, new
         { embeds: [oldEmbed] },
         { threadTitle: `Role Change — ${guildDoc.name}` }
       );
-    } catch (_) {}
+    } catch (_) { }
 
     // Notify new co-leader
     try {
@@ -178,9 +179,9 @@ async function sendChangeNotifications(interaction, guildDoc, oldCoLeaderId, new
         { embeds: [newEmbed] },
         { threadTitle: `Role Change — ${guildDoc.name}` }
       );
-    } catch (_) {}
+    } catch (_) { }
   } catch (error) {
-    console.error('Error sending change notifications:', error);
+    LoggerService.error('Error sending change notifications:', { error: error?.message });
   }
 }
 

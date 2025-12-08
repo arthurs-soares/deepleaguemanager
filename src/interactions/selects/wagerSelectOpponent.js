@@ -1,4 +1,5 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Handle UserSelect for wager opponent
@@ -21,7 +22,7 @@ async function handle(interaction) {
 
     return interaction.update({ components: [row] });
   } catch (error) {
-    console.error('Error in wager:selectOpponent:', error);
+    LoggerService.error('Error in wager:selectOpponent:', { error: error?.message });
     const msg = { content: '❌ Could not process selection.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

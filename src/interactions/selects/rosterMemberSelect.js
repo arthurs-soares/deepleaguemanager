@@ -1,4 +1,5 @@
 ﻿const { MessageFlags } = require('discord.js');
+const LoggerService = require('../../services/LoggerService');
 const {
   createErrorEmbed,
   createSuccessEmbed
@@ -119,7 +120,7 @@ async function handle(interaction) {
         guildId,
         new Date()
       );
-    } catch (e) {}
+    } catch (e) { }
 
     if (roster === 'main') {
       try {
@@ -131,7 +132,7 @@ async function handle(interaction) {
           co.role = 'membro';
           await guildDoc.save();
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const memberSelf = await interaction.guild.members.fetch(interaction.user.id);
@@ -145,7 +146,7 @@ async function handle(interaction) {
           targetUserId,
           extra: 'Action: ' + action + ', Region: ' + region,
         });
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const rosterName = roster === 'main' ? 'Main Roster' : 'Sub Roster';
@@ -158,7 +159,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
-    console.error('Error in roster member select:', error);
+    LoggerService.error('Error in roster member select:', { error: error?.message });
     const embed = createErrorEmbed('Error', 'Could not process removal.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({
