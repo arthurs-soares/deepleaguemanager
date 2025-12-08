@@ -157,10 +157,14 @@ async function deleteChannel(interaction, channel) {
       'Close failed',
       `Could not close this ticket: ${err?.message || 'unknown error'}`
     );
-    return interaction.editReply({
-      components: [container],
-      flags: MessageFlags.IsComponentsV2
-    });
+    try {
+      return await interaction.editReply({
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
+      });
+    } catch (_) {
+      // Channel or message likely already gone, ignore
+    }
   }
 }
 
@@ -195,7 +199,7 @@ async function logTicketClosure(interaction, war, wager, generalTicket) {
         `${ticketTypeDisplay} • Action by: <@${interaction.user.id}>`
       );
     }
-  } catch (_) {}
+  } catch (_) { }
 }
 
 module.exports = {

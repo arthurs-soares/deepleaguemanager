@@ -41,7 +41,7 @@ function buildWarResultContainer(war, guildA, guildB) {
     { customId: `war:declareWinner:${war._id}:${guildA._id}`, style: ButtonStyle.Success, label: `${guildA?.name} Won` },
     { customId: `war:declareWinner:${war._id}:${guildB._id}`, style: ButtonStyle.Success, label: `${guildB?.name} Won` }
   ];
-  const safeResult = createSafeActionRow(buttonData, { maxLabelLength: 18 });
+  const safeResult = createSafeActionRow(buttonData, { maxLabelLength: 38 });
 
   // Guild A section
   const guildASection = new SectionBuilder();
