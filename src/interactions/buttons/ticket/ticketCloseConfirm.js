@@ -3,6 +3,7 @@ const { isModeratorOrHoster } = require('../../../utils/core/permissions');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
 const GeneralTicket = require('../../../models/ticket/GeneralTicket');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Confirm and execute ticket closure
@@ -74,7 +75,7 @@ async function handle(interaction) {
           ticket
         );
       } catch (err) {
-        console.warn('Failed to send transcript:', err?.message);
+        LoggerService.warn('Failed to send transcript:', { error: err?.message });
       }
     }
 
@@ -88,12 +89,12 @@ async function handle(interaction) {
       try {
         if (channel) await channel.delete('Ticket closed');
       } catch (err) {
-        console.warn('Failed to delete ticket channel:', err?.message);
+        LoggerService.warn('Failed to delete ticket channel:', { error: err?.message });
       }
     }, 10000);
 
   } catch (error) {
-    console.error('Error confirming ticket closure:', error);
+    LoggerService.error('Error confirming ticket closure:', { error: error?.message });
     const msg = {
       content: '❌ Could not close the ticket.',
       flags: MessageFlags.Ephemeral

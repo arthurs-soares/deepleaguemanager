@@ -125,7 +125,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error in wager:select2v2Opponents:', error);
+    LoggerService.error('Error in wager:select2v2Opponents:', { error: error?.message });
     const msg = {
       content: '❌ Could not process opponent selection.',
       flags: MessageFlags.Ephemeral

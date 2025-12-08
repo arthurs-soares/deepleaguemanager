@@ -3,6 +3,7 @@ const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { sendLog } = require('../../../utils/core/logger');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
+const LoggerService = require('../../../services/LoggerService');
 
 const { isDatabaseConnected, withDatabase } = require('../../../config/database');
 
@@ -99,7 +100,7 @@ async function handle(interaction) {
         `Wager Ticket ${ticket._id} closed by ${interaction.user.tag}`,
         ticket
       );
-    } catch (_) {}
+    } catch (_) { }
 
     // Delete the channel
     try {
@@ -113,7 +114,7 @@ async function handle(interaction) {
       } catch (e) {
         const code = e?.code ?? e?.rawError?.code;
         if (code !== 10008) throw e;
-        console.error('Failed to delete wager ticket channel:', err);
+        LoggerService.error('Failed to delete wager ticket channel:', { error: err?.message });
       }
       return;
     }
@@ -124,11 +125,11 @@ async function handle(interaction) {
         'Wager Ticket Closed',
         `Wager Ticket ${ticket._id} • Action by: <@${interaction.user.id}>`
       );
-    } catch (_) {}
+    } catch (_) { }
 
     return;
   } catch (error) {
-    console.error('Error confirming wager ticket closure:', error);
+    LoggerService.error('Error confirming wager ticket closure:', { error: error?.message });
     const msg = {
       content: '❌ Could not close the ticket.',
       flags: MessageFlags.Ephemeral

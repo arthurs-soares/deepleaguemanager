@@ -81,7 +81,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error in wager:select2v2Teammate:', error);
+    LoggerService.error('Error in wager:select2v2Teammate:', { error: error?.message });
     const msg = {
       content: '❌ Could not process teammate selection.',
       flags: MessageFlags.Ephemeral

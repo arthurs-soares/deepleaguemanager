@@ -1,6 +1,7 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const Guild = require('../../../models/guild/Guild');
 const { buildGuildDetailDisplayComponents } = require('../../../utils/embeds/guildDetailEmbed');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Volta ao embed original de visualização da guilda
@@ -11,7 +12,7 @@ async function handle(interaction) {
     const [, , guildId] = interaction.customId.split(':');
 
     // Acknowledge early and then edit to avoid 3s timeout
-    try { await interaction.deferUpdate(); } catch (_) {}
+    try { await interaction.deferUpdate(); } catch (_) { }
 
     const guild = await Guild.findById(guildId);
     if (!guild) return; // nothing to update
@@ -31,10 +32,10 @@ async function handle(interaction) {
         embeds: null,
         content: null
       });
-    } catch (_) {}
+    } catch (_) { }
     return;
   } catch (error) {
-    console.error('Erro no botão viewGuild:back:', error);
+    LoggerService.error('Erro no botão viewGuild:back:', { error: error?.message });
     const msg = { content: '❌ Não foi possível voltar.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

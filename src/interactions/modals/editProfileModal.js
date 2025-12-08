@@ -1,4 +1,5 @@
 const { updateUserProfile } = require('../../utils/user/userProfile');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Saves profile changes while preserving unspecified fields
@@ -45,7 +46,7 @@ async function handle(interaction) {
 
     return interaction.reply({ content: '✅ Profile updated successfully!', ephemeral: true });
   } catch (error) {
-    console.error('Error saving profile:', error);
+    LoggerService.error('Error saving profile:', { error: error?.message });
     const msg = { content: '❌ Could not save your profile.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

@@ -1,5 +1,6 @@
 const { setLeaderboardChannel } = require('../../utils/system/serverSettings');
 const { upsertLeaderboardMessage } = require('../../utils/user/leaderboard');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive channel selection for leaderboard, save and publish/update the message
@@ -18,12 +19,12 @@ async function handle(interaction) {
     try {
       await upsertLeaderboardMessage(interaction.guild);
     } catch (err) {
-      console.warn('Failed to publish leaderboard:', err?.message);
+      LoggerService.warn('Failed to publish leaderboard:', { error: err?.message });
     }
 
     return interaction.editReply({ content: '✅ Leaderboard channel configured.' });
   } catch (error) {
-    console.error('Error saving leaderboard channel:', error);
+    LoggerService.error('Error saving leaderboard channel:', { error: error?.message });
     const msg = { content: '❌ Could not save.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

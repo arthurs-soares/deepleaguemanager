@@ -3,6 +3,7 @@ const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const War = require('../../../models/war/War');
 const { sendLog } = require('../../../utils/core/logger');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
+const LoggerService = require('../../../services/LoggerService');
 
 // Helpers
 async function hasClosePermission(member, guildId) {
@@ -79,7 +80,7 @@ async function handle(interaction) {
         `War ${war._id} closed by ${interaction.user.tag}`,
         war
       );
-    } catch (_) {}
+    } catch (_) { }
 
     // Delete the channel
     try {
@@ -93,7 +94,7 @@ async function handle(interaction) {
       } catch (e) {
         const code = e?.code ?? e?.rawError?.code;
         if (code !== 10008) throw e;
-        console.error('Failed to delete war ticket channel:', err);
+        LoggerService.error('Failed to delete war ticket channel:', { error: err?.message });
       }
       return;
     }
@@ -108,7 +109,7 @@ async function handle(interaction) {
 
     return;
   } catch (error) {
-    console.error('Error confirming war ticket closure:', error);
+    LoggerService.error('Error confirming war ticket closure:', { error: error?.message });
     const msg = {
       content: '❌ Could not close the ticket.',
       flags: MessageFlags.Ephemeral

@@ -1,6 +1,7 @@
 const { ActionRowBuilder, UserSelectMenuBuilder, MessageFlags } = require('discord.js');
 const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { colors } = require('../../../config/botConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Start wager challenge flow
@@ -37,7 +38,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error in wager:start button:', error);
+    LoggerService.error('Error in wager:start button:', { error: error?.message });
     const msg = { content: '❌ Could not start wager flow.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

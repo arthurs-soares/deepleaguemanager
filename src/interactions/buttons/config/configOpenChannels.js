@@ -3,6 +3,7 @@ const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('@dis
 const { colors } = require('../../../config/botConfig');
 const { getOrCreateServerSettings } = require('../../../utils/system/serverSettings');
 const { buildChannelConfigOptions, buildChannelsDisplayText } = require('../../../utils/config/channelConfigOptions');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens Channels panel
@@ -43,7 +44,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error opening channels panel:', error);
+    LoggerService.error('Error opening channels panel:', { error: error?.message });
     const msg = { content: '❌ Could not open the channels panel.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

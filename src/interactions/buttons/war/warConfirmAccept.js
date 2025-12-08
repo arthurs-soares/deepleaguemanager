@@ -10,6 +10,7 @@ const { getOrCreateServerSettings } = require('../../../utils/system/serverSetti
 const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const { createDisabledWarConfirmationButtons } = require('../../../utils/war/warEmbedBuilder');
 const { createSafeActionRow } = require('../../../utils/validation/componentValidation');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Build the war result container with winner buttons
@@ -29,7 +30,7 @@ function buildWarResultContainer(war, guildA, guildB) {
   const descText = new TextDisplayBuilder()
     .setContent(
       `War between ${guildA?.name} and ${guildB?.name}\n` +
-      `Date/Time: <t:${Math.floor(new Date(war.scheduledAt).getTime()/1000)}:F>\n\n` +
+      `Date/Time: <t:${Math.floor(new Date(war.scheduledAt).getTime() / 1000)}:F>\n\n` +
       'Use the buttons below to declare the winner (Hosters/Moderators/Admins only).'
     );
 
@@ -150,7 +151,7 @@ async function handle(interaction) {
     await war.save();
 
     // Remove confirmation buttons from message to prevent multiple acceptances
-    try { await interaction.message.edit({ components: [] }); } catch (_) {}
+    try { await interaction.message.edit({ components: [] }); } catch (_) { }
 
     // Find guild docs
     const [guildA, guildB] = await Promise.all([
@@ -178,21 +179,21 @@ async function handle(interaction) {
             content: `✅ ${userOpponentGuild.name} accepted the war.${hosterMentions ? ` Calling hosters: ${hosterMentions}` : ''}`,
             allowedMentions: { parse: ['roles'] }
           });
-        } catch (_) {}
+        } catch (_) { }
 
         const resultContainer = buildWarResultContainer(war, guildA, guildB);
         const controlRow = buildControlRow(war._id);
 
         await sendAndPin(warChannel, { components: [resultContainer, controlRow], flags: MessageFlags.IsComponentsV2 }, { unpinOld: true });
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // Disable the original war invitation buttons
     try {
       const disabledButtons = createDisabledWarConfirmationButtons(war._id, 'accepted');
       await interaction.message.edit({ components: [disabledButtons] });
     } catch (error) {
-      console.error('Failed to disable war invitation buttons:', error);
+      LoggerService.error('Failed to disable war invitation buttons:', { error: error?.message });
     }
 
     // Acceptance log
@@ -202,11 +203,11 @@ async function handle(interaction) {
         'War Accepted',
         `War ${war._id}\nAccepted by: <@${interaction.user.id}>\nOpponent team: ${userOpponentGuild?.name || '—'}`
       );
-    } catch (_) {}
+    } catch (_) { }
 
     return interaction.editReply({ content: '✅ You accepted the war.' });
   } catch (error) {
-    console.error('Error in button war:confirm:accept:', error);
+    LoggerService.error('Error in button war:confirm:accept:', { error: error?.message });
     const msg = { content: '❌ Could not process the acceptance.' };
     if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, ephemeral: true });
     return interaction.reply({ ...msg, ephemeral: true });

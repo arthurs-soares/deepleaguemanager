@@ -1,4 +1,5 @@
 const { RoleSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens a RoleSelect for single role selection categories
@@ -23,7 +24,7 @@ async function handle(interaction) {
     const row = new ActionRowBuilder().addComponents(menu);
     return interaction.reply({ components: [row], ephemeral: true });
   } catch (error) {
-    console.error('Error opening single role selector:', error);
+    LoggerService.error('Error opening single role selector:', { error: error?.message });
     const msg = { content: '❌ Could not open the selector.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

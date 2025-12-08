@@ -1,5 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const { setRankRole, RANK_DEFINITIONS } = require('../../utils/misc/rankConfig');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive selection of 1 role for a rank and save
@@ -29,7 +30,7 @@ async function handle(interaction) {
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error saving rank role:', error);
+    LoggerService.error('Error saving rank role:', { error: error?.message });
     const msg = { content: '❌ Could not save rank role.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

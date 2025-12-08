@@ -7,6 +7,7 @@ const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const GeneralTicket = require('../../../models/ticket/GeneralTicket');
 const { emojis, colors } = require('../../../config/botConfig');
 const { hasRegistrationAccess } = require('../../../utils/core/permissions');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Ticket type configurations
@@ -154,7 +155,7 @@ async function handle(interaction) {
         flags: MessageFlags.IsComponentsV2
       }, { unpinOld: true });
     } catch (err) {
-      console.warn('Failed to send/pin ticket panel:', err?.message);
+      LoggerService.warn('Failed to send/pin ticket panel:', { error: err?.message });
     }
 
     // Mention support roles based on ticket type
@@ -182,7 +183,7 @@ async function handle(interaction) {
         });
       }
     } catch (err) {
-      console.warn('Failed to mention support roles:', err?.message);
+      LoggerService.warn('Failed to mention support roles:', { error: err?.message });
     }
 
     return interaction.editReply({
@@ -190,7 +191,7 @@ async function handle(interaction) {
     });
 
   } catch (error) {
-    console.error('Error opening ticket:', error);
+    LoggerService.error('Error opening ticket:', { error: error?.message });
     const msg = { content: '❌ Could not create the ticket.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

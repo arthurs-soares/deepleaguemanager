@@ -111,7 +111,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
-    LoggerService.error('Error in addCoLeaderUserSelect:', { error });
+    LoggerService.error('Error in addCoLeaderUserSelect:', { error: error?.message });
     const container = createErrorEmbed(
       'Error',
       'Could not complete co-leader invitation.'

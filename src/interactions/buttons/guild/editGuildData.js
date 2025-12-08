@@ -7,6 +7,7 @@ const {
   isGuildManager
 } = require('../../../utils/guilds/guildMemberManager');
 const { isGuildAdmin } = require('../../../utils/core/permissions');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * "Edit Data" button handler
@@ -94,7 +95,7 @@ async function handle(interaction) {
 
     return interaction.showModal(modal);
   } catch (error) {
-    console.error('Error in Edit Data button:', error);
+    LoggerService.error('Error in Edit Data button:', { error: error?.message });
     const embed = createErrorEmbed('Error', 'Could not open the edit form.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });

@@ -9,6 +9,7 @@ const { validateDateParts, validateGuilds, validateWarCategory } = require('../.
 const { collectAllowedUsers, createWarChannel } = require('../../utils/war/channelManager');
 const { createWarConfirmationEmbed, createWarConfirmationButtons } = require('../../utils/war/warEmbedBuilder');
 const { sendAndPin } = require('../../utils/tickets/pinUtils');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Handle war schedule modal submission
@@ -109,7 +110,7 @@ async function handle(interaction) {
     if (mentionList) {
       try {
         await warChannel.send({ content: `👥 Access granted: ${mentionList}` });
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // Note: Hosters are NOT mentioned on war creation
@@ -126,12 +127,12 @@ async function handle(interaction) {
     // Log war creation
     try {
       await logWarCreated(war, guildA.name, guildB.name, interaction.guild);
-    } catch (_) {}
+    } catch (_) { }
 
     // Send confirmation
     await interaction.editReply({ content: `✅ Channel created: ${warChannel.toString()}` });
   } catch (error) {
-    console.error('Error in warScheduleModal:', error);
+    LoggerService.error('Error in warScheduleModal:', { error: error?.message });
     const msg = { content: '❌ Unable to schedule war.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

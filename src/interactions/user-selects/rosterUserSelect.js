@@ -122,9 +122,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
-    LoggerService.error('Error in roster user select:', {
-      error: error.message
-    });
+    LoggerService.error('Error in roster user select:', { error: error?.message });
     const embed = createErrorEmbed('Error', 'Could not process selection.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({

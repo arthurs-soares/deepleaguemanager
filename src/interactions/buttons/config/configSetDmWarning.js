@@ -1,4 +1,5 @@
 const { ChannelSelectMenuBuilder, ActionRowBuilder, ChannelType, MessageFlags } = require('discord.js');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens a ChannelSelect to choose the DM Warning notifications channel
@@ -14,7 +15,7 @@ async function handle(interaction) {
     const row = new ActionRowBuilder().addComponents(menu);
     return interaction.reply({ components: [row], flags: MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error opening DM Warning channel selector:', error);
+    LoggerService.error('Error opening DM Warning channel selector:', { error: error?.message });
     const msg = { content: '❌ Could not open the channel selector.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

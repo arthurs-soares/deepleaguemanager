@@ -36,9 +36,7 @@ async function handle(interaction) {
       components: [row]
     });
   } catch (error) {
-    LoggerService.error('Error in leave guild region select:', {
-      error: error.message
-    });
+    LoggerService.error('Error in leave guild region select:', { error: error?.message });
     const msg = {
       content: '❌ Could not process selection.',
       flags: MessageFlags.Ephemeral

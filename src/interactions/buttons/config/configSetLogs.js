@@ -1,4 +1,5 @@
 const { ChannelSelectMenuBuilder, ActionRowBuilder, ChannelType } = require('discord.js');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens a ChannelSelect to choose the logs channel
@@ -15,7 +16,7 @@ async function handle(interaction) {
     const { MessageFlags } = require('discord.js');
     return interaction.reply({ components: [row], flags: MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error opening logs channel selector:', error);
+    LoggerService.error('Error opening logs channel selector:', { error: error?.message });
     const { MessageFlags } = require('discord.js');
     const msg = { content: '❌ Could not open the channel selector.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);

@@ -1,5 +1,6 @@
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { MessageFlags } = require('discord.js');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive channel selection for logs and save
@@ -18,7 +19,7 @@ async function handle(interaction) {
 
     return interaction.editReply({ content: `✅ Logs channel set to <#${channelId}>.` });
   } catch (error) {
-    console.error('Error saving logs channel:', error);
+    LoggerService.error('Error saving logs channel:', { error: error?.message });
     const msg = { content: '❌ Could not save the logs channel.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

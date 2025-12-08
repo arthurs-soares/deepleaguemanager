@@ -33,7 +33,7 @@ async function handle(interaction) {
     const buttonRows = buildRoundButtons(sessionId, sessionData.rounds.length, true);
 
     // Update the original edit message
-    await interaction.message.delete().catch(() => {});
+    await interaction.message.delete().catch(() => { });
 
     // Find and update the original editor message
     const channel = interaction.channel;
@@ -55,7 +55,7 @@ async function handle(interaction) {
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error in warLogMvpSelect:', { error: error.message });
+    LoggerService.error('Error in warLogMvpSelect:', { error: error?.message });
     const msg = { content: '❌ Failed to update MVP.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp(msg);

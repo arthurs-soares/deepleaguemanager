@@ -1,5 +1,6 @@
 const { ChannelType } = require('discord.js');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive CATEGORY selection for EU war channels, save
@@ -23,7 +24,7 @@ async function handle(interaction) {
 
     return interaction.editReply({ content: `✅ EU War category set to <#${channelId}>.` });
   } catch (error) {
-    console.error('Error saving EU war category:', error);
+    LoggerService.error('Error saving EU war category:', { error: error?.message });
     const msg = { content: '❌ Could not save the EU war category.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

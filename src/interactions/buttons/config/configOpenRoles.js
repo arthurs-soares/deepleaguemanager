@@ -2,6 +2,7 @@ const { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder
 const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('@discordjs/builders');
 const { colors } = require('../../../config/botConfig');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens roles panel
@@ -107,7 +108,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error opening roles panel:', error);
+    LoggerService.error('Error opening roles panel:', { error: error?.message });
     const msg = { content: '❌ Could not open the roles panel.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

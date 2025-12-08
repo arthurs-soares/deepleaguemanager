@@ -1,5 +1,6 @@
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { sendWagerTicketsPanel } = require('../../utils/wager/wagerTicketsPanel');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive channel selection for wager tickets, save and send the panel
@@ -20,12 +21,12 @@ async function handle(interaction) {
       const channel = interaction.guild.channels.cache.get(channelId);
       if (channel) await sendWagerTicketsPanel(channel);
     } catch (err) {
-      console.warn('Failed to send wager tickets panel:', err?.message);
+      LoggerService.warn('Failed to send wager tickets panel:', { error: err?.message });
     }
 
     return interaction.editReply({ content: `✅ Wager tickets channel set to <#${channelId}>.` });
   } catch (error) {
-    console.error('Error saving wager tickets channel:', error);
+    LoggerService.error('Error saving wager tickets channel:', { error: error?.message });
     const msg = { content: '❌ Could not save the wager tickets channel.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

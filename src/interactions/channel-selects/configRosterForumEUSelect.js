@@ -1,6 +1,7 @@
 const { ChannelType } = require('discord.js');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { syncRosterForum } = require('../../utils/roster/rosterForumSync');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receives FORUM channel selection for EU region rosters, saves and starts synchronization
@@ -26,12 +27,12 @@ async function handle(interaction) {
     try {
       await syncRosterForum(interaction.guild, 'Europe');
     } catch (err) {
-      console.warn('Failed to synchronize EU roster forum:', err?.message);
+      LoggerService.warn('Failed to synchronize EU roster forum:', { error: err?.message });
     }
 
     return interaction.editReply({ content: `✅ EU Roster forum set to <#${channelId}>. Starting synchronization...` });
   } catch (error) {
-    console.error('Error saving EU roster forum:', error);
+    LoggerService.error('Error saving EU roster forum:', { error: error?.message });
     const msg = { content: '❌ Could not save the forum channel.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

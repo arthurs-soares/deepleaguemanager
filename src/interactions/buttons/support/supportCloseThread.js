@@ -1,6 +1,7 @@
 const { PermissionFlagsBits, ChannelType } = require('discord.js');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Check if member can close support fallback threads: Support, Moderators, or Admin
@@ -39,7 +40,7 @@ async function handle(interaction) {
     }
 
     // Try to send transcript to logs (support threads use general transcript channel)
-    try { await sendTranscriptToLogs(interaction.guild, channel, `Support thread closed by <@${interaction.user.id}>`, null, 'general'); } catch (_) {}
+    try { await sendTranscriptToLogs(interaction.guild, channel, `Support thread closed by <@${interaction.user.id}>`, null, 'general'); } catch (_) { }
 
     // Delete the thread (this will also delete the interaction message if it's in this thread)
     try {
@@ -52,14 +53,14 @@ async function handle(interaction) {
         const code = e?.code ?? e?.rawError?.code;
         if (code !== 10008) throw e; // rethrow unexpected errors
         // Unknown Message: can't notify user, but log the original error
-        console.error('Failed to delete support thread:', err);
+        LoggerService.error('Failed to delete support thread:', { error: err?.message });
       }
       return;
     }
 
     return;
   } catch (error) {
-    console.error('Error in button support:closeThread:', error);
+    LoggerService.error('Error in button support:closeThread:', { error: error?.message });
     const msg = { content: '❌ Could not close the support thread.' };
     if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, ephemeral: true });
     return interaction.reply({ ...msg, ephemeral: true });

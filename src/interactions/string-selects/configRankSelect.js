@@ -43,7 +43,7 @@ async function handle(interaction) {
     });
 
   } catch (error) {
-    LoggerService.error('Error handling rank config selection:', error);
+    LoggerService.error('Error handling rank config selection:', { error: error?.message });
     const msg = {
       content: '❌ Could not process selection.',
       flags: MessageFlags.Ephemeral

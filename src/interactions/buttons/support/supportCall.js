@@ -2,6 +2,7 @@ const { MessageFlags } = require('discord.js');
 const { buildSupportRoleMentions } = require('../../../utils/misc/mentions');
 const { logRoleMention } = require('../../../utils/core/roleLogger');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Call Support button handler
@@ -16,7 +17,7 @@ const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 async function handle(interaction) {
   try {
     // Acknowledge quickly
-    try { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); } catch (_) {}
+    try { await interaction.deferReply({ flags: MessageFlags.Ephemeral }); } catch (_) { }
 
     const guild = interaction.guild;
     if (!guild) {
@@ -44,12 +45,12 @@ async function handle(interaction) {
           interaction.user.id
         );
       }
-    } catch (_) {}
+    } catch (_) { }
 
     await interaction.editReply({ content: '✅ Support has been called.' });
     return;
   } catch (error) {
-    console.error('Error in button support:call:', error);
+    LoggerService.error('Error in button support:call:', { error: error?.message });
     const msg = { content: '❌ Could not call support.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

@@ -1,5 +1,6 @@
 const { ChannelType } = require('discord.js');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive CATEGORY selection for wager channels, save
@@ -23,7 +24,7 @@ async function handle(interaction) {
 
     return interaction.editReply({ content: `✅ Wager category set to <#${channelId}>.` });
   } catch (error) {
-    console.error('Error saving wager category:', error);
+    LoggerService.error('Error saving wager category:', { error: error?.message });
     const msg = { content: '❌ Could not save the wager category.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

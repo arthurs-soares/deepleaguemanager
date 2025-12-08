@@ -132,7 +132,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error in addManagerUserSelect:', { error });
+    LoggerService.error('Error in addManagerUserSelect:', { error: error?.message });
     const container = createErrorEmbed(
       'Error',
       'Could not send the manager invitation.'

@@ -1,5 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const { setMulti } = require('../../utils/misc/roleConfig');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive multiple role selection and save
@@ -14,7 +15,7 @@ async function handle(interaction) {
     await setMulti(interaction.guild.id, key, roleIds);
     return interaction.reply({ content: '✅ Roles updated.', flags: MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error saving multiple roles:', error);
+    LoggerService.error('Error saving multiple roles:', { error: error?.message });
     const msg = { content: '❌ Could not save.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

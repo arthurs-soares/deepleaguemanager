@@ -1,7 +1,7 @@
 const { PermissionFlagsBits, MessageFlags } = require('discord.js');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const { recordWager, recordWager2v2 } = require('../../../utils/wager/wagerService');
+const WagerService = require('../../../services/WagerService');
 const { buildWagerCloseButtonRow } = require('../../../utils/tickets/closeButtons');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
@@ -81,7 +81,7 @@ async function handle(interaction) {
         ? [ticket.opponentUserId, ticket.opponentTeammateId]
         : [ticket.initiatorUserId, ticket.initiatorTeammateId];
 
-      embed = await recordWager2v2(
+      embed = await WagerService.recordWager2v2(
         interaction.guild,
         interaction.user.id,
         winnerIds,
@@ -97,7 +97,7 @@ async function handle(interaction) {
         ? ticket.opponentUserId
         : ticket.initiatorUserId;
 
-      embed = await recordWager(
+      embed = await WagerService.recordWager(
         interaction.guild,
         interaction.user.id,
         winnerId,
@@ -113,7 +113,7 @@ async function handle(interaction) {
     // Remove confirmation message components
     try {
       await interaction.message.edit({ components: [] });
-    } catch (_) {}
+    } catch (_) { }
 
     // Post to ticket channel
     const ch = interaction.guild.channels.cache.get(ticket.channelId);
@@ -131,7 +131,7 @@ async function handle(interaction) {
           components: [embed],
           flags: MessageFlags.IsComponentsV2
         });
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const confirmMsg = ticket.is2v2
@@ -142,7 +142,7 @@ async function handle(interaction) {
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error confirming wager winner:', error);
+    LoggerService.error('Error confirming wager winner:', { error: error?.message });
     const msg = {
       content: '❌ Could not record the result.',
       flags: MessageFlags.Ephemeral

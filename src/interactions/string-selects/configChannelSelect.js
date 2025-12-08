@@ -1,4 +1,5 @@
 const { ChannelSelectMenuBuilder, ActionRowBuilder, ChannelType, MessageFlags } = require('discord.js');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Handle channel configuration dropdown selection
@@ -164,7 +165,7 @@ async function handle(interaction) {
     });
 
   } catch (error) {
-    console.error('Error handling channel configuration selection:', error);
+    LoggerService.error('Error handling channel configuration selection:', { error: error?.message });
     const msg = { content: '❌ Could not process selection.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

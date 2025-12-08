@@ -2,6 +2,7 @@ const { ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('
 const Guild = require('../../../models/guild/Guild');
 const { fetchGuildWars, buildGuildHistoryEmbed } = require('../../../utils/embeds/guildHistoryEmbed');
 const { isDatabaseConnected, withDatabase } = require('../../../config/database');
+const LoggerService = require('../../../services/LoggerService');
 
 
 /**
@@ -13,7 +14,7 @@ async function handle(interaction) {
     const [, , guildId] = interaction.customId.split(':');
 
     // Acknowledge early and then edit to avoid 3s timeout
-    try { await interaction.deferUpdate(); } catch (_) {}
+    try { await interaction.deferUpdate(); } catch (_) { }
 
     // If DB is not connected, inform user politely
     const dbUnavailable = !isDatabaseConnected();
@@ -49,10 +50,10 @@ async function handle(interaction) {
     );
 
     // After deferring, edit the message instead of calling update
-    try { await interaction.message?.edit({ components: [embed, row], flags: MessageFlags.IsComponentsV2 }); } catch (_) {}
+    try { await interaction.message?.edit({ components: [embed, row], flags: MessageFlags.IsComponentsV2 }); } catch (_) { }
     return;
   } catch (error) {
-    console.error('Erro no botão viewGuild:history:', error);
+    LoggerService.error('Erro no botão viewGuild:history:', { error: error?.message });
     const msg = { content: '❌ Não foi possível carregar o histórico.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

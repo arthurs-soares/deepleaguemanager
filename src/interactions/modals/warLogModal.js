@@ -48,7 +48,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error in warLogModal:', { error: error.message });
+    LoggerService.error('Error in warLogModal:', { error: error?.message });
     const msg = { content: '❌ Unable to save round.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp(msg);

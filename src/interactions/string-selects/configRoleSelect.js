@@ -1,4 +1,5 @@
 const { RoleSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Handle role configuration dropdown selection
@@ -89,7 +90,7 @@ async function handle(interaction) {
     });
 
   } catch (error) {
-    console.error('Error handling role configuration selection:', error);
+    LoggerService.error('Error handling role configuration selection:', { error: error?.message });
     const msg = { content: '❌ Could not process selection.', ephemeral: true };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

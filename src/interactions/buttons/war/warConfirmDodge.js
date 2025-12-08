@@ -3,6 +3,7 @@ const War = require('../../../models/war/War');
 const Guild = require('../../../models/guild/Guild');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { createDisabledWarConfirmationButtons } = require('../../../utils/war/warEmbedBuilder');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Open a selector to choose which guild dodged (hosters/mods only)
@@ -50,12 +51,12 @@ async function handle(interaction) {
       const disabledButtons = createDisabledWarConfirmationButtons(war._id, 'dodging');
       await interaction.message.edit({ components: [disabledButtons] });
     } catch (error) {
-      console.error('Failed to disable war invitation buttons:', error);
+      LoggerService.error('Failed to disable war invitation buttons:', { error: error?.message });
     }
 
     return interaction.editReply({ content: 'Select which guild dodged this war.', components: [row] });
   } catch (error) {
-    console.error('Error in button war:confirm:dodge:', error);
+    LoggerService.error('Error in button war:confirm:dodge:', { error: error?.message });
     const msg = { content: '❌ Could not open the dodge selector.' };
     if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, flags: MessageFlags.Ephemeral });
     return interaction.reply({ ...msg, flags: MessageFlags.Ephemeral });

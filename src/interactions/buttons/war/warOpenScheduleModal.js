@@ -1,4 +1,5 @@
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens modal to input date and time
@@ -61,7 +62,7 @@ async function handle(interaction) {
 
     return interaction.showModal(modal);
   } catch (error) {
-    console.error('Error in war:openScheduleModal button:', error);
+    LoggerService.error('Error in war:openScheduleModal button:', { error: error?.message });
     const msg = { content: '❌ Could not open the modal.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

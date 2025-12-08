@@ -7,6 +7,7 @@ const {
 } = require('../../utils/guilds/guildMemberManager');
 const { isGuildAdmin } = require('../../utils/core/permissions');
 const { auditAdminAction } = require('../../utils/misc/adminAudit');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Guild data editing modal submit handler
@@ -82,14 +83,14 @@ async function handle(interaction) {
           guildName: guildDoc.name,
           guildId,
         });
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const container = createSuccessEmbed('Data updated', 'Guild information has been updated successfully.');
     const { MessageFlags } = require('discord.js');
     return interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error saving guild data:', error);
+    LoggerService.error('Error saving guild data:', { error: error?.message });
     const message = error?.message?.includes('URL') || error?.message?.includes('Color')
       ? error.message
       : 'Could not save the changes.';

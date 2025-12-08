@@ -3,6 +3,7 @@ const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { colors, emojis } = require('../../../config/botConfig');
+const LoggerService = require('../../../services/LoggerService');
 
 const { isDatabaseConnected, withDatabase } = require('../../../config/database');
 
@@ -114,7 +115,7 @@ async function handle(interaction) {
     });
 
   } catch (error) {
-    console.error('Error showing wager ticket close confirmation:', error);
+    LoggerService.error('Error showing wager ticket close confirmation:', { error: error?.message });
     const msg = { content: '❌ Could not show confirmation dialog.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

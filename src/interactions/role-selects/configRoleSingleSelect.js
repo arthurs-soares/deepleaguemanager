@@ -1,5 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const { setSingle } = require('../../utils/misc/roleConfig');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Receive selection of 1 role and save
@@ -14,7 +15,7 @@ async function handle(interaction) {
     await setSingle(interaction.guild.id, key, roleId);
     return interaction.reply({ content: '✅ Role updated.', flags: MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error saving single role:', error);
+    LoggerService.error('Error saving single role:', { error: error?.message });
     const msg = { content: '❌ Could not save.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);

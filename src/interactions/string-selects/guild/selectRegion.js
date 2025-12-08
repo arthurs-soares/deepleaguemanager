@@ -46,9 +46,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
-    LoggerService.error('Error in guild region select:', {
-      error: error.message
-    });
+    LoggerService.error('Error in guild region select:', { error: error?.message });
     try {
       const container = createErrorEmbed('Error', 'An error occurred.');
       return interaction.update({

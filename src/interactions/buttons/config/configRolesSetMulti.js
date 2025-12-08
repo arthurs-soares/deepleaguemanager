@@ -1,5 +1,6 @@
 const { RoleSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
 const { replyEphemeral } = require('../../../utils/core/reply');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Opens a RoleSelect for categories with multiple selections
@@ -23,7 +24,7 @@ async function handle(interaction) {
     const row = new ActionRowBuilder().addComponents(menu);
     return replyEphemeral(interaction, { components: [row] });
   } catch (error) {
-    console.error('Error opening multiple roles selector:', error);
+    LoggerService.error('Error opening multiple roles selector:', { error: error?.message });
     return replyEphemeral(interaction, { content: '❌ Could not open the selector.' });
   }
 }

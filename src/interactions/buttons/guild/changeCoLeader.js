@@ -4,6 +4,7 @@ const { isGuildLeader } = require('../../../utils/guilds/guildMemberManager');
 const { createErrorEmbed } = require('../../../utils/embeds/embedBuilder');
 const { isGuildAdmin } = require('../../../utils/core/permissions');
 const { hasCoLeader } = require('../../../utils/guilds/guildPanelComponents');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * "Change Co-leader" button handler
@@ -40,7 +41,7 @@ async function handle(interaction) {
     const row = new ActionRowBuilder().addComponents(userSelect);
     return interaction.reply({ components: [row], flags: MessageFlags.Ephemeral });
   } catch (error) {
-    console.error('Error in Change Co-leader button:', error);
+    LoggerService.error('Error in Change Co-leader button:', { error: error?.message });
     const container = createErrorEmbed('Error', 'Could not start co-leader change.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({ components: [container], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });

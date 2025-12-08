@@ -3,6 +3,7 @@ const Guild = require('../../../models/guild/Guild');
 const { createErrorEmbed, createSuccessEmbed } = require('../../../utils/embeds/embedBuilder');
 const { isGuildLeader } = require('../../../utils/guilds/guildMemberManager');
 const { isGuildAdmin } = require('../../../utils/core/permissions');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Handle confirmation to remove co-leader who is not on current rosters
@@ -27,7 +28,7 @@ async function handle(interaction) {
 
     if (decision === 'no') {
       // Simply clear buttons and acknowledge
-      try { return await interaction.update({ content: 'Action cancelled.', components: [] }); } catch (_) {}
+      try { return await interaction.update({ content: 'Action cancelled.', components: [] }); } catch (_) { }
       return;
     }
 
@@ -85,7 +86,7 @@ async function handle(interaction) {
         try {
           const m = await interaction.guild.members.fetch(userId).catch(() => null);
           if (m && m.roles?.cache?.has(coRoleId)) {
-            await m.roles.remove(coRoleId).catch(() => {});
+            await m.roles.remove(coRoleId).catch(() => { });
           }
         } catch (_) { /* ignore */ }
       }
@@ -100,7 +101,7 @@ async function handle(interaction) {
       return interaction.reply({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
     }
   } catch (error) {
-    console.error('Error in coLeaderRemoveConfirm:', error);
+    LoggerService.error('Error in coLeaderRemoveConfirm:', { error: error?.message });
     const embed = createErrorEmbed('Error', 'Could not complete the co-leader removal.');
     try {
       if (interaction.deferred || interaction.replied) return await interaction.followUp({ components: [embed], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });

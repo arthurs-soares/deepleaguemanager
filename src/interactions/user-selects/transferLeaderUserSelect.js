@@ -9,6 +9,7 @@ const { isGuildAdmin } = require('../../utils/core/permissions');
 const {
   sendLeadershipInvite
 } = require('../../utils/guilds/sendLeadershipInvite');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * User Select handler to choose new leader
@@ -96,6 +97,7 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
+    LoggerService.error('Error in transferLeaderUserSelect:', { error: error?.message });
     const embed = createErrorEmbed('Error', 'Could not send the invitation.');
     if (interaction.deferred || interaction.replied) {
       return interaction.editReply({

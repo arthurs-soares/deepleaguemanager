@@ -1,4 +1,5 @@
 const { MessageFlags } = require('discord.js');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * Cancel war ticket closure
@@ -12,7 +13,7 @@ async function handle(interaction) {
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error cancelling war ticket closure:', error);
+    LoggerService.error('Error cancelling war ticket closure:', { error: error?.message });
     const msg = {
       content: '❌ An error occurred.',
       flags: MessageFlags.Ephemeral

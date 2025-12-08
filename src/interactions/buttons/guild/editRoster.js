@@ -11,6 +11,7 @@ const {
   isGuildCoLeader,
   isGuildManager
 } = require('../../../utils/guilds/guildMemberManager');
+const LoggerService = require('../../../services/LoggerService');
 
 /**
  * "Edit Roster" button handler
@@ -94,7 +95,7 @@ async function handle(interaction) {
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
-    console.error('Error in Edit Roster button:', error);
+    LoggerService.error('Error in Edit Roster button:', { error: error?.message });
     const container = createErrorEmbed('Error', 'Could not open roster menu.');
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp({

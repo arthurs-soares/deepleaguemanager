@@ -1,7 +1,7 @@
 const { MessageFlags } = require('discord.js');
 const { isModeratorOrHoster } = require('../core/permissions');
 const WagerTicket = require('../../models/wager/WagerTicket');
-const { recordWager } = require('../wager/wagerService');
+const WagerService = require('../../services/WagerService');
 const { buildWagerCloseButtonRow } = require('../tickets/closeButtons');
 const { getOrCreateUserProfile } = require('../user/userProfile');
 const { auditAdminAction } = require('../misc/adminAudit');
@@ -18,7 +18,7 @@ async function record(interaction) {
   // Expose interaction for downstream logging enrichment
   global._currentInteraction = interaction;
 
-  const embed = await recordWager(
+  const embed = await WagerService.recordWager(
     interaction.guild,
     interaction.user.id,
     winnerUser.id,
@@ -45,7 +45,7 @@ async function record(interaction) {
         ephemeral: false
       });
     }
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /**
@@ -106,7 +106,7 @@ async function setStats(interaction) {
         extra: `W: ${oldWins}→${newWins}, L: ${oldLosses}→${newLosses}, G: ${oldGames}→${profile.wagerGamesPlayed}`
       }
     );
-  } catch (_) {}
+  } catch (_) { }
 
   return interaction.editReply({
     content: `✅ Updated **${targetUser.tag}**'s wager stats:\n` +
