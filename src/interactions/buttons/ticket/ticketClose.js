@@ -1,9 +1,8 @@
-const { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
+const { MessageFlags } = require('discord.js');
+const TicketService = require('../../../services/TicketService');
+const { buildTicketCloseConfirmation } = require('../../../utils/embeds/ticketEmbeds');
 const { isModeratorOrHoster } = require('../../../utils/core/permissions');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const GeneralTicket = require('../../../models/ticket/GeneralTicket');
-const { colors, emojis } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
 
 /**
@@ -19,8 +18,8 @@ async function handle(interaction) {
       return interaction.editReply({ content: '❌ Invalid ticket ID.' });
     }
 
-    // Find the ticket
-    const ticket = await GeneralTicket.findById(ticketId);
+    // Use Service to get ticket
+    const ticket = await TicketService.getTicket(ticketId);
     if (!ticket) {
       return interaction.editReply({ content: '❌ Ticket not found.' });
     }
@@ -29,7 +28,7 @@ async function handle(interaction) {
       return interaction.editReply({ content: '❌ This ticket is already closed.' });
     }
 
-    // Check permissions: ticket owner, moderators, support, or admin support
+    // Permission Check (Validation specific to this interaction context)
     const roleConfig = await getOrCreateRoleConfig(interaction.guild.id);
     const isModerator = await isModeratorOrHoster(interaction.member, interaction.guild.id);
     const isAdminSupport = roleConfig.adminSupportRoleIds?.some(roleId =>
@@ -63,45 +62,12 @@ async function handle(interaction) {
       roster: 'Roster Ticket'
     }[ticket.ticketType] || ticket.ticketType;
 
-    // Build confirmation container
-    const container = new ContainerBuilder();
-    const warningColor = typeof colors.warning === 'string'
-      ? parseInt(colors.warning.replace('#', ''), 16)
-      : colors.warning;
-    container.setAccentColor(warningColor);
-
-    const titleText = new TextDisplayBuilder()
-      .setContent(`# ${emojis.warning} Confirm Ticket Closure`);
-
-    const descText = new TextDisplayBuilder()
-      .setContent('Are you sure you want to close this ticket? This action cannot be undone.');
-
-    const detailsText = new TextDisplayBuilder()
-      .setContent(
-        `**Ticket Type:** ${ticketTypeDisplay}\n` +
-        `**Creator:** ${creatorTag}\n` +
-        `**Created:** <t:${Math.floor(ticket.createdAt.getTime() / 1000)}:R>\n` +
-        `**Channel:** ${interaction.channel}`
-      );
-
-    container.addTextDisplayComponents(titleText, descText, detailsText);
-
-    // Create confirmation buttons
-    const actionRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`ticket:close:confirm:${ticketId}`)
-        .setStyle(ButtonStyle.Danger)
-        .setLabel('Confirm Close'),
-      new ButtonBuilder()
-        .setCustomId(`ticket:close:cancel:${ticketId}`)
-        .setStyle(ButtonStyle.Secondary)
-        .setLabel('Cancel')
-    );
+    // Build confirmation container using helper
+    const payload = buildTicketCloseConfirmation(ticket, creatorTag, ticketTypeDisplay, interaction.channel);
 
     await interaction.editReply({
-      content: '',
-      components: [container, actionRow],
-      flags: MessageFlags.IsComponentsV2
+      content: '', // Clear any loading message
+      ...payload
     });
 
   } catch (error) {
@@ -113,4 +79,3 @@ async function handle(interaction) {
 }
 
 module.exports = { handle };
-
