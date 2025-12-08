@@ -7,6 +7,8 @@ const { sendLog } = require('../../../utils/core/logger');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { getFirstActiveRegion } = require('../../../models/statics/guildStatics');
 const LoggerService = require('../../../services/LoggerService');
+const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
+const { colors, emojis } = require('../../../config/botConfig');
 
 /**
  * Confirm and execute war winner declaration
@@ -99,7 +101,25 @@ async function handle(interaction) {
     // Get the original message from the confirmation
     const originalMessage = interaction.message;
     try {
-      await originalMessage.edit({ components: [] });
+      const successColor = typeof colors.success === 'string'
+        ? parseInt(colors.success.replace('#', ''), 16)
+        : colors.success;
+
+      const container = new ContainerBuilder()
+        .setAccentColor(successColor);
+
+      const titleText = new TextDisplayBuilder()
+        .setContent(`# ${emojis.success} Result Confirmed`);
+
+      const descText = new TextDisplayBuilder()
+        .setContent(`Result confirmed by <@${interaction.user.id}>.`);
+
+      container.addTextDisplayComponents(titleText, descText);
+
+      await originalMessage.edit({
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
+      });
     } catch (_) { }
 
     // Post to channel

@@ -5,6 +5,8 @@ const WagerService = require('../../../services/WagerService');
 const { buildWagerCloseButtonRow } = require('../../../utils/tickets/closeButtons');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
+const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
+const { colors, emojis } = require('../../../config/botConfig');
 
 /**
  * Confirm and execute wager winner decision
@@ -120,7 +122,28 @@ async function handle(interaction) {
 
     // Remove confirmation message components
     try {
-      await interaction.message.edit({ components: [] });
+      // Update confirmation message to show success
+      try {
+        const successColor = typeof colors.success === 'string'
+          ? parseInt(colors.success.replace('#', ''), 16)
+          : colors.success;
+
+        const container = new ContainerBuilder()
+          .setAccentColor(successColor);
+
+        const titleText = new TextDisplayBuilder()
+          .setContent(`# ${emojis.success} Result Confirmed`);
+
+        const descText = new TextDisplayBuilder()
+          .setContent(`Result confirmed by <@${interaction.user.id}>.`);
+
+        container.addTextDisplayComponents(titleText, descText);
+
+        await interaction.message.edit({
+          components: [container],
+          flags: MessageFlags.IsComponentsV2
+        });
+      } catch (_) { }
     } catch (_) { }
 
     // Post to ticket channel
