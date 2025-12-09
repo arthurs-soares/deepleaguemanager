@@ -1,4 +1,5 @@
 const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('@discordjs/builders');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Guild = require('../../models/guild/Guild');
 const { colors, emojis } = require('../../config/botConfig');
 const { getOrCreateServerSettings, setLeaderboardMessage } = require('../system/serverSettings');
@@ -35,8 +36,8 @@ async function buildLeaderboardEmbed(discordGuild) {
     const formattedName = formatGuildName(g.name, 18);
 
     return `${rankEmoji} **#${rank}** ${formattedName} ${trend}\n` +
-           `\`\`\`${winRateBar}\`\`\`` +
-           `**${w}W/${l}L** • ${winRateDisplay}`;
+      `\`\`\`${winRateBar}\`\`\`` +
+      `**${w}W/${l}L** • ${winRateDisplay}`;
   }));
 
   const container = new ContainerBuilder();
@@ -54,13 +55,24 @@ async function buildLeaderboardEmbed(discordGuild) {
       `${emojis.warning} No guilds registered yet.`);
 
   const footerText = new TextDisplayBuilder()
-    .setContent(`*${emojis.schedule} Auto-updates daily at 00:05 • ${stats.totalGuilds} total guilds*`);
+    .setContent(`*${emojis.schedule} Auto-updates hourly • ${stats.totalGuilds} total guilds*`);
 
   const timestampText = new TextDisplayBuilder()
     .setContent(`*<t:${Math.floor(Date.now() / 1000)}:F>*`);
 
   container.addTextDisplayComponents(titleText, contentText);
   container.addSeparatorComponents(new SeparatorBuilder());
+
+  // Manual Update Button
+  const actionRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('leaderboard:update:guild')
+      .setLabel('Refresh')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji('🔄')
+  );
+  container.addActionRowComponents(actionRow);
+
   container.addTextDisplayComponents(footerText, timestampText);
 
   return container;
@@ -103,41 +115,36 @@ async function upsertLeaderboardMessage(discordGuild) {
     allowedMentions: { parse: [] }
   });
   await setLeaderboardMessage(discordGuild.id, sent.id);
-  try { await sent.pin(); } catch (_) {}
+  try { await sent.pin(); } catch (_) { }
   return { ok: true, created: true };
 }
 
 /**
- * Schedule daily leaderboard updates
- * - Runs once at startup and then daily at desired time (default: 00:05)
+ * Schedule hourly leaderboard updates
+ * - Runs once at startup and then hourly
  * @param {import('discord.js').Client} client
- * @param {{ hour?: number, minute?: number }} opts
  */
-function scheduleDailyLeaderboard(client, opts = {}) {
-  const hour = Number.isInteger(opts.hour) ? opts.hour : 0;
-  const minute = Number.isInteger(opts.minute) ? opts.minute : 5;
-
+function scheduleDailyLeaderboard(client) {
   // Execute once after 15s
   setTimeout(() => {
-    client.guilds.cache.forEach(g => upsertLeaderboardMessage(g).catch(() => {}));
+    client.guilds.cache.forEach(g => upsertLeaderboardMessage(g).catch(() => { }));
   }, 15_000);
 
-  function msUntilNext(hour, minute) {
+  function msUntilNextHour() {
     const now = new Date();
     const next = new Date(now);
-    next.setHours(hour, minute, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1);
+    next.setHours(now.getHours() + 1, 0, 0, 0);
     return next - now;
   }
 
   async function scheduleNextTick() {
-    const delay = msUntilNext(hour, minute);
+    const delay = msUntilNextHour();
     setTimeout(async () => {
       try {
         for (const g of client.guilds.cache.values()) {
           await upsertLeaderboardMessage(g);
         }
-      } catch (_) {}
+      } catch (_) { }
       scheduleNextTick();
     }, delay).unref?.();
   }

@@ -131,6 +131,18 @@ async function buildEventPointsLeaderboardEmbed(
 
   container.addSeparatorComponents(new SeparatorBuilder());
 
+  // Action Row for buttons
+  const actionRow = new ActionRowBuilder();
+
+  // Refresh button (always visible)
+  actionRow.addComponents(
+    new ButtonBuilder()
+      .setCustomId('leaderboard:update:eventpoints')
+      .setLabel('Refresh')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji('🔄')
+  );
+
   // Pagination controls if multiple pages
   if (totalPages > 1) {
     // Add pagination info text
@@ -140,8 +152,7 @@ async function buildEventPointsLeaderboardEmbed(
       )
     );
 
-    // Add buttons row
-    const paginationRow = new ActionRowBuilder().addComponents(
+    actionRow.addComponents(
       new ButtonBuilder()
         .setCustomId(`eventpoints_lb:prev:${safePage}`)
         .setStyle(ButtonStyle.Secondary)
@@ -155,9 +166,9 @@ async function buildEventPointsLeaderboardEmbed(
         .setEmoji('▶️')
         .setDisabled(safePage >= totalPages)
     );
-
-    container.addActionRowComponents(paginationRow);
   }
+
+  container.addActionRowComponents(actionRow);
 
   const timestampText = new TextDisplayBuilder()
     .setContent(

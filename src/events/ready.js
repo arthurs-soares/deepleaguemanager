@@ -34,16 +34,16 @@ module.exports = {
       LoggerService.error('Failed to schedule AutoSync:', { error: err?.message });
     }
 
-    // Schedule daily leaderboard (00:05)
+    // Schedule hourly leaderboard updates
     try {
-      scheduleDailyLeaderboard(client, { hour: 0, minute: 5 });
+      scheduleDailyLeaderboard(client);
     } catch (err) {
       LoggerService.error('Failed to schedule Leaderboard:', { error: err?.message });
     }
 
-    // Schedule daily wager leaderboard (00:10)
+    // Schedule hourly wager leaderboard updates
     try {
-      scheduleDailyWagerLeaderboard(client, { hour: 0, minute: 10 });
+      scheduleDailyWagerLeaderboard(client);
     } catch (err) {
       LoggerService.error('Failed to schedule Wager Leaderboard:', {
         error: err?.message

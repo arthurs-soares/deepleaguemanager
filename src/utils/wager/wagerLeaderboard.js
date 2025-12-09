@@ -3,7 +3,7 @@ const {
   TextDisplayBuilder,
   SeparatorBuilder
 } = require('@discordjs/builders');
-const { MessageFlags } = require('discord.js');
+const { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const UserProfile = require('../../models/user/UserProfile');
 const { colors, emojis } = require('../../config/botConfig');
 const {
@@ -108,6 +108,16 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
         `*${emojis.schedule || '🕐'} Updated: <t:${Math.floor(Date.now() / 1000)}:R>*`
       );
     container.addTextDisplayComponents(footerText);
+
+    // Manual Update Button
+    const actionRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('leaderboard:update:wager')
+        .setLabel('Refresh')
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji('🔄')
+    );
+    container.addActionRowComponents(actionRow);
   }
 
   return container;
@@ -169,10 +179,12 @@ async function upsertWagerLeaderboardMessage(discordGuild) {
  * @param {import('discord.js').Client} client
  * @param {{ hour?: number, minute?: number }} opts
  */
-function scheduleDailyWagerLeaderboard(client, opts = {}) {
-  const hour = Number.isInteger(opts.hour) ? opts.hour : 0;
-  const minute = Number.isInteger(opts.minute) ? opts.minute : 10;
-
+/**
+ * Schedule hourly wager leaderboard updates
+ * Runs once at startup (20s delay) and then hourly
+ * @param {import('discord.js').Client} client
+ */
+function scheduleDailyWagerLeaderboard(client) {
   // Execute once after 20s (stagger from guild leaderboard)
   setTimeout(() => {
     client.guilds.cache.forEach(g => {
@@ -181,16 +193,12 @@ function scheduleDailyWagerLeaderboard(client, opts = {}) {
   }, 20_000);
 
   /**
-   * Calculate ms until next scheduled time
-   * @param {number} h - Target hour
-   * @param {number} m - Target minute
-   * @returns {number} Milliseconds until next tick
+   * Calculate ms until next hour start + 5 minutes
    */
-  function msUntilNext(h, m) {
+  function msUntilNextHourPlus5() {
     const now = new Date();
     const next = new Date(now);
-    next.setHours(h, m, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1);
+    next.setHours(now.getHours() + 1, 5, 0, 0); // Offset by 5 mins to stagger
     return next - now;
   }
 
@@ -198,7 +206,7 @@ function scheduleDailyWagerLeaderboard(client, opts = {}) {
    * Schedule next tick recursively
    */
   async function scheduleNextTick() {
-    const delay = msUntilNext(hour, minute);
+    const delay = msUntilNextHourPlus5();
     setTimeout(async () => {
       try {
         for (const g of client.guilds.cache.values()) {
