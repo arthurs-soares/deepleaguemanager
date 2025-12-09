@@ -150,7 +150,7 @@ async function updateTop10Ranks(discordGuild) {
     // Fetch all guild members
     try {
       await discordGuild.members.fetch();
-    } catch (_) {}
+    } catch (_) { }
 
     const memberIds = [...discordGuild.members.cache
       .filter(m => !m.user?.bot)
@@ -227,7 +227,13 @@ async function updateTop10Ranks(discordGuild) {
  */
 async function updateRanksAfterWager(discordGuild, userId, wagerWins) {
   await updateUserRank(discordGuild, userId, wagerWins);
-  await updateTop10Ranks(discordGuild);
+  // Run Top 10 update in background to avoid blocking
+  updateTop10Ranks(discordGuild).catch(err => {
+    LoggerService.error('Background Top 10 update failed:', {
+      guildId: discordGuild.id,
+      error: err.message
+    });
+  });
 }
 
 module.exports = {

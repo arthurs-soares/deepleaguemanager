@@ -49,8 +49,10 @@ class WagerService {
         LoggerService.warn('Failed to update ranks after wager', { userId: winnerId, error: err.message });
       }
 
-      const wUser = await this.getUser(client, winnerId);
-      const lUser = await this.getUser(client, loserId);
+      const [wUser, lUser] = await Promise.all([
+        this.getUser(client, winnerId),
+        this.getUser(client, loserId)
+      ]);
 
       try {
         await auditAdminAction(discordGuild, actorId, 'Wager Result Recorded', {
@@ -98,27 +100,32 @@ class WagerService {
     }
 
     try {
-      const winnerProfiles = [];
-      for (const winnerId of winnerIds) {
+      const processWinner = async (winnerId) => {
         const profile = await getOrCreateUserProfile(winnerId);
         this._updateWinnerStats(profile);
         await profile.save();
-        winnerProfiles.push(profile);
 
         try {
+          // No await here either? No, we likely want this awaited or handled by the service's background logic
+          // rankService.updateRanksAfterWager now handles backgrounding the heavy part
           await updateRanksAfterWager(discordGuild, winnerId, profile.wagerWins);
         } catch (err) {
           LoggerService.warn('Failed to update ranks after 2v2 wager', { userId: winnerId, error: err.message });
         }
-      }
+        return profile;
+      };
 
-      const loserProfiles = [];
-      for (const loserId of loserIds) {
+      const processLoser = async (loserId) => {
         const profile = await getOrCreateUserProfile(loserId);
         this._updateLoserStats(profile);
         await profile.save();
-        loserProfiles.push(profile);
-      }
+        return profile;
+      };
+
+      const [winnerProfiles, loserProfiles] = await Promise.all([
+        Promise.all(winnerIds.map(processWinner)),
+        Promise.all(loserIds.map(processLoser))
+      ]);
 
       const [w1, w2, l1, l2] = await Promise.all([
         this.getUser(client, winnerIds[0]),
