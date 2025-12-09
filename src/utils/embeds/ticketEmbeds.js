@@ -1,6 +1,7 @@
 const {
   ContainerBuilder,
-  TextDisplayBuilder
+  TextDisplayBuilder,
+  SeparatorBuilder
 } = require('@discordjs/builders');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { emojis, colors } = require('../../config/botConfig');
@@ -21,13 +22,12 @@ function buildTicketPanel(config, user, ticketId) {
   const descText = new TextDisplayBuilder()
     .setContent(config.description);
 
-  const userText = new TextDisplayBuilder()
-    .setContent(`**Opened by:** ${user}`);
+  const infoText = new TextDisplayBuilder()
+    .setContent(`**Opened by:** ${user} • <t:${Math.floor(Date.now() / 1000)}:R>`);
 
-  const timestampText = new TextDisplayBuilder()
-    .setContent(`*<t:${Math.floor(Date.now() / 1000)}:F>*`);
-
-  container.addTextDisplayComponents(titleText, descText, userText, timestampText);
+  container.addTextDisplayComponents(titleText, descText);
+  container.addSeparatorComponents(new SeparatorBuilder());
+  container.addTextDisplayComponents(infoText);
 
   const actionRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -62,9 +62,9 @@ function buildTicketCloseConfirmation(ticket, creatorTag, ticketTypeDisplay, cha
   const detailsText = new TextDisplayBuilder()
     .setContent(
       `**Ticket Type:** ${ticketTypeDisplay}\n` +
-            `**Creator:** ${creatorTag}\n` +
-            `**Created:** <t:${Math.floor(new Date(ticket.createdAt).getTime() / 1000)}:R>\n` +
-            `**Channel:** ${channel}`
+      `**Creator:** ${creatorTag}\n` +
+      `**Created:** <t:${Math.floor(new Date(ticket.createdAt).getTime() / 1000)}:R>\n` +
+      `**Channel:** ${channel}`
     );
 
   container.addTextDisplayComponents(titleText, descText, detailsText);

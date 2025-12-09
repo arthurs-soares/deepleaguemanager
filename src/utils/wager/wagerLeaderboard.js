@@ -12,18 +12,8 @@ const {
 } = require('../system/serverSettings');
 const LoggerService = require('../../services/LoggerService');
 const { updateTop10Ranks } = require('../../services/rankService');
-
-/**
- * Get rank emoji based on position
- * @param {number} rank - Position in leaderboard
- * @returns {string} Emoji for rank
- */
-function getRankEmoji(rank) {
-  if (rank === 1) return emojis.rankFirst;
-  if (rank === 2) return emojis.rankSecond;
-  if (rank === 3) return emojis.rankThird;
-  return emojis.rankMedal;
-}
+const { getRankEmoji } = require('../leaderboard/visualFormatting');
+const { createVisualProgressBar } = require('../embeds/visualHelpers');
 
 /**
  * Build Wager leaderboard container for a server (top 15 active members)
@@ -32,7 +22,7 @@ function getRankEmoji(rank) {
  */
 async function buildWagerLeaderboardEmbed(discordGuild) {
   // Ensure full member list and exclude bots for accurate ranking
-  try { await discordGuild.members.fetch(); } catch (_) {}
+  try { await discordGuild.members.fetch(); } catch (_) { }
   const memberIds = [...discordGuild.members.cache
     .filter(m => !m.user?.bot)
     .keys()];
@@ -56,9 +46,9 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
   const container = new ContainerBuilder();
 
   // Set accent color
-  const primaryColor = typeof colors.primary === 'string'
-    ? parseInt(colors.primary.replace('#', ''), 16)
-    : colors.primary;
+  const primaryColor = typeof colors.wager === 'string'
+    ? parseInt(colors.wager.replace('#', ''), 16)
+    : colors.wager || colors.primary;
   container.setAccentColor(primaryColor);
 
   // Header
@@ -81,7 +71,7 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
     const statsText = new TextDisplayBuilder()
       .setContent(
         `📊 **${totalUsers}** active players • ` +
-        `� **${totalWagers}** total wagers • ` +
+        `🎲 **${totalWagers}** total wagers • ` +
         `🏆 **${totalWins}** total wins`
       );
     container.addTextDisplayComponents(statsText);
@@ -95,9 +85,14 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
       const wagers = u.wagerGamesPlayed || 0;
       const wr = wagers > 0 ? Math.round((w / wagers) * 100) : 0;
       const rankEmoji = getRankEmoji(rank);
+      const progressBar = createVisualProgressBar(wr, 5); // 5 blocks for compact list
 
-      return `${rankEmoji} **#${rank}** <@${u.discordUserId}>\n` +
-             `**${wagers}** wagers • **${w}W/${l}L** (${wr}%)`;
+      let streakIcons = '';
+      if ((u.wagerWinStreak || 0) >= 3) streakIcons = ' 🔥';
+      else if ((u.wagerLossStreak || 0) >= 3) streakIcons = ' ❄️';
+
+      return `${rankEmoji} **#${rank}** <@${u.discordUserId}>${streakIcons}\n` +
+        `**${w}W - ${l}L** (${wr}%) ${progressBar}`;
     });
 
     const leaderboardText = new TextDisplayBuilder()
@@ -106,8 +101,12 @@ async function buildWagerLeaderboardEmbed(discordGuild) {
 
     // Footer
     container.addSeparatorComponents(new SeparatorBuilder());
+
+    // Add timestamp
     const footerText = new TextDisplayBuilder()
-      .setContent(`*${totalUsers} active players*`);
+      .setContent(
+        `*${emojis.schedule || '🕐'} Updated: <t:${Math.floor(Date.now() / 1000)}:R>*`
+      );
     container.addTextDisplayComponents(footerText);
   }
 
@@ -177,7 +176,7 @@ function scheduleDailyWagerLeaderboard(client, opts = {}) {
   // Execute once after 20s (stagger from guild leaderboard)
   setTimeout(() => {
     client.guilds.cache.forEach(g => {
-      upsertWagerLeaderboardMessage(g).catch(() => {});
+      upsertWagerLeaderboardMessage(g).catch(() => { });
     });
   }, 20_000);
 
@@ -205,7 +204,7 @@ function scheduleDailyWagerLeaderboard(client, opts = {}) {
         for (const g of client.guilds.cache.values()) {
           await upsertWagerLeaderboardMessage(g);
         }
-      } catch (_) {}
+      } catch (_) { }
       scheduleNextTick();
     }, delay).unref?.();
   }
@@ -218,4 +217,3 @@ module.exports = {
   upsertWagerLeaderboardMessage,
   scheduleDailyWagerLeaderboard
 };
-

@@ -1,10 +1,9 @@
 const {
   ContainerBuilder,
-  SectionBuilder,
   TextDisplayBuilder,
   SeparatorBuilder
 } = require('@discordjs/builders');
-const { MessageFlags, ButtonStyle } = require('discord.js');
+const { MessageFlags, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const EventPoints = require('../../models/rewards/EventPoints');
 const { colors, emojis } = require('../../config/botConfig');
 const {
@@ -24,7 +23,7 @@ const LoggerService = require('../../services/LoggerService');
 async function fetchUsersOrderedByEventPoints(discordGuildId, discordGuild = null) {
   try {
     if (discordGuild && discordGuild.members) {
-      try { await discordGuild.members.fetch(); } catch (_) {}
+      try { await discordGuild.members.fetch(); } catch (_) { }
       const memberIds = [...discordGuild.members.cache
         .filter(m => !m.user?.bot)
         .keys()];
@@ -134,33 +133,30 @@ async function buildEventPointsLeaderboardEmbed(
 
   // Pagination controls if multiple pages
   if (totalPages > 1) {
-    const prevSection = new SectionBuilder();
-    prevSection.addTextDisplayComponents(
+    // Add pagination info text
+    container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `📄 **Page ${safePage}/${totalPages}** • ${allUsers.length} users`
+        `Page ${safePage}/${totalPages} • ${allUsers.length} total participants`
       )
     );
-    prevSection.setButtonAccessory(btn =>
-      btn
+
+    // Add buttons row
+    const paginationRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
         .setCustomId(`eventpoints_lb:prev:${safePage}`)
         .setStyle(ButtonStyle.Secondary)
-        .setLabel('◀ Previous')
-        .setDisabled(safePage <= 1)
-    );
-    container.addSectionComponents(prevSection);
-
-    const nextSection = new SectionBuilder();
-    nextSection.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('\u200B')
-    );
-    nextSection.setButtonAccessory(btn =>
-      btn
+        .setLabel('Previous')
+        .setEmoji('◀️')
+        .setDisabled(safePage <= 1),
+      new ButtonBuilder()
         .setCustomId(`eventpoints_lb:next:${safePage}`)
         .setStyle(ButtonStyle.Secondary)
-        .setLabel('Next ▶')
+        .setLabel('Next')
+        .setEmoji('▶️')
         .setDisabled(safePage >= totalPages)
     );
-    container.addSectionComponents(nextSection);
+
+    container.addActionRowComponents(paginationRow);
   }
 
   const timestampText = new TextDisplayBuilder()
@@ -225,7 +221,7 @@ async function upsertEventPointsLeaderboard(discordGuild) {
       allowedMentions: { parse: [] }
     });
     await setEventPointsLeaderboardMessage(discordGuild.id, sent.id);
-    try { await sent.pin(); } catch (_) {}
+    try { await sent.pin(); } catch (_) { }
     return { ok: true, created: true };
   } catch (error) {
     LoggerService.error('Failed to upsert event points leaderboard', {

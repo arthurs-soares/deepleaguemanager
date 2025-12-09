@@ -4,13 +4,15 @@ const {
   TextDisplayBuilder,
   SectionBuilder,
   MediaGalleryBuilder,
-  MediaGalleryItemBuilder
+  MediaGalleryItemBuilder,
+  SeparatorBuilder
 } = require('@discordjs/builders');
 const { colors, emojis } = require('../../config/botConfig');
 const { getOrCreateUserProfile } = require('../user/userProfile');
 const { getUserGuildInfo } = require('../guilds/userGuildInfo');
 const { getRoleDisplayLabel } = require('../core/roleMapping');
 const { getOrCreateRoleConfig } = require('../misc/roleConfig');
+const { createVisualProgressBar } = require('./visualHelpers');
 const UserProfile = require('../../models/user/UserProfile');
 
 // Small helpers to keep functions short and readable
@@ -38,18 +40,20 @@ async function buildGuildInfoField(discordGuildId, targetUserId) {
   if (!guild) {
     return {
       name: `${emojis.guild} Guild Information`,
-      value: `${emojis.guild} Not in any guild`,
+      value: `*Not in any guild*`,
       inline: true
     };
   }
   const roleLabel = role === 'main' ? 'Main Roster'
     : role === 'sub' ? 'Sub Roster'
       : getRoleDisplayLabel(role);
-  const joined = joinedAt ? ` • Joined ${formatTs(joinedAt, 'd')}` : '';
+  const joined = joinedAt ? ` • Joined ${formatTs(joinedAt, 'R')}` : '';
+
   return {
-    name: `${emojis.guild} Guild Information — ${guild.name}`,
-    value: `Status: ${roleLabel}${joined}`,
-    inline: true
+    name: `${emojis.guild} ${guild.name}`,
+    value: `**${roleLabel}**${joined}`,
+    inline: true,
+    guildName: guild.name
   };
 }
 
@@ -58,9 +62,16 @@ function computeWagerStats(profile) {
   const wins = profile.wagerWins || 0;
   const losses = profile.wagerLosses || 0;
   const rate = games > 0 ? Math.round((wins / games) * 100) : 0;
-  const streak = profile.wagerWinStreak > 0 ? `🔥 ${profile.wagerWinStreak}W`
-    : profile.wagerLossStreak > 0 ? `❄️ ${profile.wagerLossStreak}L` : '—';
-  return { games, wins, losses, rate, streak };
+
+  // Format streak
+  let streakDisplay = '—';
+  if (profile.wagerWinStreak > 0) streakDisplay = `🔥 **${profile.wagerWinStreak}** Win Streak`;
+  else if (profile.wagerLossStreak > 0) streakDisplay = `❄️ **${profile.wagerLossStreak}** Loss Streak`;
+
+  // Visual bar
+  const visualBar = createVisualProgressBar(rate, 8); // 8 blocks
+
+  return { games, wins, losses, rate, streakDisplay, visualBar };
 }
 
 async function getServerRank(discordGuild, targetUserId) {
@@ -68,30 +79,21 @@ async function getServerRank(discordGuild, targetUserId) {
   const all = await UserProfile.find({ discordUserId: { $in: serverMembers } })
     .sort({ wagerWins: -1, wagerGamesPlayed: -1 });
   const idx = all.findIndex(p => p.discordUserId === targetUserId);
-  return { rank: idx >= 0 ? idx + 1 : 0, total: all.length };
+
+  const rank = idx >= 0 ? idx + 1 : 0;
+  const total = all.length;
+
+  // Rank badge logic
+  let rankEmoji = '#';
+  if (rank === 1) rankEmoji = '🥇';
+  else if (rank === 2) rankEmoji = '🥈';
+  else if (rank === 3) rankEmoji = '🥉';
+  else if (rank <= 10) rankEmoji = '🏆';
+
+  return { rank, total, rankEmoji };
 }
 
-function _buildStatsFields(wager, _rank) {
-  return [
-    {
-      name: '📊 Wager Stats',
-      value: `**Games:** ${wager.games}\n**W/L:** ${wager.wins}/${wager.losses}` +
-             ` (${wager.rate}%)\n**Streak:** ${wager.streak}`,
-      inline: true
-    }
-  ];
-}
 
-function buildAccountField(member, user) {
-  const joined = member?.joinedAt ? formatTs(member.joinedAt, 'd') : 'Unknown';
-  const created = formatTs(user.createdAt, 'd');
-  // Compact single-line to help horizontal layout
-  return {
-    name: `${emojis.info} Account Info`,
-    value: `Joined: ${joined} • Created: ${created}`,
-    inline: false
-  };
-}
 
 /**
  * Build action row for profile buttons
@@ -102,12 +104,12 @@ function buildActionRow(hasGuild) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('profile:edit')
-      .setStyle(ButtonStyle.Primary)
+      .setStyle(ButtonStyle.Secondary)
       .setLabel('Edit Profile')
       .setEmoji('✏️'),
     new ButtonBuilder()
       .setCustomId('profile:leaveGuild')
-      .setStyle(ButtonStyle.Danger)
+      .setStyle(ButtonStyle.Danger) // Danger for destructive actions
       .setLabel('Leave Guild')
       .setEmoji('🚪')
       .setDisabled(!hasGuild)
@@ -132,9 +134,11 @@ async function buildUserProfileDisplayComponents(
   // Check wager opt status
   const roleCfg = await getOrCreateRoleConfig(discordGuild.id);
   const isOptedOut = hasNoWagersRole(member, roleCfg?.noWagersRoleId);
-  const wagerStatus = isOptedOut ? '🚫 **Opted Out**' : '✅ **Opted In**';
+  const wagerStatus = isOptedOut
+    ? { text: 'Opted Out', emoji: '🚫' }
+    : { text: 'Active', emoji: '✅' };
 
-  // Resolve accent color (hex string or number)
+  // Resolve accent color
   const color = (() => {
     const c = profile.color || colors.info;
     if (typeof c === 'string') {
@@ -147,39 +151,63 @@ async function buildUserProfileDisplayComponents(
 
   const container = new ContainerBuilder().setAccentColor(color);
 
-  // Header with name
+  // --- HEADER SECTION ---
   const displayName = targetUser.displayName || targetUser.username;
-  const header = new TextDisplayBuilder()
-    .setContent(`# 👤 ${displayName}`);
-  const desc = new TextDisplayBuilder()
-    .setContent(profile.description || '*No description set*');
-  container.addTextDisplayComponents(header, desc);
+  const headerContent = `# 👤 ${displayName}`;
 
-  // Core stats in a section with avatar accessory
-  const statsText = new TextDisplayBuilder().setContent(
-    `**📊 Wager Stats** — ${wagerStatus}\n` +
-    `Games: **${wager.games}** • W/L: **${wager.wins}/${wager.losses}** ` +
-    `(${wager.rate}%) • Streak: ${wager.streak}\n` +
-    `Rank: **#${rank.rank}** of ${rank.total}`
-  );
-  const guildText = new TextDisplayBuilder().setContent(
-    `**${guildField.name}**\n${guildField.value}`
-  );
-  const accountField = buildAccountField(member, targetUser);
+  const headerText = new TextDisplayBuilder().setContent(headerContent);
 
-  const accountText = new TextDisplayBuilder().setContent(
-    `**${accountField.name}**\n${accountField.value}`
-  );
+  const descContent = profile.description ? `*${profile.description}*` : '*No description set*';
+  const descText = new TextDisplayBuilder().setContent(descContent);
 
-  const section = new SectionBuilder()
-    .addTextDisplayComponents(statsText, guildText, accountText);
+  // --- STATS SECTION ---
+  // Using a cleaner layout for stats
+  const statsContent =
+    `### ${emojis.dice || '🎲'} Wager Stats\n` +
+    `**Rank:** ${rank.rankEmoji} **${rank.rank}** / ${rank.total}\n` +
+    `**Win Rate:** ${wager.visualBar} ${wager.rate}%\n` +
+    `**Record:** ${wager.wins}W - ${wager.losses}L (${wager.games} Games)\n` +
+    `**Status:** ${wager.streakDisplay} • ${wagerStatus.emoji} ${wagerStatus.text}`;
+
+  const statsText = new TextDisplayBuilder().setContent(statsContent);
+
+  // --- GUILD & ACCOUNT SECTION ---
+  // Combining these to save vertical space if appropriate, or keeping separate
+  const guildContent =
+    `### ${emojis.guild || '🛡️'} Current Guild\n` +
+    `${guildField.value}`; // Value already formatted
+
+  const guildText = new TextDisplayBuilder().setContent(guildContent);
+
+  const accountContent =
+    `### ${emojis.info || 'ℹ️'} Account\n` +
+    `Joined: ${member?.joinedAt ? formatTs(member.joinedAt, 'R') : 'Unknown'} • Created: ${formatTs(targetUser.createdAt, 'R')}`;
+  const accountText = new TextDisplayBuilder().setContent(accountContent);
+
+  // Build the main section with avatar
+  const mainSection = new SectionBuilder()
+    .addTextDisplayComponents(headerText, descText);
+
   const avatarUrl = targetUser.displayAvatarURL({ dynamic: true, size: 512 });
-  section.setThumbnailAccessory(t =>
+  mainSection.setThumbnailAccessory(t =>
     t.setURL(avatarUrl).setDescription(`${displayName} avatar`)
   );
-  container.addSectionComponents(section);
 
-  // Optional banner as media gallery
+  container.addSectionComponents(mainSection);
+
+  // Accessorize with Separator
+  container.addSeparatorComponents(new SeparatorBuilder());
+
+  // Stats Section
+  container.addTextDisplayComponents(statsText);
+
+  // Another Separator
+  container.addSeparatorComponents(new SeparatorBuilder());
+
+  // Info Section
+  container.addTextDisplayComponents(guildText, accountText);
+
+  // --- BANNER ---
   if (typeof profile.bannerUrl === 'string'
     ? profile.bannerUrl.trim().length > 0
     : Boolean(profile.bannerUrl)) {
@@ -192,16 +220,13 @@ async function buildUserProfileDisplayComponents(
     container.addMediaGalleryComponents(bannerGallery);
   }
 
-  // Footer
-  const footer = new TextDisplayBuilder()
-    .setContent(
-      `*Requested by ${viewerUser.displayName || viewerUser.username}*`
-    );
-  container.addTextDisplayComponents(footer);
+  // --- FOOTER ---
+  const footerText = new TextDisplayBuilder()
+    .setContent(`Requested by ${viewerUser.displayName || viewerUser.username}`);
+  container.addTextDisplayComponents(footerText);
 
-  // Add action row to container for v2 compatibility
-  const hasGuild = guildField.value
-    && !guildField.value.includes('Not in any guild');
+  // --- ACTION ROW ---
+  const hasGuild = guildField.value && !guildField.value.includes('Not in any guild');
   const isSelf = targetUser.id === viewerUser.id;
   if (isSelf) {
     const actionRow = buildActionRow(hasGuild);
@@ -212,4 +237,3 @@ async function buildUserProfileDisplayComponents(
 }
 
 module.exports = { buildUserProfileDisplayComponents };
-

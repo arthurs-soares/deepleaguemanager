@@ -1,7 +1,8 @@
 const {
   ContainerBuilder,
   TextDisplayBuilder,
-  SeparatorBuilder
+  SeparatorBuilder,
+  SectionBuilder
 } = require('@discordjs/builders');
 const { colors, emojis } = require('../../config/botConfig');
 
@@ -24,6 +25,7 @@ function buildWagerResultContainer(actorId, winnerId, loserId, wUser, lUser, win
 
   const titleText = new TextDisplayBuilder()
     .setContent(`# ${emojis.depthsWager} Wager Result Recorded`);
+  container.addTextDisplayComponents(titleText);
 
   const wName = wUser ? `<@${wUser.id}>` : `<@${winnerId}>`;
   const lName = lUser ? `<@${lUser.id}>` : `<@${loserId}>`;
@@ -32,37 +34,41 @@ function buildWagerResultContainer(actorId, winnerId, loserId, wUser, lUser, win
     ? ` [🔥 ${winnerProfile.wagerWinStreak} win streak]`
     : '';
 
+  // Use Section for Winner
+  const winnerSection = new SectionBuilder();
   const winnerText = new TextDisplayBuilder()
     .setContent(
       '**🏆 Winner**\n' +
-            `${wName}\n` +
-            `Record: **${winnerProfile.wagerWins}W/${winnerProfile.wagerLosses || 0}L**${streakInfo}`
+      `${wName}\n` +
+      `**Record:** ${winnerProfile.wagerWins}W - ${winnerProfile.wagerLosses || 0}L${streakInfo}`
     );
+  // Add trophy thumbnail if new win streak or just general winner vibe
+  if (winnerProfile.wagerWinStreak >= 3) {
+    winnerSection.setThumbnailAccessory(t => t.setURL('https://emojicdn.elk.sh/🔥?style=twitter').setDescription('Streak'));
+  }
+  winnerSection.addTextDisplayComponents(winnerText);
+  container.addSectionComponents(winnerSection);
 
+  container.addSeparatorComponents(new SeparatorBuilder());
+
+  // Use Section for Loser
+  const loserSection = new SectionBuilder();
   const loserText = new TextDisplayBuilder()
     .setContent(
       '**💀 Loser**\n' +
-            `${lName}\n` +
-            `Record: **${loserProfile.wagerWins || 0}W/${loserProfile.wagerLosses}L**`
+      `${lName}\n` +
+      `**Record:** ${loserProfile.wagerWins || 0}W - ${loserProfile.wagerLosses}L`
     );
+  loserSection.addTextDisplayComponents(loserText);
+  container.addSectionComponents(loserSection);
 
-  const typeText = new TextDisplayBuilder()
-    .setContent(
-      '**⚔️ Match Info**\n' +
-            `Recorded by: <@${actorId}>`
-    );
-
-  const timestampText = new TextDisplayBuilder()
-    .setContent(`*<t:${Math.floor(Date.now() / 1000)}:F>*`);
-
-  container.addTextDisplayComponents(
-    titleText,
-    winnerText,
-    loserText,
-    typeText
-  );
   container.addSeparatorComponents(new SeparatorBuilder());
-  container.addTextDisplayComponents(timestampText);
+
+  const infoText = new TextDisplayBuilder()
+    .setContent(
+      `**Recorded by:** <@${actorId}> • <t:${Math.floor(Date.now() / 1000)}:R>`
+    );
+  container.addTextDisplayComponents(infoText);
 
   return container;
 }
@@ -86,6 +92,7 @@ function buildWagerResult2v2Container(actorId, winnerIds, loserIds, winnerUsers,
 
   const titleText = new TextDisplayBuilder()
     .setContent(`# ${emojis.depthsWager} 2v2 Wager Result Recorded`);
+  container.addTextDisplayComponents(titleText);
 
   // Build winner team info
   const w1Name = winnerUsers[0] ? `<@${winnerUsers[0].id}>` : `<@${winnerIds[0]}>`;
@@ -99,10 +106,15 @@ function buildWagerResult2v2Container(actorId, winnerIds, loserIds, winnerUsers,
   const winnerText = new TextDisplayBuilder()
     .setContent(
       '**🏆 Winning Team**\n' +
-            `${w1Name} (${winnerProfiles[0].wagerWins}W/${winnerProfiles[0].wagerLosses || 0}L)\n` +
-            `${w2Name} (${winnerProfiles[1].wagerWins}W/${winnerProfiles[1].wagerLosses || 0}L)` +
-            streakInfo
+      `${w1Name} (${winnerProfiles[0].wagerWins}W-${winnerProfiles[0].wagerLosses || 0}L)\n` +
+      `${w2Name} (${winnerProfiles[1].wagerWins}W-${winnerProfiles[1].wagerLosses || 0}L)` +
+      streakInfo
     );
+
+  const winnerSection = new SectionBuilder().addTextDisplayComponents(winnerText);
+  container.addSectionComponents(winnerSection);
+
+  container.addSeparatorComponents(new SeparatorBuilder());
 
   // Build loser team info
   const l1Name = loserUsers[0] ? `<@${loserUsers[0].id}>` : `<@${loserIds[0]}>`;
@@ -111,23 +123,20 @@ function buildWagerResult2v2Container(actorId, winnerIds, loserIds, winnerUsers,
   const loserText = new TextDisplayBuilder()
     .setContent(
       '**💀 Losing Team**\n' +
-            `${l1Name} (${loserProfiles[0].wagerWins || 0}W/${loserProfiles[0].wagerLosses}L)\n` +
-            `${l2Name} (${loserProfiles[1].wagerWins || 0}W/${loserProfiles[1].wagerLosses}L)`
+      `${l1Name} (${loserProfiles[0].wagerWins || 0}W-${loserProfiles[0].wagerLosses}L)\n` +
+      `${l2Name} (${loserProfiles[1].wagerWins || 0}W-${loserProfiles[1].wagerLosses}L)`
     );
 
-  const typeText = new TextDisplayBuilder()
-    .setContent(
-      '**⚔️ Match Info**\n' +
-            `Type: 2v2 Wager\n` +
-            `Recorded by: <@${actorId}>`
-    );
+  const loserSection = new SectionBuilder().addTextDisplayComponents(loserText);
+  container.addSectionComponents(loserSection);
 
-  const timestampText = new TextDisplayBuilder()
-    .setContent(`*<t:${Math.floor(Date.now() / 1000)}:F>*`);
-
-  container.addTextDisplayComponents(titleText, winnerText, loserText, typeText);
   container.addSeparatorComponents(new SeparatorBuilder());
-  container.addTextDisplayComponents(timestampText);
+
+  const infoText = new TextDisplayBuilder()
+    .setContent(
+      `**Type:** 2v2 Wager • **Recorded by:** <@${actorId}> • <t:${Math.floor(Date.now() / 1000)}:R>`
+    );
+  container.addTextDisplayComponents(infoText);
 
   return container;
 }
