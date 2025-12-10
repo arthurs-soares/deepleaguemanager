@@ -152,6 +152,10 @@ async function handle(interaction) {
         .setStyle(ButtonStyle.Success)
         .setLabel('Accept Wager'),
       new ButtonBuilder()
+        .setCustomId(`wager:markDodge:${ticket._id}`)
+        .setStyle(ButtonStyle.Danger)
+        .setLabel('Mark Dodge'),
+      new ButtonBuilder()
         .setCustomId(`wager:closeTicket:${ticket._id}`)
         .setStyle(ButtonStyle.Secondary)
         .setLabel('Close Ticket')
@@ -164,7 +168,7 @@ async function handle(interaction) {
           `<@${opponent1Id}> & <@${opponent2Id}>`,
         allowedMentions: { users: allUserIds }
       });
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       await sendAndPin(
@@ -172,7 +176,7 @@ async function handle(interaction) {
         { components: [container, actionRow], flags: MessageFlags.IsComponentsV2 },
         { unpinOld: true }
       );
-    } catch (_) {}
+    } catch (_) { }
 
     return interaction.editReply({
       content: `✅ 2v2 Wager ticket created: <#${channel.id}>`

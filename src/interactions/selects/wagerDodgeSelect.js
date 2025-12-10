@@ -23,12 +23,16 @@ async function handle(interaction) {
       return interaction.reply({ content: '❌ Database is temporarily unavailable.', flags: MessageFlags.Ephemeral });
     }
 
-    // Permissions: only Moderators/Hosters
+    // Permissions: only Moderators/Hosters OR Self-Dodge
     const rolesCfg = await getOrCreateRoleConfig(interaction.guild.id);
     const allowedRoleIds = new Set([...(rolesCfg?.hostersRoleIds || []), ...(rolesCfg?.moderatorsRoleIds || [])]);
     const hasAllowedRole = interaction.member.roles.cache.some(r => allowedRoleIds.has(r.id));
-    if (!hasAllowedRole) {
-      return interaction.reply({ content: '❌ Only hosters or moderators can mark a wager as dodge.', flags: MessageFlags.Ephemeral });
+
+    // Check if user is dodging themselves (self-dodge)
+    const isSelfDodge = dodgerUserId === interaction.user.id;
+
+    if (!hasAllowedRole && !isSelfDodge) {
+      return interaction.reply({ content: '❌ Only hosters or moderators can mark others as dodge.', flags: MessageFlags.Ephemeral });
     }
 
     // Try to find by ID first, then by channel as fallback

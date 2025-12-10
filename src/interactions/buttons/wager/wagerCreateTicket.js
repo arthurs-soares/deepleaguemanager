@@ -113,6 +113,7 @@ async function handle(interaction) {
 
     const actionRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`wager:accept:${ticket._id}`).setStyle(ButtonStyle.Success).setLabel('Accept Wager'),
+      new ButtonBuilder().setCustomId(`wager:markDodge:${ticket._id}`).setStyle(ButtonStyle.Danger).setLabel('Mark Dodge'),
       new ButtonBuilder().setCustomId(`wager:closeTicket:${ticket._id}`).setStyle(ButtonStyle.Secondary).setLabel('Close Ticket')
     );
 
@@ -121,7 +122,7 @@ async function handle(interaction) {
         content: `<@${initiator.id}> vs <@${opponent.id}>`,
         allowedMentions: { users: [initiator.id, opponent.id] }
       });
-    } catch (_) {}
+    } catch (_) { }
 
     // Note: Hosters are NOT mentioned on ticket creation
     // They will be mentioned only when someone clicks the "Accept" button
@@ -132,7 +133,7 @@ async function handle(interaction) {
         { components: [container, actionRow], flags: MessageFlags.IsComponentsV2 },
         { unpinOld: true }
       );
-    } catch (_) {}
+    } catch (_) { }
 
     return interaction.editReply({
       content: `✅ Wager ticket created: <#${channel.id}>`
