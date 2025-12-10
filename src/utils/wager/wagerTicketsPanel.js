@@ -31,7 +31,7 @@ function buildWagerTicketsPanel() {
 
   // Header
   const titleText = new TextDisplayBuilder()
-    .setContent(`# ${emojis.depthsWager} Wager Tickets`);
+    .setContent(`# Wager Tickets`);
 
   const descText = new TextDisplayBuilder()
     .setContent(

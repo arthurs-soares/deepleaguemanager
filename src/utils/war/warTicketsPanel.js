@@ -31,7 +31,7 @@ function buildWarTicketsPanel() {
 
   // Header
   const titleText = new TextDisplayBuilder()
-    .setContent(`# ${emojis.warTicket} War Tickets`);
+    .setContent(`# War Tickets`);
 
   const descText = new TextDisplayBuilder()
     .setContent(
@@ -51,7 +51,7 @@ function buildWarTicketsPanel() {
   const startWarSection = new SectionBuilder();
   const startWarText = new TextDisplayBuilder()
     .setContent(
-      `**${emojis.warTicket} Start War**\n` +
+      `**Start War**\n` +
       'Create a new war between guilds'
     );
   startWarSection.addTextDisplayComponents(startWarText);
