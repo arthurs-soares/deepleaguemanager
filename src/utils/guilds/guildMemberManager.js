@@ -21,7 +21,7 @@ function isGuildLeader(guildDoc, userId) {
   // Check if they are in members with role='lider'
   const members = Array.isArray(guildDoc.members) ? guildDoc.members : [];
   const isLeaderInMembers = members.some(
-    m => m.userId === userId && m.role === 'lider'
+    m => String(m.userId) === String(userId) && m.role === 'lider'
   );
 
   if (isLeaderInMembers) return true;
@@ -45,7 +45,7 @@ function isGuildLeader(guildDoc, userId) {
 function isGuildCoLeader(guildDoc, userId) {
   if (!guildDoc || !userId) return false;
   const members = Array.isArray(guildDoc.members) ? guildDoc.members : [];
-  return members.some(m => m.userId === userId && m.role === 'vice-lider');
+  return members.some(m => String(m.userId) === String(userId) && m.role === 'vice-lider');
 }
 
 /**
@@ -57,7 +57,7 @@ function isGuildCoLeader(guildDoc, userId) {
 function isGuildManager(guildDoc, userId) {
   if (!guildDoc || !userId) return false;
   const managers = Array.isArray(guildDoc.managers) ? guildDoc.managers : [];
-  return managers.includes(userId);
+  return managers.some(id => String(id) === String(userId));
 }
 
 /**
