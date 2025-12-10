@@ -1,5 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const Guild = require('../../../models/guild/Guild');
+const { getUserGuildInfo } = require('../../../utils/guilds/userGuildInfo');
 const {
   createErrorEmbed,
   createSuccessEmbed
@@ -20,7 +21,7 @@ async function safeDeferEphemeral(interaction) {
     if (!interaction.deferred && !interaction.replied) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     }
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /**
@@ -83,6 +84,23 @@ async function handle(interaction) {
       const embed = createErrorEmbed(
         'Guild not found',
         'This invitation refers to a guild that no longer exists.'
+      );
+      return interaction.editReply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+
+    // Check cross-guild membership
+    const { guild: existingGuild } = await getUserGuildInfo(
+      guildDoc.discordGuildId,
+      userId
+    );
+
+    if (existingGuild && String(existingGuild._id) !== String(guildId)) {
+      const embed = createErrorEmbed(
+        'Already in a guild',
+        `You are already a member of "${existingGuild.name}". You must leave it first.`
       );
       return interaction.editReply({
         components: [embed],

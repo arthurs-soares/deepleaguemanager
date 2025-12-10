@@ -1,5 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const Guild = require('../../../models/guild/Guild');
+const { getUserGuildInfo } = require('../../../utils/guilds/userGuildInfo');
 const {
   createErrorEmbed,
   createSuccessEmbed
@@ -34,6 +35,33 @@ async function handle(interaction) {
     }
 
     const userId = interaction.user.id;
+
+    // Pre-fetch guild to validate existence and check cross-guild membership
+    const preGuildCheck = await Guild.findById(guildId).select('discordGuildId name');
+    if (!preGuildCheck) {
+      const embed = createErrorEmbed('Not found', 'Guild no longer exists.');
+      return interaction.editReply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
+    }
+
+    // Check cross-guild membership
+    const { guild: existingGuild } = await getUserGuildInfo(
+      preGuildCheck.discordGuildId,
+      userId
+    );
+
+    if (existingGuild && String(existingGuild._id) !== String(guildId)) {
+      const embed = createErrorEmbed(
+        'Already in a guild',
+        `You are already a member of "${existingGuild.name}". You must leave it first.`
+      );
+      return interaction.editReply({
+        components: [embed],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
+    }
 
     // Step 1: Try to promote existing member if they exist and no co-leader exists
     // Condition: No member has role 'vice-lider' AND target user is in members array
