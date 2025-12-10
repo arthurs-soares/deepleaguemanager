@@ -24,10 +24,12 @@ function isGuildLeader(guild, userId) {
   if (guild.managers && guild.managers.includes(userId)) return true;
 
   // Leader role in members
-  const member = guild.members.find(m => m.userId === userId);
-  if (member) {
-    const leaderRoles = ['lider', 'leader', 'vice-lider', 'co-leader'];
-    if (leaderRoles.includes(member.role)) return true;
+  if (guild.members) {
+    const member = guild.members.find(m => m.userId === userId);
+    if (member) {
+      const leaderRoles = ['lider', 'leader', 'vice-lider', 'co-leader'];
+      if (leaderRoles.includes(member.role)) return true;
+    }
   }
   return false;
 }
@@ -40,9 +42,22 @@ function isGuildLeader(guild, userId) {
  */
 function isGuildMember(guild, userId) {
   if (!guild) return false;
-  if (guild.members.some(m => m.userId === userId)) return true;
+
+  // Check global members list
+  if (guild.members && guild.members.some(m => m.userId === userId)) return true;
+
+  // Check legacy global rosters
   if (guild.mainRoster && guild.mainRoster.includes(userId)) return true;
   if (guild.subRoster && guild.subRoster.includes(userId)) return true;
+
+  // Check region-specific rosters
+  if (guild.regions && Array.isArray(guild.regions)) {
+    for (const region of guild.regions) {
+      if (region.mainRoster && region.mainRoster.includes(userId)) return true;
+      if (region.subRoster && region.subRoster.includes(userId)) return true;
+    }
+  }
+
   return false;
 }
 
