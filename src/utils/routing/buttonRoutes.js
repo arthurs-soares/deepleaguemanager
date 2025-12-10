@@ -73,6 +73,10 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('coLeaderInvite:accept:')) return '../interactions/buttons/guild/coLeaderInviteAccept';
   if (customId.startsWith('coLeaderInvite:decline:')) return '../interactions/buttons/guild/coLeaderInviteDecline';
 
+  // Change Co-leader invite flow
+  if (customId.startsWith('changeCoLeaderInvite:accept:')) return '../interactions/buttons/guild/changeCoLeaderInviteAccept';
+  if (customId.startsWith('changeCoLeaderInvite:decline:')) return '../interactions/buttons/guild/changeCoLeaderInviteDecline';
+
   // Leader invite flow (leadership transfer confirmation)
   if (customId.startsWith('leaderInvite:accept:')) return '../interactions/buttons/guild/leaderInviteAccept';
   if (customId.startsWith('leaderInvite:decline:')) return '../interactions/buttons/guild/leaderInviteDecline';
