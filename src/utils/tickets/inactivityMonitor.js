@@ -16,6 +16,9 @@ const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000;
 // 3 days in milliseconds (for accepted tickets without wager completion)
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
+// 7 days in milliseconds (for war ticket inactivity warning)
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
 /**
  * Determine if a channel is inactive based on last message timestamp.
  * Tries cache first; if unknown, fetches the most recent message.
@@ -378,10 +381,168 @@ function scheduleAutoDodgeMonitor(client) {
   LoggerService.info('[Auto-Close/Dodge] Monitor scheduled - checking every hour (unaccepted: close after 1 day, accepted without game: dodge after 3 days)');
 }
 
+/**
+ * Check if a war ticket is inactive for 7+ days and needs a warning
+ * Considers the last message in the channel, last warning sent, or reactivation
+ * @param {Object} war - War document
+ * @param {import('discord.js').TextChannel} channel - War ticket channel
+ * @returns {Promise<boolean>}
+ */
+async function isWarTicketInactiveFor7Days(war, channel) {
+  if (!war || !channel) return false;
+
+  // If status is not 'aberta', skip
+  if (war.status !== 'aberta') return false;
+
+  const now = Date.now();
+
+  // Check if ticket was recently reactivated (less than 7 days ago)
+  if (war.inactivityReactivatedAt) {
+    const reactivatedAt = new Date(war.inactivityReactivatedAt).getTime();
+    if (now - reactivatedAt < SEVEN_DAYS_MS) {
+      return false;
+    }
+  }
+
+  // Check if a warning was already sent in the last 7 days
+  if (war.lastInactivityWarningAt) {
+    const lastWarningAt = new Date(war.lastInactivityWarningAt).getTime();
+    if (now - lastWarningAt < SEVEN_DAYS_MS) {
+      return false;
+    }
+  }
+
+  // Check channel inactivity
+  const isInactive = await isChannelInactive(channel, SEVEN_DAYS_MS);
+  return isInactive;
+}
+
+/**
+ * Send inactivity warning for a war ticket with reactivation button
+ * @param {import('discord.js').Client} client
+ * @param {Object} war - War document
+ * @param {import('discord.js').TextChannel} channel
+ * @param {import('discord.js').Guild} guild
+ */
+async function sendWarInactivityWarning(client, war, channel, guild) {
+  const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+  const Guild = require('../../models/guild/Guild');
+
+  try {
+    // Get guild names for the message
+    const [guildA, guildB] = await Promise.all([
+      Guild.findById(war.guildAId).lean().catch(() => null),
+      Guild.findById(war.guildBId).lean().catch(() => null)
+    ]);
+
+    const guildAName = guildA?.name || 'Guild A';
+    const guildBName = guildB?.name || 'Guild B';
+
+    // Build reactivation button
+    const reactivateButton = new ButtonBuilder()
+      .setCustomId(`war:reactivate:${war._id}`)
+      .setStyle(ButtonStyle.Success)
+      .setLabel('Reactivate Ticket (+7 days)')
+      .setEmoji('🔄');
+
+    const actionRow = new ActionRowBuilder().addComponents(reactivateButton);
+
+    // Send warning message
+    const warningMessage =
+      `⚠️ **War Ticket Inactivity Warning**\n\n` +
+      `This war ticket between **${guildAName}** vs **${guildBName}** has been inactive for **7 days**.\n\n` +
+      `If no action is taken by a **Hoster**, this ticket will be subject to deletion.\n\n` +
+      `Click the button below to reactivate this ticket for another 7 days.`;
+
+    await channel.send({
+      content: warningMessage,
+      components: [actionRow]
+    });
+
+    // Update war document with warning timestamp
+    war.lastInactivityWarningAt = new Date();
+    await war.save();
+
+    LoggerService.info(`[War Inactivity] Warning sent for war ticket ${war._id}`, {
+      guildA: guildAName,
+      guildB: guildBName,
+      channelId: channel.id
+    });
+
+  } catch (err) {
+    LoggerService.error('[War Inactivity] Error sending warning:', {
+      warId: war._id?.toString(),
+      error: err?.message
+    });
+  }
+}
+
+/**
+ * Scan for war tickets that have been inactive for 7+ days
+ * Sends warning with reactivation button for hosters
+ * @param {import('discord.js').Client} client
+ */
+async function scanInactiveWarTickets(client) {
+  const guilds = client.guilds.cache;
+
+  for (const [, guild] of guilds) {
+    try {
+      // Find open war tickets with a channel
+      const openWars = await War.find({
+        discordGuildId: guild.id,
+        channelId: { $ne: null },
+        status: 'aberta'
+      }).catch(() => []);
+
+      for (const war of openWars) {
+        const channel = guild.channels.cache.get(war.channelId);
+        if (!channel) continue;
+
+        // Check if ticket has been inactive for 7+ days
+        const needsWarning = await isWarTicketInactiveFor7Days(war, channel);
+
+        if (needsWarning) {
+          try {
+            await sendWarInactivityWarning(client, war, channel, guild);
+          } catch (err) {
+            LoggerService.error(`[War Inactivity] Error processing war ${war._id}:`, err);
+          }
+        }
+      }
+    } catch (err) {
+      LoggerService.error(`[War Inactivity] Error scanning guild ${guild.id}:`, err);
+    }
+  }
+}
+
+/**
+ * Schedule automatic inactivity warning for war tickets
+ * Sends warning after 7 days of inactivity with reactivation button
+ * Runs every 6 hours to check for inactive tickets
+ * @param {import('discord.js').Client} client
+ */
+function scheduleWarInactivityMonitor(client) {
+  const intervalMs = 6 * 60 * 60 * 1000; // 6 hours
+
+  // Run once after 3 minutes (give time for bot to fully start)
+  setTimeout(() => scanInactiveWarTickets(client).catch(err => {
+    LoggerService.error('[War Inactivity] Scan error:', err);
+  }), 3 * 60 * 1000);
+
+  // Then run every 6 hours
+  setInterval(() => scanInactiveWarTickets(client).catch(err => {
+    LoggerService.error('[War Inactivity] Scan error:', err);
+  }), intervalMs);
+
+  LoggerService.info('[War Inactivity] Monitor scheduled - checking every 6 hours (warning after 7 days of inactivity)');
+}
+
 module.exports = {
   scheduleInactiveTicketMonitor,
   scanInactiveTickets,
   scheduleAutoDodgeMonitor,
-  scanExpiredWagerTickets
+  scanExpiredWagerTickets,
+  scheduleWarInactivityMonitor,
+  scanInactiveWarTickets
 };
 

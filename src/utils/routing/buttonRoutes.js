@@ -32,6 +32,7 @@ function resolveButtonHandler(customId) {
   if (customId.startsWith('war:closeTicket:confirm:')) return '../interactions/buttons/war/warCloseTicketConfirm';
   if (customId.startsWith('war:closeTicket:cancel:')) return '../interactions/buttons/war/warCloseTicketCancel';
   if (customId.startsWith('war:closeTicket:')) return '../interactions/buttons/war/warCloseTicket';
+  if (customId.startsWith('war:reactivate:')) return '../interactions/buttons/war/warReactivateTicket';
 
   // Wager
   if (customId === 'wager:start') return '../interactions/buttons/wager/wagerStart';

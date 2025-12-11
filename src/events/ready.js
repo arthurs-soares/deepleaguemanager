@@ -6,7 +6,8 @@ const {
 } = require('../utils/wager/wagerLeaderboard');
 const {
   scheduleInactiveTicketMonitor,
-  scheduleAutoDodgeMonitor
+  scheduleAutoDodgeMonitor,
+  scheduleWarInactivityMonitor
 } = require('../utils/tickets/inactivityMonitor');
 const LoggerService = require('../services/LoggerService');
 
@@ -69,6 +70,16 @@ module.exports = {
       scheduleAutoDodgeMonitor(client);
     } catch (err) {
       LoggerService.error('Failed to schedule auto-dodge monitor:', {
+        error: err?.message
+      });
+    }
+
+    // War ticket inactivity monitor: sends warning after 7 days of inactivity
+    // with reactivation button for hosters
+    try {
+      scheduleWarInactivityMonitor(client);
+    } catch (err) {
+      LoggerService.error('Failed to schedule war inactivity monitor:', {
         error: err?.message
       });
     }

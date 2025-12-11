@@ -30,6 +30,9 @@ const warSchema = new mongoose.Schema({
   // Claim tracking for hosters
   claimedAt: { type: Date, default: null },
   claimedByUserId: { type: String, default: null },
+  // Inactivity tracking for 7-day warning system
+  lastInactivityWarningAt: { type: Date, default: null },
+  inactivityReactivatedAt: { type: Date, default: null },
 }, { timestamps: true });
 
 // Indexes for common queries
