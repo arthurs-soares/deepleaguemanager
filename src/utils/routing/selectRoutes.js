@@ -42,6 +42,10 @@ function resolveSelectHandler(customId) {
   if (customId === 'config:channels:selectWarCategoryNAE') return '../interactions/channel-selects/configWarCategoryNAESelect';
   if (customId === 'config:channels:selectWarCategoryNAW') return '../interactions/channel-selects/configWarCategoryNAWSelect';
   if (customId === 'config:channels:selectWarCategoryEU') return '../interactions/channel-selects/configWarCategoryEUSelect';
+  if (customId === 'config:channels:selectWarCategorySA2') return '../interactions/channel-selects/configWarCategorySA2Select';
+  if (customId === 'config:channels:selectWarCategoryNAE2') return '../interactions/channel-selects/configWarCategoryNAE2Select';
+  if (customId === 'config:channels:selectWarCategoryNAW2') return '../interactions/channel-selects/configWarCategoryNAW2Select';
+  if (customId === 'config:channels:selectWarCategoryEU2') return '../interactions/channel-selects/configWarCategoryEU2Select';
   if (customId === 'config:channels:selectWagerCategory') return '../interactions/channel-selects/configWagerCategorySelect';
   if (customId === 'config:channels:selectWagerCategory2') return '../interactions/channel-selects/configWagerCategory2Select';
   if (customId === 'config:channels:selectWagerCategory3') return '../interactions/channel-selects/configWagerCategory3Select';
@@ -58,6 +62,7 @@ function resolveSelectHandler(customId) {
 
   // New dropdown-based configuration selectors
   if (customId === 'config:channels:select') return '../interactions/string-selects/configChannelSelect';
+  if (customId === 'config:channels:select_2') return '../interactions/string-selects/configChannelSelect2';
   if (customId === 'config:roles:select') return '../interactions/string-selects/configRoleSelect';
   if (customId === 'config:ranks:select') return '../interactions/string-selects/configRankSelect';
 

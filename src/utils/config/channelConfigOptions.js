@@ -4,7 +4,11 @@ const { StringSelectMenuOptionBuilder } = require('discord.js');
  * Build channel configuration select menu options
  * @returns {StringSelectMenuOptionBuilder[]}
  */
-function buildChannelConfigOptions() {
+/**
+ * Build channel configuration select menu options - PART 1 (Categories & Tickets)
+ * @returns {StringSelectMenuOptionBuilder[]}
+ */
+function buildChannelCategoryOptions() {
   return [
     // 🎫 Ticket Channels
     new StringSelectMenuOptionBuilder()
@@ -54,7 +58,15 @@ function buildChannelConfigOptions() {
     new StringSelectMenuOptionBuilder()
       .setLabel('General Tickets Category').setDescription('Category for general ticket channels')
       .setValue('generalTicketsCategory').setEmoji('📁'),
+  ];
+}
 
+/**
+ * Build channel configuration select menu options - PART 2 (Misc Channels)
+ * @returns {StringSelectMenuOptionBuilder[]}
+ */
+function buildChannelMiscOptions() {
+  return [
     // 🏆 Leaderboards
     new StringSelectMenuOptionBuilder()
       .setLabel('Guild Leaderboard Channel').setDescription('Channel for guild leaderboard auto-updates')
@@ -66,7 +78,7 @@ function buildChannelConfigOptions() {
       .setLabel('Event Points Leaderboard').setDescription('Channel for event points leaderboard')
       .setValue('eventPointsLeaderboard').setEmoji('⭐'),
 
-    // � Transcripts
+    // 📜 Transcripts
     new StringSelectMenuOptionBuilder()
       .setLabel('War Transcripts Channel').setDescription('Channel for war ticket transcripts')
       .setValue('warTranscripts').setEmoji('📜'),
@@ -147,4 +159,8 @@ function buildChannelsDisplayText(cfg) {
   );
 }
 
-module.exports = { buildChannelConfigOptions, buildChannelsDisplayText };
+module.exports = {
+  buildChannelCategoryOptions,
+  buildChannelMiscOptions,
+  buildChannelsDisplayText
+};
