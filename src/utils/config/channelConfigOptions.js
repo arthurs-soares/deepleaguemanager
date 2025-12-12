@@ -22,14 +22,26 @@ function buildChannelConfigOptions() {
       .setLabel('War Category (SA)').setDescription('Category for South America war channels')
       .setValue('warCategorySA').setEmoji('🌎'),
     new StringSelectMenuOptionBuilder()
+      .setLabel('War Category 2 (SA)').setDescription('Secondary Category for South America')
+      .setValue('warCategorySA2').setEmoji('🌎'),
+    new StringSelectMenuOptionBuilder()
       .setLabel('War Category (NAE)').setDescription('Category for NA East war channels')
       .setValue('warCategoryNAE').setEmoji('🌎'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('War Category 2 (NAE)').setDescription('Secondary Category for NA East')
+      .setValue('warCategoryNAE2').setEmoji('🌎'),
     new StringSelectMenuOptionBuilder()
       .setLabel('War Category (NAW)').setDescription('Category for NA West war channels')
       .setValue('warCategoryNAW').setEmoji('🌎'),
     new StringSelectMenuOptionBuilder()
+      .setLabel('War Category 2 (NAW)').setDescription('Secondary Category for NA West')
+      .setValue('warCategoryNAW2').setEmoji('🌎'),
+    new StringSelectMenuOptionBuilder()
       .setLabel('War Category (EU)').setDescription('Category for Europe war channels')
       .setValue('warCategoryEU').setEmoji('🌍'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('War Category 2 (EU)').setDescription('Secondary Category for Europe')
+      .setValue('warCategoryEU2').setEmoji('🌍'),
     new StringSelectMenuOptionBuilder()
       .setLabel('Wager Category 1').setDescription('Primary category for wager channels')
       .setValue('wagerCategory').setEmoji('📁'),
@@ -110,6 +122,10 @@ function buildChannelsDisplayText(cfg) {
     `**War Category (NAE):** ${ch(cfg.warCategoryNAEId)}\n` +
     `**War Category (NAW):** ${ch(cfg.warCategoryNAWId)}\n` +
     `**War Category (EU):** ${ch(cfg.warCategoryEUId)}\n` +
+    `**War Category 2 (SA):** ${ch(cfg.warCategorySAId2)}\n` +
+    `**War Category 2 (NAE):** ${ch(cfg.warCategoryNAEId2)}\n` +
+    `**War Category 2 (NAW):** ${ch(cfg.warCategoryNAWId2)}\n` +
+    `**War Category 2 (EU):** ${ch(cfg.warCategoryEUId2)}\n` +
     `**Wager Category 1:** ${ch(cfg.wagerCategoryId)}\n` +
     `**Wager Category 2:** ${ch(cfg.wagerCategoryId2)}\n` +
     `**Wager Category 3:** ${ch(cfg.wagerCategoryId3)}\n` +

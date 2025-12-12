@@ -1,5 +1,10 @@
 // War channel management utilities
+// War channel management utilities
 const { ChannelType, PermissionFlagsBits } = require('discord.js');
+
+/** Discord's maximum channels per category */
+const MAX_CHANNELS_PER_CATEGORY = 50;
+
 
 /**
  * Generate war channel name
@@ -136,9 +141,79 @@ async function createWarChannel(guild, category, guildA, guildB, allowUserIds, r
   });
 }
 
+/**
+ * Check if a category has room for more channels
+ * @param {import('discord.js').CategoryChannel} category
+ * @returns {{ canCreate: boolean, count: number }}
+ */
+function checkCategoryCapacity(category) {
+  // If we can't read children for some reason, assume it's full or handle gracefully
+  // But usually cache is available.
+  const count = category.children?.cache?.size || 0;
+  return { canCreate: count < MAX_CHANNELS_PER_CATEGORY, count };
+}
+
+/**
+ * Find an available war category for a region (supports overflow)
+ * @param {import('discord.js').Guild} guild
+ * @param {Object} settings
+ * @param {string} region
+ * @returns {Promise<{ category: import('discord.js').CategoryChannel|null, error: string|null }>}
+ */
+async function findAvailableWarCategory(guild, settings, region) {
+  const regionMap = {
+    'South America': ['warCategorySAId', 'warCategorySAId2'],
+    'NA East': ['warCategoryNAEId', 'warCategoryNAEId2'],
+    'NA West': ['warCategoryNAWId', 'warCategoryNAWId2'],
+    'Europe': ['warCategoryEUId', 'warCategoryEUId2']
+  };
+
+  const fields = regionMap[region] || [];
+  if (fields.length === 0) {
+    return { category: null, error: `❌ Invalid region: ${region}` };
+  }
+
+  // Filter out null/undefined IDs from settings
+  const categoryIds = fields.map(f => settings[f]).filter(Boolean);
+
+  if (categoryIds.length === 0) {
+    return {
+      category: null,
+      error: `❌ War category for **${region}** not configured.`
+    };
+  }
+
+  for (const catId of categoryIds) {
+    let category = guild.channels.cache.get(catId);
+    if (!category) {
+      try {
+        category = await guild.channels.fetch(catId);
+      } catch (_) {
+        continue; // Try next category if this one is invalid/deleted
+      }
+    }
+
+    if (category && category.type === ChannelType.GuildCategory) {
+      const { canCreate } = checkCategoryCapacity(category);
+      if (canCreate) {
+        return { category, error: null };
+      }
+    }
+  }
+
+  return {
+    category: null,
+    error: `❌ All war categories for **${region}** are full (50 channels each).`
+  };
+}
+
+
 module.exports = {
   generateChannelName,
   collectAllowedUsers,
   createPermissionOverwrites,
-  createWarChannel
+  createWarChannel,
+  checkCategoryCapacity,
+  findAvailableWarCategory
 };
+

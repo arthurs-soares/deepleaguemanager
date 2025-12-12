@@ -31,9 +31,19 @@ async function handle(interaction) {
         placeholder: 'Select a category for SA war channels',
         types: [ChannelType.GuildCategory]
       },
+      warCategorySA2: {
+        customId: 'config:channels:selectWarCategorySA2',
+        placeholder: 'Select a secondary category for SA war channels',
+        types: [ChannelType.GuildCategory]
+      },
       warCategoryNAE: {
         customId: 'config:channels:selectWarCategoryNAE',
         placeholder: 'Select a category for NA East war channels',
+        types: [ChannelType.GuildCategory]
+      },
+      warCategoryNAE2: {
+        customId: 'config:channels:selectWarCategoryNAE2',
+        placeholder: 'Select a secondary category for NA East war channels',
         types: [ChannelType.GuildCategory]
       },
       warCategoryNAW: {
@@ -41,9 +51,19 @@ async function handle(interaction) {
         placeholder: 'Select a category for NA West war channels',
         types: [ChannelType.GuildCategory]
       },
+      warCategoryNAW2: {
+        customId: 'config:channels:selectWarCategoryNAW2',
+        placeholder: 'Select a secondary category for NA West war channels',
+        types: [ChannelType.GuildCategory]
+      },
       warCategoryEU: {
         customId: 'config:channels:selectWarCategoryEU',
         placeholder: 'Select a category for EU war channels',
+        types: [ChannelType.GuildCategory]
+      },
+      warCategoryEU2: {
+        customId: 'config:channels:selectWarCategoryEU2',
+        placeholder: 'Select a secondary category for EU war channels',
         types: [ChannelType.GuildCategory]
       },
       wagerCategory: {

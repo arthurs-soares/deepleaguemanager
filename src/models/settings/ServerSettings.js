@@ -22,6 +22,10 @@ const serverSettingsSchema = new mongoose.Schema({
   warCategoryNAEId: { type: String, default: null },
   warCategoryNAWId: { type: String, default: null },
   warCategoryEUId: { type: String, default: null },
+  warCategorySAId2: { type: String, default: null },
+  warCategoryNAEId2: { type: String, default: null },
+  warCategoryNAWId2: { type: String, default: null },
+  warCategoryEUId2: { type: String, default: null },
   // Wager categories (up to 3 for overflow)
   wagerCategoryId: { type: String, default: null },
   wagerCategoryId2: { type: String, default: null },

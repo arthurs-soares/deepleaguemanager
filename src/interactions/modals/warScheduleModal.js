@@ -5,8 +5,8 @@ const Guild = require('../../models/guild/Guild');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { logWarCreated } = require('../../utils/misc/logEvents');
 const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
-const { validateDateParts, validateGuilds, validateWarCategory } = require('../../utils/war/warValidation');
-const { collectAllowedUsers, createWarChannel } = require('../../utils/war/channelManager');
+const { validateDateParts, validateGuilds } = require('../../utils/war/warValidation');
+const { collectAllowedUsers, createWarChannel, findAvailableWarCategory } = require('../../utils/war/channelManager');
 const { createWarConfirmationEmbed, createWarConfirmationButtons } = require('../../utils/war/warEmbedBuilder');
 const { sendAndPin } = require('../../utils/tickets/pinUtils');
 const LoggerService = require('../../services/LoggerService');
@@ -74,15 +74,15 @@ async function handle(interaction) {
       });
     }
 
-    // Get server settings and validate war category for the region
+    // Get server settings and find available war category (handling overflow)
     const settings = await getOrCreateServerSettings(interaction.guild.id);
-    const categoryValidation = await validateWarCategory(
-      settings,
+    const { category, error } = await findAvailableWarCategory(
       interaction.guild,
+      settings,
       warRegion
     );
-    if (!categoryValidation.valid) {
-      return interaction.editReply({ content: categoryValidation.message });
+    if (error) {
+      return interaction.editReply({ content: error });
     }
 
     // Get role configuration
@@ -93,7 +93,7 @@ async function handle(interaction) {
     const allowUserIds = collectAllowedUsers(guildA, guildB, interaction.user.id);
     const warChannel = await createWarChannel(
       interaction.guild,
-      categoryValidation.category,
+      category,
       guildA,
       guildB,
       allowUserIds,
