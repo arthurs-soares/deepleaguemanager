@@ -66,10 +66,10 @@ async function handle(interaction) {
         maxValues: 1
       },
       blacklist: {
-        customId: 'config:roles:singleSelect:blacklistRoleId',
-        placeholder: 'Select the blacklist role',
+        customId: 'config:roles:multiSelect:blacklistRoleIds',
+        placeholder: 'Select blacklist roles (1-25)',
         minValues: 1,
-        maxValues: 1
+        maxValues: 25
       }
     };
 

@@ -23,7 +23,7 @@ const REGIONS = [
 async function handle(interaction) {
   try {
     const cfg = await getOrCreateRoleConfig(interaction.guild.id);
-    if (cfg.blacklistRoleId && interaction.member.roles.cache.has(cfg.blacklistRoleId)) {
+    if (cfg.blacklistRoleIds?.some(id => interaction.member.roles.cache.has(id))) {
       return replyEphemeral(interaction, {
         content: '❌ You are blacklisted from using wager and war systems.',
       });

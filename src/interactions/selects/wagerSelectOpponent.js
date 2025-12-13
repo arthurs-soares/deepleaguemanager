@@ -16,9 +16,9 @@ async function handle(interaction) {
     const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
     const roleCfg = await getOrCreateRoleConfig(interaction.guild.id);
 
-    if (roleCfg.blacklistRoleId) {
+    if (roleCfg.blacklistRoleIds?.length > 0) {
       const opponentMember = await interaction.guild.members.fetch(opponentId).catch(() => null);
-      if (opponentMember && opponentMember.roles.cache.has(roleCfg.blacklistRoleId)) {
+      if (opponentMember && roleCfg.blacklistRoleIds.some(id => opponentMember.roles.cache.has(id))) {
         return interaction.reply({
           content: `❌ <@${opponentId}> is blacklisted from wagers.`,
           flags: MessageFlags.Ephemeral

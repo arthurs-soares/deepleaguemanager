@@ -9,10 +9,10 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-
     const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
+
     const roleCfg = await getOrCreateRoleConfig(interaction.guild.id);
-    if (roleCfg.blacklistRoleId && interaction.member.roles.cache.has(roleCfg.blacklistRoleId)) {
+    if (roleCfg.blacklistRoleIds?.some(id => interaction.member.roles.cache.has(id))) {
       return interaction.reply({
         content: '❌ You are blacklisted from using wager and war systems.',
         flags: MessageFlags.Ephemeral

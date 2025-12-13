@@ -67,14 +67,14 @@ async function handle(interaction) {
     }
 
     // Check if initiator has blacklist role
-    if (roleCfg?.blacklistRoleId && initiatorMember.roles.cache.has(roleCfg.blacklistRoleId)) {
+    if (roleCfg?.blacklistRoleIds?.some(id => initiatorMember.roles.cache.has(id))) {
       return interaction.editReply({
         content: '❌ You are blacklisted from using wager systems.'
       });
     }
 
     // Check if opponent has blacklist role
-    if (roleCfg?.blacklistRoleId && opponentMember.roles.cache.has(roleCfg.blacklistRoleId)) {
+    if (roleCfg?.blacklistRoleIds?.some(id => opponentMember.roles.cache.has(id))) {
       return interaction.editReply({
         content: `❌ <@${opponentUserId}> is blacklisted from wagers.`
       });

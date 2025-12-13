@@ -15,7 +15,7 @@ const roleConfigSchema = new mongoose.Schema({
   tagRoleId: { type: String, default: null },
   registrationAccessRoleIds: { type: [String], default: [] },
   noWagersRoleId: { type: String, default: null },
-  blacklistRoleId: { type: String, default: null },
+  blacklistRoleIds: { type: [String], default: [] },
 }, { timestamps: true });
 
 module.exports = mongoose.models.RoleConfig || mongoose.model('RoleConfig', roleConfigSchema);

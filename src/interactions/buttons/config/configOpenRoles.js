@@ -35,7 +35,7 @@ async function handle(interaction) {
         `**Admin Support:** ${cfg.adminSupportRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
         `**Registration Access:** ${cfg.registrationAccessRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}\n` +
         `**No Wagers:** ${cfg.noWagersRoleId ? `<@&${cfg.noWagersRoleId}>` : '—'}\n` +
-        `**Blacklist:** ${cfg.blacklistRoleId ? `<@&${cfg.blacklistRoleId}>` : '—'}`
+        `**Blacklist:** ${cfg.blacklistRoleIds?.map(id => `<@&${id}>`).join(', ') || '—'}`
       );
 
     container.addTextDisplayComponents(titleText, descText);

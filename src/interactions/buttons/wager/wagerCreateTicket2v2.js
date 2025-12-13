@@ -66,7 +66,7 @@ async function handle(interaction) {
           content: `❌ <@${allUserIds[i]}> has opted out of wagers.`
         });
       }
-      if (roleCfg?.blacklistRoleId && members[i]?.roles.cache.has(roleCfg.blacklistRoleId)) {
+      if (roleCfg?.blacklistRoleIds?.some(id => members[i]?.roles.cache.has(id))) {
         return interaction.editReply({
           content: `❌ <@${allUserIds[i]}> is blacklisted from wagers.`
         });
