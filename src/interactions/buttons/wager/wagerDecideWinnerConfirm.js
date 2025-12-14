@@ -1,5 +1,6 @@
 const { PermissionFlagsBits, MessageFlags, ActionRowBuilder, ButtonBuilder, ComponentType, ChannelType } = require('discord.js');
 const WagerTicket = require('../../../models/wager/WagerTicket');
+const UserProfile = require('../../../models/user/UserProfile');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const WagerService = require('../../../services/WagerService');
 const { isDatabaseConnected } = require('../../../config/database');
@@ -148,6 +149,13 @@ async function handle(interaction) {
     }
 
     const embed = await recordWagerResult(ticket, winnerKey, interaction);
+
+    // Update hoster stats
+    await UserProfile.updateOne(
+      { discordUserId: interaction.user.id },
+      { $inc: { hostedWagers: 1 } },
+      { upsert: true }
+    ).catch(err => LoggerService.warn('Failed to update hoster stats:', { error: err?.message }));
 
     // Close ticket and update metadata
     ticket.status = 'closed';

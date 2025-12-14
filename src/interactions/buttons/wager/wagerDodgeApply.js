@@ -1,6 +1,7 @@
 const { ChannelType, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const { buildWagerDodgeEmbed } = require('../../../utils/embeds/wagerDodgeEmbed');
 const WagerTicket = require('../../../models/wager/WagerTicket');
+const UserProfile = require('../../../models/user/UserProfile');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
 const { sendWagerDodgeLog } = require('../../../utils/tickets/wagerDodgeLog');
@@ -84,6 +85,13 @@ async function handle(interaction) {
     ticket.closedAt = new Date();
     ticket.dodgedByUserId = dodgerUserId;
     await ticket.save();
+
+    // Update hoster stats
+    await UserProfile.updateOne(
+      { discordUserId: interaction.user.id },
+      { $inc: { hostedDodges: 1 } },
+      { upsert: true }
+    ).catch(err => LoggerService.warn('Failed to update hoster stats:', { error: err?.message }));
 
     // Unlock chat after dodge (so users can communicate if needed)
     const ch = interaction.guild.channels.cache.get(ticket.channelId);

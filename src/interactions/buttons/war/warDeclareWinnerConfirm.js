@@ -1,6 +1,7 @@
 const { PermissionFlagsBits, MessageFlags, ActionRowBuilder, ButtonBuilder, ComponentType, ChannelType } = require('discord.js');
 const { replyEphemeral } = require('../../../utils/core/reply');
 const War = require('../../../models/war/War');
+const UserProfile = require('../../../models/user/UserProfile');
 const Guild = require('../../../models/guild/Guild');
 const { sendLog } = require('../../../utils/core/logger');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
@@ -192,6 +193,13 @@ async function handle(interaction) {
     war.closedAt = new Date();
 
     await Promise.all([winner.save(), loser.save(), war.save()]);
+
+    // Update hoster stats
+    await UserProfile.updateOne(
+      { discordUserId: interaction.user.id },
+      { $inc: { hostedWars: 1 } },
+      { upsert: true }
+    ).catch(err => LoggerService.warn('Failed to update hoster stats:', { error: err?.message }));
 
     await confirmWarResultUI(interaction);
 

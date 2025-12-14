@@ -6,6 +6,8 @@ const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
 const { sendLog } = require('../../../utils/core/logger');
 const { buildWarDodgeEmbed } = require('../../../utils/embeds/warDodgeEmbed');
 const { sendWarDodgeLog } = require('../../../utils/tickets/warDodgeLog');
+const LoggerService = require('../../../services/LoggerService');
+const UserProfile = require('../../../models/user/UserProfile');
 
 
 /**
@@ -58,6 +60,13 @@ async function handle(interaction) {
     war.dodgedByGuildId = dodgerGuildId;
     await war.save();
 
+    // Update hoster stats
+    await UserProfile.updateOne(
+      { discordUserId: interaction.user.id },
+      { $inc: { hostedDodges: 1 } },
+      { upsert: true }
+    ).catch(err => LoggerService.warn('Failed to update hoster stats:', { error: err?.message }));
+
     // Clean original panel and notify in war channel
     try {
       const warChannel = war.channelId
@@ -67,8 +76,8 @@ async function handle(interaction) {
         try {
           const msg = await warChannel.messages
             .fetch(sourceMessageId).catch(() => null);
-          if (msg) await msg.edit({ components: [] }).catch(() => {});
-        } catch (_) {}
+          if (msg) await msg.edit({ components: [] }).catch(() => { });
+        } catch (_) { }
       }
       if (warChannel && warChannel.type === ChannelType.GuildText) {
         const dodgerName = String(dodgerGuildId) === String(war.guildAId)
@@ -92,9 +101,9 @@ async function handle(interaction) {
             ` (by <@${interaction.user.id}>)`,
             war
           );
-        } catch (_) {}
+        } catch (_) { }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // Log + notification
     try {
@@ -118,7 +127,7 @@ async function handle(interaction) {
         opponentName,
         interaction.user.id
       );
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       return await interaction.editReply({ content: '✅ Dodge recorded.' });

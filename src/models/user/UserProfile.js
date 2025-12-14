@@ -50,6 +50,11 @@ const userProfileSchema = new mongoose.Schema({
   // Activity/Decay tracking
   wagerLastWagerAt: { type: Date, default: null },
   wagerLastDecayAt: { type: Date, default: null },
+
+  // Hoster stats
+  hostedWagers: { type: Number, default: 0, min: 0 },
+  hostedWars: { type: Number, default: 0, min: 0 },
+  hostedDodges: { type: Number, default: 0, min: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.models.UserProfile || mongoose.model('UserProfile', userProfileSchema);
