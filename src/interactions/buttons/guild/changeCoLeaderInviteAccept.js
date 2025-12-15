@@ -196,8 +196,8 @@ async function handle(interaction) {
                     const role = discordGuild.roles.cache.get(coRoleId);
                     if (role) {
                         // Remove from old
-                        if (currentCo && currentCo.userId) {
-                            const oldMem = await discordGuild.members.fetch(currentCo.userId).catch(() => null);
+                        if (demotedId) {
+                            const oldMem = await discordGuild.members.fetch(demotedId).catch(() => null);
                             if (oldMem) await oldMem.roles.remove(coRoleId).catch(() => { });
                         }
                         // Add to new
@@ -214,7 +214,7 @@ async function handle(interaction) {
         }
 
         // Notifications
-        await sendChangeNotifications(interaction, guildDoc, currentCo?.userId, userId);
+        await sendChangeNotifications(interaction, guildDoc, demotedId, userId);
 
         // Disable buttons
         try {
