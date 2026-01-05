@@ -1,5 +1,6 @@
 const { createErrorEmbed } = require('../utils/embeds/embedBuilder');
 const { replyEphemeral } = require('../utils/core/reply');
+const LoggerService = require('../services/LoggerService');
 
 /**
  * Routes Modal Submit interactions to their respective handlers
@@ -31,7 +32,9 @@ async function handleModalInteraction(interaction) {
 
     // No known route, ignore
   } catch (error) {
-    console.error('Error in handleModalInteraction:', error);
+    LoggerService.error('Error in handleModalInteraction:', {
+      error: error?.message
+    });
 
     const embed = createErrorEmbed(
       'Interaction Error',

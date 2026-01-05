@@ -5,11 +5,24 @@ const Guild = require('../../models/guild/Guild');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { logWarCreated } = require('../../utils/misc/logEvents');
 const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
-const { validateDateParts, validateGuilds } = require('../../utils/war/warValidation');
-const { collectAllowedUsers, createWarChannel, findAvailableWarCategory } = require('../../utils/war/channelManager');
-const { createWarConfirmationEmbed, createWarConfirmationButtons } = require('../../utils/war/warEmbedBuilder');
+const {
+  validateDateParts,
+  validateGuilds
+} = require('../../utils/war/warValidation');
+const {
+  collectAllowedUsers,
+  createWarChannel,
+  findAvailableWarCategory
+} = require('../../utils/war/channelManager');
+const {
+  createWarConfirmationEmbed,
+  createWarConfirmationButtons
+} = require('../../utils/war/warEmbedBuilder');
 const { sendAndPin } = require('../../utils/tickets/pinUtils');
 const LoggerService = require('../../services/LoggerService');
+
+/** Max age (ms) before modal submission is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Handle war schedule modal submission
@@ -17,6 +30,13 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('warScheduleModal skipped (expired)', { age });
+      return;
+    }
+
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const parts = interaction.customId.split(':');

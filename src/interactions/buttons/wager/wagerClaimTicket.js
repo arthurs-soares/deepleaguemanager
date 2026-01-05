@@ -4,6 +4,9 @@ const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
 
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
+
 /**
  * Claim a wager ticket - only hosters can claim
  * Removes all hoster roles permission and grants only to the claimer
@@ -11,6 +14,13 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:claim skipped (expired)', { age });
+      return;
+    }
+
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const [, , ticketId] = interaction.customId.split(':');
@@ -71,17 +81,17 @@ async function handle(interaction) {
       return interaction.editReply({ content: '❌ Channel not found.' });
     }
 
-    // Remove permission for all hoster roles
-    for (const roleId of hosterRoleIds) {
-      const role = interaction.guild.roles.cache.get(roleId);
-      if (role) {
-        await channel.permissionOverwrites.edit(roleId, {
+    // Remove permission for all hoster roles (parallel for speed)
+    const permPromises = hosterRoleIds
+      .filter(roleId => interaction.guild.roles.cache.has(roleId))
+      .map(roleId =>
+        channel.permissionOverwrites.edit(roleId, {
           ViewChannel: false,
           SendMessages: false,
           ReadMessageHistory: false
-        }).catch(() => {});
-      }
-    }
+        }).catch(() => {})
+      );
+    await Promise.all(permPromises);
 
     // Grant permission only to the claimer
     await channel.permissionOverwrites.edit(interaction.user.id, {

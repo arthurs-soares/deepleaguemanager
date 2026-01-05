@@ -21,7 +21,12 @@ const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const LoggerService = require('../../../services/LoggerService');
 const { colors, emojis } = require('../../../config/botConfig');
-const { validateWagerParticipants } = require('../../../utils/wager/wagerTicketLimits');
+const {
+  validateWagerParticipants
+} = require('../../../utils/wager/wagerTicketLimits');
+
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Create wager ticket channel and panel
@@ -29,6 +34,13 @@ const { validateWagerParticipants } = require('../../../utils/wager/wagerTicketL
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:createTicket skipped (expired)', { age });
+      return;
+    }
+
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const [, , opponentUserId] = interaction.customId.split(':');

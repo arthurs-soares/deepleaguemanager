@@ -1,5 +1,14 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  MessageFlags
+} = require('discord.js');
 const LoggerService = require('../../../services/LoggerService');
+
+/** Max age (ms) before modal open is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Opens modal to input date and time
@@ -7,6 +16,13 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - modal must be shown within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('war:openScheduleModal skipped (expired)', { age });
+      return;
+    }
+
     const parts = interaction.customId.split(':');
     const guildAId = parts[2];
     const guildBId = parts[3];
