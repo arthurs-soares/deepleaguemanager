@@ -32,6 +32,16 @@ class AllCategoriesFullError extends Error {
 }
 
 /**
+ * Custom error when server has reached 500 channel limit
+ */
+class ServerChannelLimitError extends Error {
+  constructor() {
+    super('Server has reached the maximum of 500 channels.');
+    this.name = 'ServerChannelLimitError';
+  }
+}
+
+/**
  * Check if a category has room for more channels
  * @param {import('discord.js').CategoryChannel} category
  * @returns {{ canCreate: boolean, count: number }}
@@ -203,13 +213,20 @@ async function createWagerChannel(
     roleIdsHosters
   );
 
-  return guild.channels.create({
-    name,
-    type: ChannelType.GuildText,
-    parent: category.id,
-    permissionOverwrites,
-    reason: `Wager channel: ${initiatorName} vs ${opponentName}`
-  });
+  try {
+    return await guild.channels.create({
+      name,
+      type: ChannelType.GuildText,
+      parent: category.id,
+      permissionOverwrites,
+      reason: `Wager channel: ${initiatorName} vs ${opponentName}`
+    });
+  } catch (err) {
+    if (err.code === 30013) {
+      throw new ServerChannelLimitError();
+    }
+    throw err;
+  }
 }
 
 /**
@@ -253,19 +270,27 @@ async function createWagerChannel2v2(
   const opp1Name = opponent1.tag || opponent1.username || opponent1.id;
   const opp2Name = opponent2.tag || opponent2.username || opponent2.id;
 
-  return guild.channels.create({
-    name,
-    type: ChannelType.GuildText,
-    parent: category.id,
-    permissionOverwrites,
-    reason: `2v2 Wager: ${initiatorName} & ${teammateName} ` +
-      `vs ${opp1Name} & ${opp2Name}`
-  });
+  try {
+    return await guild.channels.create({
+      name,
+      type: ChannelType.GuildText,
+      parent: category.id,
+      permissionOverwrites,
+      reason: `2v2 Wager: ${initiatorName} & ${teammateName} ` +
+        `vs ${opp1Name} & ${opp2Name}`
+    });
+  } catch (err) {
+    if (err.code === 30013) {
+      throw new ServerChannelLimitError();
+    }
+    throw err;
+  }
 }
 
 module.exports = {
   CategoryFullError,
   AllCategoriesFullError,
+  ServerChannelLimitError,
   checkCategoryCapacity,
   findAvailableWagerCategory,
   createWagerChannel,

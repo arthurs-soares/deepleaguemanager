@@ -17,6 +17,7 @@ const {
 const {
   createWagerChannel2v2,
   CategoryFullError,
+  ServerChannelLimitError,
   findAvailableWagerCategory
 } = require('../../../utils/wager/wagerChannelManager');
 const { sendAndPin } = require('../../../utils/tickets/pinUtils');
@@ -207,6 +208,20 @@ async function handle(interaction) {
       const msg = {
         content: '❌ The wager category is full (50 channels max).\n' +
           'Please ask a staff member to close old wager tickets.',
+        flags: MessageFlags.Ephemeral
+      };
+      if (interaction.deferred || interaction.replied) {
+        return interaction.followUp(msg);
+      }
+      return interaction.reply(msg);
+    }
+
+    // Handle server channel limit (500 max)
+    if (error instanceof ServerChannelLimitError) {
+      LoggerService.warn('Server channel limit reached (500):', error.message);
+      const msg = {
+        content: '❌ The server has reached the maximum of 500 channels.\n' +
+          'Please ask a staff member to delete unused channels.',
         flags: MessageFlags.Ephemeral
       };
       if (interaction.deferred || interaction.replied) {

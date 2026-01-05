@@ -1,6 +1,6 @@
 const { MessageFlags } = require('discord.js');
 const WagerTicket = require('../../../models/wager/WagerTicket');
-const { getOrCreateRoleConfig } = require('../../../services/ServerConfigService');
+const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const LoggerService = require('../../../services/LoggerService');
 const { isDatabaseConnected } = require('../../../utils/database/connectionHelper');
 
