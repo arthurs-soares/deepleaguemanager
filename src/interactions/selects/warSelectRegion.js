@@ -9,12 +9,22 @@ const Guild = require('../../models/guild/Guild');
 const { chunkArray } = require('../../utils/misc/array');
 const LoggerService = require('../../services/LoggerService');
 
+/** Max age (ms) before selection is skipped */
+const MAX_AGE_MS = 2500;
+
 /**
  * Region selection for war creation
  * CustomId: war:selectRegion:<guildAId>
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('war:selectRegion skipped (expired)', { age });
+      return;
+    }
+
     const [, , guildAId] = interaction.customId.split(':');
     const selectedRegion = interaction.values?.[0];
     if (!guildAId || !selectedRegion) return interaction.deferUpdate();

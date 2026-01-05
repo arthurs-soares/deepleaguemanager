@@ -3,12 +3,22 @@ const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { colors } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
 
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
+
 /**
  * Start wager challenge flow
  * CustomId: wager:start
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:start skipped (expired)', { age });
+      return;
+    }
+
     const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 
     const roleCfg = await getOrCreateRoleConfig(interaction.guild.id);

@@ -1,12 +1,22 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const LoggerService = require('../../services/LoggerService');
 
+/** Max age (ms) before selection is skipped */
+const MAX_AGE_MS = 2500;
+
 /**
  * Handle UserSelect for wager opponent
  * CustomId: wager:selectOpponent
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:selectOpponent skipped (expired)', { age });
+      return;
+    }
+
     const opponentId = interaction.values?.[0];
     if (!opponentId) return interaction.deferUpdate();
 

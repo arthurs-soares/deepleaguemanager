@@ -4,12 +4,22 @@ const { colors, emojis } = require('../../config/botConfig');
 const Guild = require('../../models/guild/Guild');
 const LoggerService = require('../../services/LoggerService');
 
+/** Max age (ms) before selection is skipped */
+const MAX_AGE_MS = 2500;
+
 /**
  * Opponent selection dropdown
  * CustomId: war:selectOpponent:<guildAId>:<region>:<idx>
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('war:selectOpponent skipped (expired)', { age });
+      return;
+    }
+
     const parts = interaction.customId.split(':');
     const guildAId = parts[2];
     // Decode region (underscores back to spaces)

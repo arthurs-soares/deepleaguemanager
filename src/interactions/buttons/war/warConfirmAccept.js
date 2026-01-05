@@ -81,7 +81,7 @@ function buildControlRow(warId) {
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const [, , , warId] = interaction.customId.split(':');
     const war = await War.findById(warId);
