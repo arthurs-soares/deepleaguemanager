@@ -5,7 +5,7 @@ const configChannelSelect = require('./configChannelSelect');
  * Redirects to the main handler logic
  */
 async function handle(interaction) {
-    return configChannelSelect.handle(interaction);
+  return configChannelSelect.handle(interaction);
 }
 
 module.exports = { handle };

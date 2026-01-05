@@ -67,7 +67,7 @@ async function handle(interaction) {
     const updatedGuild = await Guild.findOneAndUpdate(
       {
         _id: guildId,
-        $expr: { $lt: [{ $size: "$managers" }, 2] },
+        $expr: { $lt: [{ $size: '$managers' }, 2] },
         managers: { $ne: userId }
       },
       {

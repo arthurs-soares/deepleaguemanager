@@ -68,11 +68,11 @@ async function handle(interaction) {
     let updatedGuild = await Guild.findOneAndUpdate(
       {
         _id: guildId,
-        "members.role": { $ne: "vice-lider" },
-        "members.userId": userId
+        'members.role': { $ne: 'vice-lider' },
+        'members.userId': userId
       },
       {
-        $set: { "members.$.role": "vice-lider" }
+        $set: { 'members.$.role': 'vice-lider' }
       },
       { new: true }
     );
@@ -83,8 +83,8 @@ async function handle(interaction) {
       updatedGuild = await Guild.findOneAndUpdate(
         {
           _id: guildId,
-          "members.role": { $ne: "vice-lider" },
-          "members.userId": { $ne: userId }
+          'members.role': { $ne: 'vice-lider' },
+          'members.userId': { $ne: userId }
         },
         {
           $push: {

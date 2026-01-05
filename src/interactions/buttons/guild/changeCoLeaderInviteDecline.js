@@ -6,37 +6,37 @@ const { createInfoEmbed } = require('../../../utils/embeds/embedBuilder');
  * CustomId: changeCoLeaderInvite:decline:<guildId>
  */
 async function handle(interaction) {
+  try {
+    // Disable buttons
     try {
-        // Disable buttons
-        try {
-            await interaction.message.edit({ components: [] });
-        } catch (_) { /* ignore */ }
+      await interaction.message.edit({ components: [] });
+    } catch (_) { /* ignore */ }
 
-        const container = createInfoEmbed(
-            'Invitation declined',
-            'You have declined the invitation to become Co-Leader.'
-        );
+    const container = createInfoEmbed(
+      'Invitation declined',
+      'You have declined the invitation to become Co-Leader.'
+    );
 
-        return interaction.reply({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-        });
-    } catch (error) {
-        const container = createInfoEmbed(
-            'Declined',
-            'The invitation was declined.'
-        );
-        if (interaction.deferred || interaction.replied) {
-            return interaction.followUp({
-                components: [container],
-                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-            });
-        }
-        return interaction.reply({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-        });
+    return interaction.reply({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+    });
+  } catch (error) {
+    const container = createInfoEmbed(
+      'Declined',
+      'The invitation was declined.'
+    );
+    if (interaction.deferred || interaction.replied) {
+      return interaction.followUp({
+        components: [container],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      });
     }
+    return interaction.reply({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+    });
+  }
 }
 
 module.exports = { handle };
