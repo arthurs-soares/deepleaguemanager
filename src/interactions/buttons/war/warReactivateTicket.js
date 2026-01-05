@@ -2,7 +2,7 @@ const { MessageFlags } = require('discord.js');
 const War = require('../../../models/war/War');
 const { getOrCreateRoleConfig } = require('../../../services/ServerConfigService');
 const LoggerService = require('../../../services/LoggerService');
-const { isDatabaseConnected } = require('../../../utils/database/connectionHelper');
+const { isDatabaseConnected } = require('../../../config/database');
 
 /**
  * Check if user has hoster or moderator permissions

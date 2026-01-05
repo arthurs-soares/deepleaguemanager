@@ -2,7 +2,7 @@ const { MessageFlags } = require('discord.js');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const LoggerService = require('../../../services/LoggerService');
-const { isDatabaseConnected } = require('../../../utils/database/connectionHelper');
+const { isDatabaseConnected } = require('../../../config/database');
 
 /**
  * Check if user has permission to extend the wager ticket
