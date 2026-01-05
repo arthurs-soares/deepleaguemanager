@@ -11,6 +11,56 @@ const { unlockChannelForUsers } = require('../../../utils/wager/wagerChannelMana
 const { sendLog } = require('../../../utils/core/logger');
 
 /**
+ * Handle channel cleanup after dodge (send embed, transcript, delete)
+ */
+async function handleDodgeChannelCleanup(
+  interaction, ticket, dodgerUser, opponentUser, sourceMessageId
+) {
+  const ch = interaction.guild.channels.cache.get(ticket.channelId);
+  if (!ch) return;
+
+  if (sourceMessageId) {
+    try {
+      const msg = await ch.messages.fetch(sourceMessageId).catch(() => null);
+      if (msg) await msg.edit({ components: [] }).catch(() => { });
+    } catch (_) { }
+  }
+
+  if (ch.type !== ChannelType.GuildText) return;
+
+  const { container, attachment } = await buildWagerDodgeEmbed(
+    dodgerUser, opponentUser, interaction.user.id, new Date()
+  );
+
+  await ch.send({
+    content: '🧹 Ticket will close in 10 seconds...',
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    files: attachment ? [attachment] : []
+  });
+
+  try {
+    await sendTranscriptToLogs(
+      interaction.guild, ch,
+      `Wager Ticket ${ticket._id} dodge by <@${dodgerUser?.id}>`, ticket
+    );
+  } catch (_) { }
+
+  try {
+    await sendLog(interaction.guild, 'Wager Ticket Closed (Dodge)',
+      `Ticket ${ticket._id} • Dodger: <@${dodgerUser?.id}>`);
+  } catch (_) { }
+
+  setTimeout(async () => {
+    try {
+      await ch.delete('Auto-closed after dodge.');
+    } catch (err) {
+      LoggerService.warn('Failed to delete channel:', { error: err?.message });
+    }
+  }, 10000);
+}
+
+/**
  * Apply wager dodge after confirmation
  * CustomId: wager:dodge:apply:<ticketId>:<dodgerUserId>:<sourceMessageId>
  */
@@ -114,84 +164,36 @@ async function handle(interaction) {
       interaction.client.users.fetch(opponentId).catch(() => null)
     ]);
 
-    // Update original message and ticket channel
+    // Handle channel cleanup
     try {
-      const ch = interaction.guild.channels.cache.get(ticket.channelId);
-      if (ch && sourceMessageId) {
-        try {
-          const msg = await ch.messages.fetch(sourceMessageId).catch(() => null);
-          if (msg) await msg.edit({ components: [] }).catch(() => { });
-        } catch (_) { }
-      }
-      if (ch && ch.type === ChannelType.GuildText) {
-        const { container, attachment } = await buildWagerDodgeEmbed(
-          dodgerUser,
-          opponentUser,
-          interaction.user.id,
-          new Date()
-        );
-
-        // Send dodge notification with auto-close message
-        await ch.send({
-          content: '🧹 This ticket will be closed automatically in 10 seconds...',
-          components: [container],
-          flags: MessageFlags.IsComponentsV2,
-          files: attachment ? [attachment] : []
-        });
-
-        // Send log to transcript channel
-        try {
-          await sendTranscriptToLogs(
-            interaction.guild,
-            ch,
-            `Wager Ticket ${ticket._id} marked as dodge by <@${dodgerUserId}>`,
-            ticket
-          );
-        } catch (_) { }
-
-        // Log the closure
-        try {
-          await sendLog(
-            interaction.guild,
-            'Wager Ticket Closed (Dodge)',
-            `Wager Ticket ${ticket._id} • Dodger: <@${dodgerUserId}> • Closed by: <@${interaction.user.id}>`
-          );
-        } catch (_) { }
-
-        // Delete the channel after a short delay
-        setTimeout(async () => {
-          try {
-            await ch.delete('Wager ticket auto-closed after dodge marked.');
-          } catch (err) {
-            LoggerService.warn('Failed to delete wager ticket channel:', { error: err?.message });
-          }
-        }, 10000); // 10 seconds delay
-      }
+      await handleDodgeChannelCleanup(
+        interaction, ticket, dodgerUser, opponentUser, sourceMessageId
+      );
     } catch (_) { }
 
-    // Send log to wager dodge channel (always attempt this)
+    // Send log to wager dodge channel
     try {
       await sendWagerDodgeLog(
-        interaction.guild,
-        dodgerUser,
-        opponentUser,
-        interaction.user.id
+        interaction.guild, dodgerUser, opponentUser, interaction.user.id
       );
-    } catch (logErr) {
-      LoggerService.warn('Failed to send dodge log:', { error: logErr?.message });
+    } catch (err) {
+      LoggerService.warn('Failed to send dodge log:', { error: err?.message });
     }
 
     try {
-      return await interaction.editReply({ content: '✅ Dodge recorded. Ticket will close automatically.' });
+      return await interaction.editReply({
+        content: '✅ Dodge recorded. Ticket will close automatically.'
+      });
     } catch (e) {
-      const code = e?.code ?? e?.rawError?.code;
-      if (code !== 10008) throw e;
-      return; // silently ignore unknown message in success path
+      if (e?.code !== 10008) throw e;
+      return;
     }
   } catch (error) {
-    LoggerService.error('Error in button wager:dodge:apply:', error);
+    LoggerService.error('Error in wager:dodge:apply:', error);
     const msg = { content: '❌ Could not apply the dodge.' };
-    if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, flags: MessageFlags.Ephemeral });
+    if (interaction.deferred || interaction.replied) {
+      return interaction.followUp({ ...msg, flags: MessageFlags.Ephemeral });
+    }
     return interaction.reply({ ...msg, flags: MessageFlags.Ephemeral });
   }
 }

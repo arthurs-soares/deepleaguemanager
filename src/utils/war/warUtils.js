@@ -94,17 +94,31 @@ async function addHostersToThread(discordGuild, thread) {
   return added;
 }
 
-module.exports = {
-  getOpponentGuildId,
-  isLeaderOrCoLeader,
-  getHosterRoleIds,
-  addHostersToThread,
-};
+/**
+ * Update war region stats for winner and loser
+ * @param {Object} winner - Winner guild doc
+ * @param {Object} loser - Loser guild doc
+ * @param {string} warRegion - Region of the war
+ */
+function updateWarRegionStats(winner, loser, warRegion) {
+  if (!warRegion) return;
+
+  const winnerRegionStats = winner.regions?.find(r => r.region === warRegion);
+  const loserRegionStats = loser.regions?.find(r => r.region === warRegion);
+
+  if (winnerRegionStats) {
+    winnerRegionStats.wins = (winnerRegionStats.wins || 0) + 1;
+  }
+  if (loserRegionStats) {
+    loserRegionStats.losses = (loserRegionStats.losses || 0) + 1;
+  }
+}
 
 module.exports = {
   getOpponentGuildId,
   isLeaderOrCoLeader,
   getHosterRoleIds,
   addHostersToThread,
+  updateWarRegionStats,
 };
 

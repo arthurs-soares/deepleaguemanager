@@ -1,4 +1,7 @@
-const { PermissionFlagsBits, MessageFlags, ActionRowBuilder, ButtonBuilder, ComponentType, ChannelType } = require('discord.js');
+const {
+  PermissionFlagsBits, MessageFlags, ActionRowBuilder,
+  ButtonBuilder, ComponentType, ChannelType
+} = require('discord.js');
 const { replyEphemeral } = require('../../../utils/core/reply');
 const War = require('../../../models/war/War');
 const UserProfile = require('../../../models/user/UserProfile');
@@ -6,6 +9,7 @@ const Guild = require('../../../models/guild/Guild');
 const { sendLog } = require('../../../utils/core/logger');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { getFirstActiveRegion } = require('../../../models/statics/guildStatics');
+const { updateWarRegionStats } = require('../../../utils/war/warUtils');
 const LoggerService = require('../../../services/LoggerService');
 const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { colors, emojis } = require('../../../config/botConfig');
@@ -159,33 +163,15 @@ async function handle(interaction) {
     }
 
     // Update stats
-    // We already have the guild objects from the initial fetch
     const loser = String(winner._id) === String(guildA._id) ? guildB : guildA;
-
-    // We already have the guild objects from the initial fetch
-
 
     // Determine the region for this war
     const warRegion = war.region ||
       getFirstActiveRegion(winner)?.region ||
       getFirstActiveRegion(loser)?.region;
 
-    if (warRegion) {
-      // Update region-specific stats
-      const winnerRegionStats = winner.regions?.find(
-        r => r.region === warRegion
-      );
-      const loserRegionStats = loser.regions?.find(
-        r => r.region === warRegion
-      );
-
-      if (winnerRegionStats) {
-        winnerRegionStats.wins = (winnerRegionStats.wins || 0) + 1;
-      }
-      if (loserRegionStats) {
-        loserRegionStats.losses = (loserRegionStats.losses || 0) + 1;
-      }
-    }
+    // Update region-specific stats using utility
+    updateWarRegionStats(winner, loser, warRegion);
 
     war.status = 'finalizada';
     war.winnerGuildId = winner._id;

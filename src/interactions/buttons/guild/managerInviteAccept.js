@@ -6,8 +6,9 @@ const {
   createSuccessEmbed
 } = require('../../../utils/embeds/embedBuilder');
 const { safeDeferEphemeral } = require('../../../utils/core/ack');
-const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const { logRoleAssignment } = require('../../../utils/core/roleLogger');
+const {
+  handleManagerRoleChange
+} = require('../../../utils/guilds/inviteRoleHandler');
 const { sendDmOrFallback } = require('../../../utils/dm/dmFallback');
 
 /**
@@ -128,67 +129,27 @@ async function handle(interaction) {
 
     const guildDoc = updatedGuild;
 
-    // Try to assign the managers role if configured
-    const cfg = await getOrCreateRoleConfig(guildDoc.discordGuildId);
-    const managersRoleId = cfg?.managersRoleId;
-    if (managersRoleId) {
-      try {
-        const discordGuild = interaction.client.guilds.cache
-          .get(guildDoc.discordGuildId);
-        if (discordGuild) {
-          const role = discordGuild.roles.cache.get(managersRoleId);
-          const member = await discordGuild.members.fetch(userId)
-            .catch(() => null);
-          if (role && member && !member.roles.cache.has(managersRoleId)) {
-            await member.roles.add(managersRoleId);
-            await logRoleAssignment(
-              discordGuild,
-              userId,
-              managersRoleId,
-              role.name,
-              inviterId || 'system',
-              'Manager role assigned via invitation acceptance'
-            );
-          }
-        }
-      } catch (_) { /* ignore role assignment errors */ }
-    }
+    // Assign manager role using utility
+    await handleManagerRoleChange(
+      interaction.client,
+      guildDoc,
+      userId,
+      inviterId
+    );
 
     // Disable buttons after success
     try {
       await interaction.message.edit({ components: [] });
     } catch (_) { /* ignore */ }
 
+    // Notify inviter
+    await notifyInviter(interaction, guildDoc, inviterId);
+
     const container = createSuccessEmbed(
       'You are now a manager',
       `You have been added as a manager of "${guildDoc.name}". ` +
       'You can now access the guild panel using `/guild panel`.'
     );
-
-    // Notify inviter with DM fallback support
-    if (inviterId) {
-      try {
-        const notifyEmbed = createSuccessEmbed(
-          'Manager invitation accepted',
-          `**${interaction.user.username}** accepted your manager ` +
-          `invitation for guild "${guildDoc.name}".`
-        );
-        const dmPayload = {
-          components: [notifyEmbed],
-          flags: MessageFlags.IsComponentsV2
-        };
-        await sendDmOrFallback(
-          interaction.client,
-          guildDoc.discordGuildId,
-          inviterId,
-          dmPayload,
-          {
-            threadTitle: `Manager Accepted — ${guildDoc.name}`,
-            reason: `Notify inviter ${inviterId} about manager acceptance`
-          }
-        );
-      } catch (_) { /* ignore notification errors */ }
-    }
 
     return interaction.editReply({
       components: [container],
@@ -210,6 +171,34 @@ async function handle(interaction) {
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
   }
+}
+
+/**
+ * Notify inviter that manager invite was accepted
+ */
+async function notifyInviter(interaction, guildDoc, inviterId) {
+  if (!inviterId) return;
+  try {
+    const notifyEmbed = createSuccessEmbed(
+      'Manager invitation accepted',
+      `**${interaction.user.username}** accepted your manager ` +
+      `invitation for guild "${guildDoc.name}".`
+    );
+    const dmPayload = {
+      components: [notifyEmbed],
+      flags: MessageFlags.IsComponentsV2
+    };
+    await sendDmOrFallback(
+      interaction.client,
+      guildDoc.discordGuildId,
+      inviterId,
+      dmPayload,
+      {
+        threadTitle: `Manager Accepted — ${guildDoc.name}`,
+        reason: `Notify inviter ${inviterId} about manager acceptance`
+      }
+    );
+  } catch (_) { /* ignore notification errors */ }
 }
 
 module.exports = { handle };

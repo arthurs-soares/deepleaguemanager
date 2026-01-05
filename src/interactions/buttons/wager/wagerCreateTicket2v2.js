@@ -1,40 +1,32 @@
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
+const { getOrCreateServerSettings } = require('../../../utils/system/serverSettings');
+const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  MessageFlags
-} = require('discord.js');
-const {
-  ContainerBuilder,
-  TextDisplayBuilder
-} = require('@discordjs/builders');
-const {
-  getOrCreateServerSettings
-} = require('../../../utils/system/serverSettings');
-const {
-  getOrCreateRoleConfig
-} = require('../../../utils/misc/roleConfig');
-const {
-  createWagerChannel2v2,
-  CategoryFullError,
-  ServerChannelLimitError,
-  findAvailableWagerCategory
+  createWagerChannel2v2, CategoryFullError, ServerChannelLimitError, findAvailableWagerCategory
 } = require('../../../utils/wager/wagerChannelManager');
 const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const LoggerService = require('../../../services/LoggerService');
 const { colors, emojis } = require('../../../config/botConfig');
-const { countOpenWagerTickets, MAX_OPEN_WAGER_TICKETS } = require('../../../utils/wager/wagerTicketLimits');
+const { validateWagerParticipants } = require('../../../utils/wager/wagerTicketLimits');
 
 /**
- * Check if a member has the no-wagers role
- * @param {GuildMember} member - Guild member
- * @param {string} noWagersRoleId - Role ID from config
- * @returns {boolean}
+ * Handle wager creation errors with user-friendly messages
  */
-function hasNoWagersRole(member, noWagersRoleId) {
-  if (!member || !noWagersRoleId) return false;
-  return member.roles.cache.has(noWagersRoleId);
+function handleWagerCreationError(error) {
+  if (error instanceof CategoryFullError) {
+    LoggerService.warn('Wager category full:', error.message);
+    return '❌ The wager category is full (50 channels max).\n' +
+      'Please ask a staff member to close old wager tickets.';
+  }
+  if (error instanceof ServerChannelLimitError) {
+    LoggerService.warn('Server channel limit reached (500):', error.message);
+    return '❌ The server has reached the maximum of 500 channels.\n' +
+      'Please ask a staff member to delete unused channels.';
+  }
+  LoggerService.error('Error creating 2v2 wager ticket:', error);
+  return '❌ Could not create the 2v2 wager ticket.';
 }
 
 /**
@@ -58,34 +50,12 @@ async function handle(interaction) {
 
     const roleCfg = await getOrCreateRoleConfig(guildId);
 
-    // Check if any participant has no-wagers role
-    const members = await Promise.all(
-      allUserIds.map(uid => interaction.guild.members.fetch(uid).catch(() => null))
+    // Validate all participants using shared utility
+    const validationError = await validateWagerParticipants(
+      interaction.guild, allUserIds, initiatorId, roleCfg
     );
-    for (let i = 0; i < allUserIds.length; i++) {
-      if (hasNoWagersRole(members[i], roleCfg?.noWagersRoleId)) {
-        return interaction.editReply({
-          content: `❌ <@${allUserIds[i]}> has opted out of wagers.`
-        });
-      }
-      if (roleCfg?.blacklistRoleIds?.some(id => members[i]?.roles.cache.has(id))) {
-        return interaction.editReply({
-          content: `❌ <@${allUserIds[i]}> is blacklisted from wagers.`
-        });
-      }
-    }
-
-    // Check ticket limits for all participants
-    for (let i = 0; i < allUserIds.length; i++) {
-      const openTickets = await countOpenWagerTickets(guildId, allUserIds[i]);
-      if (openTickets >= MAX_OPEN_WAGER_TICKETS) {
-        const isSelf = allUserIds[i] === initiatorId;
-        return interaction.editReply({
-          content: isSelf
-            ? `❌ You already have **${MAX_OPEN_WAGER_TICKETS}** open wager tickets. Please close one before creating another.`
-            : `❌ <@${allUserIds[i]}> already has **${MAX_OPEN_WAGER_TICKETS}** open wager tickets.`
-        });
-      }
+    if (validationError) {
+      return interaction.editReply({ content: validationError });
     }
 
     const settings = await getOrCreateServerSettings(guildId);
@@ -202,37 +172,8 @@ async function handle(interaction) {
       content: `✅ 2v2 Wager ticket created: <#${channel.id}>`
     });
   } catch (error) {
-    // Handle category full error with user-friendly message
-    if (error instanceof CategoryFullError) {
-      LoggerService.warn('Wager category full:', error.message);
-      const msg = {
-        content: '❌ The wager category is full (50 channels max).\n' +
-          'Please ask a staff member to close old wager tickets.',
-        flags: MessageFlags.Ephemeral
-      };
-      if (interaction.deferred || interaction.replied) {
-        return interaction.followUp(msg);
-      }
-      return interaction.reply(msg);
-    }
-
-    // Handle server channel limit (500 max)
-    if (error instanceof ServerChannelLimitError) {
-      LoggerService.warn('Server channel limit reached (500):', error.message);
-      const msg = {
-        content: '❌ The server has reached the maximum of 500 channels.\n' +
-          'Please ask a staff member to delete unused channels.',
-        flags: MessageFlags.Ephemeral
-      };
-      if (interaction.deferred || interaction.replied) {
-        return interaction.followUp(msg);
-      }
-      return interaction.reply(msg);
-    }
-
-    LoggerService.error('Error creating 2v2 wager ticket:', error);
     const msg = {
-      content: '❌ Could not create the 2v2 wager ticket.',
+      content: handleWagerCreationError(error, interaction),
       flags: MessageFlags.Ephemeral
     };
     if (interaction.deferred || interaction.replied) {

@@ -21,18 +21,7 @@ const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const LoggerService = require('../../../services/LoggerService');
 const { colors, emojis } = require('../../../config/botConfig');
-const { countOpenWagerTickets, MAX_OPEN_WAGER_TICKETS } = require('../../../utils/wager/wagerTicketLimits');
-
-/**
- * Check if a member has the no-wagers role
- * @param {GuildMember} member - Guild member
- * @param {string} noWagersRoleId - Role ID from config
- * @returns {boolean}
- */
-function hasNoWagersRole(member, noWagersRoleId) {
-  if (!member || !noWagersRoleId) return false;
-  return member.roles.cache.has(noWagersRoleId);
-}
+const { validateWagerParticipants } = require('../../../utils/wager/wagerTicketLimits');
 
 /**
  * Create wager ticket channel and panel
@@ -43,58 +32,22 @@ async function handle(interaction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const [, , opponentUserId] = interaction.customId.split(':');
-    if (!opponentUserId) return interaction.editReply({ content: '❌ Missing opponent.' });
+    if (!opponentUserId) {
+      return interaction.editReply({ content: '❌ Missing opponent.' });
+    }
 
     const initiatorId = interaction.user.id;
-
-    // War wagers removed: no leader/co-leader restrictions for wagers
     const roleCfg = await getOrCreateRoleConfig(interaction.guild.id);
 
-    // Check if initiator has no-wagers role
-    const initiatorMember = await interaction.guild.members
-      .fetch(initiatorId).catch(() => null);
-    if (hasNoWagersRole(initiatorMember, roleCfg?.noWagersRoleId)) {
-      return interaction.editReply({
-        content: '❌ You have opted out of wagers. Remove the no-wagers role.'
-      });
-    }
-
-    // Check if opponent has no-wagers role
-    const opponentMember = await interaction.guild.members
-      .fetch(opponentUserId).catch(() => null);
-    if (hasNoWagersRole(opponentMember, roleCfg?.noWagersRoleId)) {
-      return interaction.editReply({
-        content: `❌ <@${opponentUserId}> has opted out of wagers.`
-      });
-    }
-
-    // Check if initiator has blacklist role
-    if (roleCfg?.blacklistRoleIds?.some(id => initiatorMember.roles.cache.has(id))) {
-      return interaction.editReply({
-        content: '❌ You are blacklisted from using wager systems.'
-      });
-    }
-
-    // Check if opponent has blacklist role
-    if (roleCfg?.blacklistRoleIds?.some(id => opponentMember.roles.cache.has(id))) {
-      return interaction.editReply({
-        content: `❌ <@${opponentUserId}> is blacklisted from wagers.`
-      });
-    }
-
-    // Check ticket limits for both users
-    const initiatorOpenTickets = await countOpenWagerTickets(interaction.guild.id, initiatorId);
-    if (initiatorOpenTickets >= MAX_OPEN_WAGER_TICKETS) {
-      return interaction.editReply({
-        content: `❌ You already have **${MAX_OPEN_WAGER_TICKETS}** open wager tickets. Please close one before creating another.`
-      });
-    }
-
-    const opponentOpenTickets = await countOpenWagerTickets(interaction.guild.id, opponentUserId);
-    if (opponentOpenTickets >= MAX_OPEN_WAGER_TICKETS) {
-      return interaction.editReply({
-        content: `❌ <@${opponentUserId}> already has **${MAX_OPEN_WAGER_TICKETS}** open wager tickets.`
-      });
+    // Validate participants using shared utility
+    const validationError = await validateWagerParticipants(
+      interaction.guild,
+      [initiatorId, opponentUserId],
+      initiatorId,
+      roleCfg
+    );
+    if (validationError) {
+      return interaction.editReply({ content: validationError });
     }
 
     const settings = await getOrCreateServerSettings(interaction.guild.id);
