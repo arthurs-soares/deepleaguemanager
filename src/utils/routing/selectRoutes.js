@@ -59,6 +59,9 @@ function resolveSelectHandler(customId) {
   if (customId === 'config:channels:selectWarTranscripts') return '../interactions/channel-selects/configWarTranscriptsSelect';
   if (customId === 'config:channels:selectWagerTranscripts') return '../interactions/channel-selects/configWagerTranscriptsSelect';
   if (customId === 'config:channels:selectGeneralTranscripts') return '../interactions/channel-selects/configGeneralTranscriptsSelect';
+  if (customId === 'config:channels:selectWarCategoryAsia') return '../interactions/channel-selects/configWarCategoryAsiaSelect';
+  if (customId === 'config:channels:selectWarCategoryAsia2') return '../interactions/channel-selects/configWarCategoryAsia2Select';
+  if (customId === 'config:channels:selectRosterForumAsia') return '../interactions/channel-selects/configRosterForumAsiaSelect';
 
   // New dropdown-based configuration selectors
   if (customId === 'config:channels:select') return '../interactions/string-selects/configChannelSelect';
