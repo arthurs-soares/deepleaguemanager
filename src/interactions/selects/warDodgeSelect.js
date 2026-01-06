@@ -1,4 +1,9 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags
+} = require('discord.js');
 const War = require('../../models/war/War');
 const Guild = require('../../models/guild/Guild');
 const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
@@ -22,13 +27,24 @@ async function handle(interaction) {
     const allowedRoleIds = new Set([...(rolesCfg?.hostersRoleIds || []), ...(rolesCfg?.moderatorsRoleIds || [])]);
     const hasAllowedRole = interaction.member.roles.cache.some(r => allowedRoleIds.has(r.id));
     if (!hasAllowedRole) {
-      return interaction.reply({ content: '❌ Only hosters or moderators can mark a war as dodge.', ephemeral: true });
+      return interaction.reply({
+        content: '❌ Only hosters or moderators can mark a war as dodge.',
+        flags: MessageFlags.Ephemeral
+      });
     }
 
     const war = await War.findById(warId);
-    if (!war) return interaction.reply({ content: '❌ War not found.', ephemeral: true });
+    if (!war) {
+      return interaction.reply({
+        content: '❌ War not found.',
+        flags: MessageFlags.Ephemeral
+      });
+    }
     if (war.status !== 'aberta') {
-      return interaction.reply({ content: '⚠️ This war is no longer waiting for confirmation.', ephemeral: true });
+      return interaction.reply({
+        content: '⚠️ This war is no longer waiting for confirmation.',
+        flags: MessageFlags.Ephemeral
+      });
     }
 
     const [guildA, guildB, dodger] = await Promise.all([
@@ -57,7 +73,10 @@ async function handle(interaction) {
     });
   } catch (error) {
     LoggerService.error('Error in select war:dodge:select:', error);
-    const msg = { content: '❌ Could not process the selection.', ephemeral: true };
+    const msg = {
+      content: '❌ Could not process the selection.',
+      flags: MessageFlags.Ephemeral
+    };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

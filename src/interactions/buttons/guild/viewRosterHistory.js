@@ -86,7 +86,7 @@ async function handle(interaction) {
 
   } catch (error) {
     LoggerService.error('Error in viewGuild:rosterHistory:', { error: error?.message });
-    const msg = { content: '❌ Could not load roster history.', ephemeral: true };
+    const msg = { content: '❌ Could not load roster history.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

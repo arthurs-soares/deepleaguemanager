@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const { setLeaderboardChannel } = require('../../utils/system/serverSettings');
 const { upsertLeaderboardMessage } = require('../../utils/user/leaderboard');
 const LoggerService = require('../../services/LoggerService');
@@ -8,7 +9,7 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const channelId = interaction.values?.[0];
     if (!channelId) return interaction.editReply({ content: 'Action cancelled.' });
@@ -25,7 +26,7 @@ async function handle(interaction) {
     return interaction.editReply({ content: '✅ Leaderboard channel configured.' });
   } catch (error) {
     LoggerService.error('Error saving leaderboard channel:', { error: error?.message });
-    const msg = { content: '❌ Could not save.', ephemeral: true };
+    const msg = { content: '❌ Could not save.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

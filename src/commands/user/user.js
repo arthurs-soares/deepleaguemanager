@@ -58,6 +58,18 @@ module.exports = {
   category: 'User',
   cooldown: 3,
 
+  /**
+   * Defer early (before cooldown/DB work) to avoid Unknown interaction (10062).
+   * Profile is public; admin/diagnostic subcommands are ephemeral.
+   * @param {import('discord.js').ChatInputCommandInteraction} interaction
+   * @returns {'public'|'ephemeral'}
+   */
+  autoDefer(interaction) {
+    const sub = interaction.options.getSubcommand(false);
+    if (sub === 'profile') return 'public';
+    return 'ephemeral';
+  },
+
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
 

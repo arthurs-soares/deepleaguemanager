@@ -1,6 +1,8 @@
 const { createErrorEmbed } = require('../embeds/embedBuilder');
 const { replyEphemeral } = require('../core/reply');
 const { logCommandError } = require('./logging');
+const { handleKnownDiscordError } = require('../core/discordErrorUtils');
+const LoggerService = require('../../services/LoggerService');
 
 /**
  * Log a command error and send a user-friendly ephemeral response
@@ -10,7 +12,13 @@ const { logCommandError } = require('./logging');
  * @param {Record<string, any>} optionsObj
  */
 async function respondAndLogCommandError(interaction, commandName, error, optionsObj) {
-  console.error(`Error executing command ${commandName}:`, error);
+  if (handleKnownDiscordError(error, interaction)) {
+    return;
+  }
+
+  LoggerService.error(`Error executing command ${commandName}:`, {
+    error: error?.message
+  });
 
   await logCommandError(interaction, commandName, error, optionsObj);
 

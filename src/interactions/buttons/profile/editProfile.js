@@ -1,4 +1,10 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  MessageFlags
+} = require('discord.js');
 const { getOrCreateUserProfile } = require('../../../utils/user/userProfile');
 const LoggerService = require('../../../services/LoggerService');
 
@@ -9,7 +15,10 @@ const LoggerService = require('../../../services/LoggerService');
 async function handle(interaction) {
   try {
     if (interaction.user.id !== interaction.member.user.id) {
-      return interaction.reply({ content: '❌ You can only edit your own profile.', ephemeral: true });
+      return interaction.reply({
+        content: '❌ You can only edit your own profile.',
+        flags: MessageFlags.Ephemeral
+      });
     }
 
     const profile = await getOrCreateUserProfile(interaction.user.id);
@@ -48,7 +57,7 @@ async function handle(interaction) {
     return interaction.showModal(modal);
   } catch (error) {
     LoggerService.error('Error opening profile edit modal:', { error: error?.message });
-    const msg = { content: '❌ Could not open the modal.', ephemeral: true };
+    const msg = { content: '❌ Could not open the modal.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

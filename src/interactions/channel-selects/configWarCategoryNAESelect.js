@@ -1,4 +1,4 @@
-const { ChannelType } = require('discord.js');
+const { ChannelType, MessageFlags } = require('discord.js');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const LoggerService = require('../../services/LoggerService');
 
@@ -8,7 +8,7 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const channelId = interaction.values?.[0];
     if (!channelId) return interaction.editReply({ content: 'Action cancelled.' });
@@ -25,7 +25,10 @@ async function handle(interaction) {
     return interaction.editReply({ content: `✅ NA East War category set to <#${channelId}>.` });
   } catch (error) {
     LoggerService.error('Error saving NA East war category:', { error: error?.message });
-    const msg = { content: '❌ Could not save the NA East war category.', ephemeral: true };
+    const msg = {
+      content: '❌ Could not save the NA East war category.',
+      flags: MessageFlags.Ephemeral
+    };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

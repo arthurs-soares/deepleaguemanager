@@ -6,7 +6,7 @@ const LoggerService = require('../../../services/LoggerService');
 
 
 /**
- * Mostra o histórico de uma guilda (substitui o embed atual)
+ * Shows the guild history (replaces the current message)
  * CustomId: viewGuild:history:<guildId>
  */
 async function handle(interaction) {
@@ -53,8 +53,8 @@ async function handle(interaction) {
     try { await interaction.message?.edit({ components: [embed, row], flags: MessageFlags.IsComponentsV2 }); } catch (_) { }
     return;
   } catch (error) {
-    LoggerService.error('Erro no botão viewGuild:history:', { error: error?.message });
-    const msg = { content: '❌ Não foi possível carregar o histórico.', ephemeral: true };
+    LoggerService.error('Error in button viewGuild:history:', { error: error?.message });
+    const msg = { content: '❌ Could not load the history.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

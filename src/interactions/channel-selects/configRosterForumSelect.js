@@ -1,4 +1,4 @@
-const { ChannelType } = require('discord.js');
+const { ChannelType, MessageFlags } = require('discord.js');
 const { getOrCreateServerSettings } = require('../../utils/system/serverSettings');
 const { syncRosterForum } = require('../../utils/roster/rosterForumSync');
 const LoggerService = require('../../services/LoggerService');
@@ -9,7 +9,7 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const channelId = interaction.values?.[0];
     if (!channelId) return interaction.editReply({ content: 'Action cancelled.' });
@@ -33,7 +33,7 @@ async function handle(interaction) {
     return interaction.editReply({ content: `✅ Roster forum set to <#${channelId}>. Starting synchronization...` });
   } catch (error) {
     LoggerService.error('Error saving roster forum:', { error: error?.message });
-    const msg = { content: '❌ Could not save the forum channel.', ephemeral: true };
+    const msg = { content: '❌ Could not save the forum channel.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

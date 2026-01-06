@@ -1,4 +1,5 @@
 const { isGuildAdmin } = require('../../../utils/core/permissions');
+const { MessageFlags } = require('discord.js');
 const { upsertLeaderboardMessage } = require('../../../utils/user/leaderboard');
 const { upsertWagerLeaderboardMessage } = require('../../../utils/wager/wagerLeaderboard');
 const { upsertEventPointsLeaderboard } = require('../../../utils/leaderboard/eventPointsLeaderboard');
@@ -20,13 +21,13 @@ module.exports = {
     if (!authorized) {
       return interaction.reply({
         content: '❌ Only users with the configured **Moderator** role can manually update the leaderboard.',
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     }
 
     const [, type] = interaction.customId.split(':');
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
       let result;

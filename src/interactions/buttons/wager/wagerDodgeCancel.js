@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const LoggerService = require('../../../services/LoggerService');
 
 /**
@@ -6,7 +7,7 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const parts = interaction.customId.split(':');
     const ticketId = parts[3];
@@ -17,8 +18,9 @@ async function handle(interaction) {
   } catch (error) {
     LoggerService.error('Error in button wager:dodge:cancel:', { error: error?.message });
     const msg = { content: '❌ Could not cancel.' };
-    if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, ephemeral: true });
-    return interaction.reply({ ...msg, ephemeral: true });
+    const payload = { ...msg, flags: MessageFlags.Ephemeral };
+    if (interaction.deferred || interaction.replied) return interaction.followUp(payload);
+    return interaction.reply(payload);
   }
 }
 

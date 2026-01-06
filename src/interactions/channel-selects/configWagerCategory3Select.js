@@ -1,4 +1,4 @@
-const { ChannelType } = require('discord.js');
+const { ChannelType, MessageFlags } = require('discord.js');
 const {
   getOrCreateServerSettings
 } = require('../../utils/system/serverSettings');
@@ -10,7 +10,7 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const channelId = interaction.values?.[0];
     if (!channelId) {
@@ -33,7 +33,7 @@ async function handle(interaction) {
     LoggerService.error('Error saving wager category 3:', error);
     const msg = {
       content: '❌ Could not save the wager category.',
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     };
     if (interaction.deferred || interaction.replied) {
       return interaction.followUp(msg);

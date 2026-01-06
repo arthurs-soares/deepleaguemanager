@@ -1,5 +1,6 @@
 const { setCooldown } = require('../utils/rate-limiting/cooldownManager');
 const { safeDeferEphemeral } = require('../utils/core/ack');
+const { safeDeferReply } = require('../utils/core/ack');
 const { shouldBypassCooldown } = require('../utils/rate-limiting/shouldBypassCooldown');
 const { serializeOptions } = require('../utils/commands/optionsSerializer');
 const { enforceCommandCooldown } = require('../utils/commands/cooldownGuard');
@@ -18,7 +19,12 @@ async function handleSlashCommand(interaction) {
     return;
   }
 
-  if (command.autoDefer === 'ephemeral') await safeDeferEphemeral(interaction);
+  const autoDefer = typeof command.autoDefer === 'function'
+    ? command.autoDefer(interaction)
+    : command.autoDefer;
+
+  if (autoDefer === 'ephemeral') await safeDeferEphemeral(interaction);
+  if (autoDefer === 'public') await safeDeferReply(interaction);
 
   const cooldownKey = `${interaction.user.id}:${interaction.commandName}`;
   const bypassCooldown = await shouldBypassCooldown(interaction, command);

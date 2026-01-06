@@ -8,6 +8,8 @@ const {
   createSuccessEmbed,
   createInfoEmbed
 } = require('../../utils/embeds/embedBuilder');
+const { replyEphemeral } = require('../../utils/core/reply');
+const { handleKnownDiscordError } = require('../../utils/core/discordErrorUtils');
 const { buildUserProfileDisplayComponents } = require('../../utils/embeds/profileEmbed');
 const { isModeratorOrHoster } = require('../../utils/core/permissions');
 const {
@@ -40,17 +42,14 @@ async function handleProfile(interaction) {
       flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
+    if (handleKnownDiscordError(error, interaction)) return;
+
     LoggerService.error('Error in /user profile:', { error: error.message });
-    const replied = interaction.deferred || interaction.replied;
-    const method = replied ? 'editReply' : 'reply';
     const errorContainer = createErrorEmbed(
       'Error',
       'An error occurred while loading the profile.'
     );
-    return interaction[method]({
-      components: [errorContainer],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-    });
+    await replyEphemeral(interaction, { components: [errorContainer] });
   }
 }
 

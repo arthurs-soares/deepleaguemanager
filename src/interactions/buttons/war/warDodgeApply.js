@@ -137,15 +137,16 @@ async function handle(interaction) {
       return;
     }
   } catch (error) {
+    const { MessageFlags } = require('discord.js');
     const LoggerService = require('../../../services/LoggerService');
     LoggerService.error('Error in button war:dodge:apply:', {
       error: error?.message
     });
     const msg = { content: '❌ Could not apply the dodge.' };
     if (interaction.deferred || interaction.replied) {
-      return interaction.followUp({ ...msg, ephemeral: true });
+      return interaction.followUp({ ...msg, flags: MessageFlags.Ephemeral });
     }
-    return interaction.reply({ ...msg, ephemeral: true });
+    return interaction.reply({ ...msg, flags: MessageFlags.Ephemeral });
   }
 }
 

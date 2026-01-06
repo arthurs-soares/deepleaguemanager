@@ -1,4 +1,8 @@
-const { PermissionFlagsBits, ChannelType } = require('discord.js');
+const {
+  PermissionFlagsBits,
+  ChannelType,
+  MessageFlags
+} = require('discord.js');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
 const LoggerService = require('../../../services/LoggerService');
@@ -26,7 +30,7 @@ async function canCloseSupport(member, guildId) {
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const channel = interaction.channel;
     const isPrivateThread = channel?.type === ChannelType.PrivateThread;
@@ -62,8 +66,9 @@ async function handle(interaction) {
   } catch (error) {
     LoggerService.error('Error in button support:closeThread:', { error: error?.message });
     const msg = { content: '❌ Could not close the support thread.' };
-    if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, ephemeral: true });
-    return interaction.reply({ ...msg, ephemeral: true });
+    const payload = { ...msg, flags: MessageFlags.Ephemeral };
+    if (interaction.deferred || interaction.replied) return interaction.followUp(payload);
+    return interaction.reply(payload);
   }
 }
 

@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const { updateUserProfile } = require('../../utils/user/userProfile');
 const LoggerService = require('../../services/LoggerService');
 
@@ -17,7 +18,10 @@ async function handle(interaction) {
     // Banner URL: only update if provided (not empty)
     if (rawBanner !== '') {
       if (rawBanner && !/^https?:\/\//i.test(rawBanner)) {
-        return interaction.reply({ content: '❌ Invalid banner URL. Use http(s)://', ephemeral: true });
+        return interaction.reply({
+          content: '❌ Invalid banner URL. Use http(s)://',
+          flags: MessageFlags.Ephemeral
+        });
       }
       update.bannerUrl = rawBanner || null;
     }
@@ -27,7 +31,10 @@ async function handle(interaction) {
       let color = rawColor;
       if (color && !color.startsWith('#')) color = `#${color}`;
       if (color && !/^#[0-9a-fA-F]{6}$/.test(color)) {
-        return interaction.reply({ content: '❌ Invalid color. Use a 6-digit hex (e.g., #FFAA00).', ephemeral: true });
+        return interaction.reply({
+          content: '❌ Invalid color. Use a 6-digit hex (e.g., #FFAA00).',
+          flags: MessageFlags.Ephemeral
+        });
       }
       update.color = color || null;
     }
@@ -39,15 +46,21 @@ async function handle(interaction) {
 
     // If nothing to update, just confirm
     if (Object.keys(update).length === 0) {
-      return interaction.reply({ content: 'ℹ️ Nothing to update.', ephemeral: true });
+      return interaction.reply({
+        content: 'ℹ️ Nothing to update.',
+        flags: MessageFlags.Ephemeral
+      });
     }
 
     await updateUserProfile(interaction.user.id, update);
 
-    return interaction.reply({ content: '✅ Profile updated successfully!', ephemeral: true });
+    return interaction.reply({
+      content: '✅ Profile updated successfully!',
+      flags: MessageFlags.Ephemeral
+    });
   } catch (error) {
     LoggerService.error('Error saving profile:', { error: error?.message });
-    const msg = { content: '❌ Could not save your profile.', ephemeral: true };
+    const msg = { content: '❌ Could not save your profile.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

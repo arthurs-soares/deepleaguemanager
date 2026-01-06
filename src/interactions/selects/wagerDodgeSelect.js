@@ -1,4 +1,9 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags
+} = require('discord.js');
 const WagerTicket = require('../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../utils/misc/roleConfig');
 const { isDatabaseConnected } = require('../../config/database');
@@ -10,7 +15,6 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    const { MessageFlags } = require('discord.js');
     const parts = interaction.customId.split(':');
     const ticketId = parts[3];
     const sourceMessageId = parts[4] && parts[4] !== '0' ? parts[4] : null;
@@ -72,7 +76,10 @@ async function handle(interaction) {
     return interaction.update({ content: `You selected: <@${dodgerUserId}> dodged this wager. Do you confirm?`, components: [row] });
   } catch (error) {
     LoggerService.error('Error in select wager:dodge:select:', error);
-    const msg = { content: '❌ Could not process the selection.', ephemeral: true };
+    const msg = {
+      content: '❌ Could not process the selection.',
+      flags: MessageFlags.Ephemeral
+    };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

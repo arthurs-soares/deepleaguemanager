@@ -4,7 +4,7 @@ const { buildGuildDetailDisplayComponents } = require('../../../utils/embeds/gui
 const LoggerService = require('../../../services/LoggerService');
 
 /**
- * Volta ao embed original de visualização da guilda
+ * Returns to the original guild view
  * CustomId: viewGuild:back:<guildId>
  */
 async function handle(interaction) {
@@ -36,8 +36,8 @@ async function handle(interaction) {
     } catch (_) { }
     return;
   } catch (error) {
-    LoggerService.error('Erro no botão viewGuild:back:', { error: error?.message });
-    const msg = { content: '❌ Não foi possível voltar.', ephemeral: true };
+    LoggerService.error('Error in button viewGuild:back:', { error: error?.message });
+    const msg = { content: '❌ Could not go back.', flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }

@@ -42,7 +42,6 @@ async function record(interaction) {
       await interaction.followUp({
         content: '✅ Result recorded. Use the button below to close.',
         components: [buildWagerCloseButtonRow(ticket._id)],
-        ephemeral: false
       });
     }
   } catch (_) { }

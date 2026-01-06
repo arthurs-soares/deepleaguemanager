@@ -221,8 +221,9 @@ async function handle(interaction) {
   } catch (error) {
     LoggerService.error('Error in button war:confirm:accept:', { error: error?.message });
     const msg = { content: '❌ Could not process the acceptance.' };
-    if (interaction.deferred || interaction.replied) return interaction.followUp({ ...msg, ephemeral: true });
-    return interaction.reply({ ...msg, ephemeral: true });
+    const payload = { ...msg, flags: MessageFlags.Ephemeral };
+    if (interaction.deferred || interaction.replied) return interaction.followUp(payload);
+    return interaction.reply(payload);
   }
 }
 
