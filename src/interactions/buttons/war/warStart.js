@@ -13,7 +13,8 @@ const REGIONS = [
   { label: '🌍 NA East', value: 'NA East' },
   { label: '🌍 NA West', value: 'NA West' },
   { label: '🌍 South America', value: 'South America' },
-  { label: '🌍 Europe', value: 'Europe' }
+  { label: '🌍 Europe', value: 'Europe' },
+  { label: '🌏 Asia', value: 'Asia' }
 ];
 
 /**

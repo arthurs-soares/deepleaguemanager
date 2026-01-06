@@ -30,7 +30,8 @@ async function removeGuildRosterThread(discordGuild, guildName) {
     settings.rosterForumChannelId,
     settings.rosterForumSAChannelId,
     settings.rosterForumNAChannelId,
-    settings.rosterForumEUChannelId
+    settings.rosterForumEUChannelId,
+    settings.rosterForumAsiaChannelId
   ].filter(Boolean);
   for (const forumId of forumIds) {
     try {
@@ -77,7 +78,7 @@ async function performForumSync(discordGuild, forum, regionFilter) {
   // Delete orphaned threads
   for (const [title, thread] of titleToThread.entries()) {
     if (!expectedTitles.has(title)) {
-      try { await thread.delete('Guild no longer exists or inactive'); } catch (_) {}
+      try { await thread.delete('Guild no longer exists or inactive'); } catch (_) { }
     }
   }
 }
@@ -92,6 +93,7 @@ async function syncAllRosterForums(discordGuild) {
   if (settings.rosterForumSAChannelId) await syncRosterForum(discordGuild, 'South America');
   if (settings.rosterForumNAChannelId) await syncRosterForum(discordGuild, 'NA');
   if (settings.rosterForumEUChannelId) await syncRosterForum(discordGuild, 'Europe');
+  if (settings.rosterForumAsiaChannelId) await syncRosterForum(discordGuild, 'Asia');
 }
 
 module.exports = { syncRosterForum, syncAllRosterForums, removeGuildRosterThread };

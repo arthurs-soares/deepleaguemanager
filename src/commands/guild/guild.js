@@ -52,7 +52,8 @@ module.exports = {
               { name: 'Europe', value: 'Europe' },
               { name: 'South America', value: 'South America' },
               { name: 'NA East', value: 'NA East' },
-              { name: 'NA West', value: 'NA West' }
+              { name: 'NA West', value: 'NA West' },
+              { name: 'Asia', value: 'Asia' }
             )
         )
         .addStringOption(opt =>
@@ -110,7 +111,8 @@ module.exports = {
               { name: 'Europe', value: 'Europe' },
               { name: 'South America', value: 'South America' },
               { name: 'NA East', value: 'NA East' },
-              { name: 'NA West', value: 'NA West' }
+              { name: 'NA West', value: 'NA West' },
+              { name: 'Asia', value: 'Asia' }
             )
         )
         .addIntegerOption(opt =>
@@ -147,7 +149,8 @@ module.exports = {
               { name: 'Europe', value: 'Europe' },
               { name: 'South America', value: 'South America' },
               { name: 'NA East', value: 'NA East' },
-              { name: 'NA West', value: 'NA West' }
+              { name: 'NA West', value: 'NA West' },
+              { name: 'Asia', value: 'Asia' }
             )
         )
     )
@@ -172,7 +175,8 @@ module.exports = {
               { name: 'Europe', value: 'Europe' },
               { name: 'South America', value: 'South America' },
               { name: 'NA East', value: 'NA East' },
-              { name: 'NA West', value: 'NA West' }
+              { name: 'NA West', value: 'NA West' },
+              { name: 'Asia', value: 'Asia' }
             )
         )
     ),

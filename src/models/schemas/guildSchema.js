@@ -24,7 +24,7 @@ const memberSchema = new mongoose.Schema({
 const regionStatsSchema = new mongoose.Schema({
   region: {
     type: String,
-    enum: ['Europe', 'South America', 'NA East', 'NA West'],
+    enum: ['Europe', 'South America', 'NA East', 'NA West', 'Asia'],
     required: true
   },
   wins: { type: Number, default: 0, min: 0 },

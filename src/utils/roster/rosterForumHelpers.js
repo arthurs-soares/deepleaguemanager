@@ -50,6 +50,7 @@ function getRegionValues(regionFilter) {
     case 'South America': return ['South America'];
     case 'NA': return ['NA East', 'NA West'];
     case 'Europe': return ['Europe'];
+    case 'Asia': return ['Asia'];
     default: return null;
   }
 }
@@ -74,6 +75,7 @@ function getForumChannelId(settings, regionFilter) {
     case 'South America': return settings.rosterForumSAChannelId;
     case 'NA': return settings.rosterForumNAChannelId;
     case 'Europe': return settings.rosterForumEUChannelId;
+    case 'Asia': return settings.rosterForumAsiaChannelId;
     default: return settings.rosterForumChannelId;
   }
 }

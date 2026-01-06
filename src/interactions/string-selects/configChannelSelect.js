@@ -155,6 +155,21 @@ const CHANNEL_CONFIGS = {
     customId: 'config:channels:selectRosterForumEU',
     placeholder: 'Select forum channel for EU rosters',
     types: [ChannelType.GuildForum]
+  },
+  rosterForumAsia: {
+    customId: 'config:channels:selectRosterForumAsia',
+    placeholder: 'Select forum channel for Asia rosters',
+    types: [ChannelType.GuildForum]
+  },
+  warCategoryAsia: {
+    customId: 'config:channels:selectWarCategoryAsia',
+    placeholder: 'Select category for Asia wars',
+    types: [ChannelType.GuildCategory]
+  },
+  warCategoryAsia2: {
+    customId: 'config:channels:selectWarCategoryAsia2',
+    placeholder: 'Select secondary category for Asia wars',
+    types: [ChannelType.GuildCategory]
   }
 };
 

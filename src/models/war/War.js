@@ -10,7 +10,7 @@ const warSchema = new mongoose.Schema({
   // Region where the war takes place (for multi-region support)
   region: {
     type: String,
-    enum: ['Europe', 'South America', 'NA East', 'NA West'],
+    enum: ['Europe', 'South America', 'NA East', 'NA West', 'Asia'],
     default: null
   },
   scheduledAt: { type: Date, required: true },

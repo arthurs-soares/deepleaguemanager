@@ -165,7 +165,8 @@ async function findAvailableWarCategory(guild, settings, region) {
     'South America': ['warCategorySAId', 'warCategorySAId2'],
     'NA East': ['warCategoryNAEId', 'warCategoryNAEId2'],
     'NA West': ['warCategoryNAWId', 'warCategoryNAWId2'],
-    'Europe': ['warCategoryEUId', 'warCategoryEUId2']
+    'Europe': ['warCategoryEUId', 'warCategoryEUId2'],
+    'Asia': ['warCategoryAsiaId', 'warCategoryAsiaId2']
   };
 
   const fields = regionMap[region] || [];

@@ -1,7 +1,7 @@
 const { createErrorEmbed } = require('../embeds/embedBuilder');
 const { ensureLeaderDiscordRole } = require('../user/leaderRoleAssigner');
 
-const VALID_REGIONS = ['Europe', 'South America', 'NA East', 'NA West'];
+const VALID_REGIONS = ['Europe', 'South America', 'NA East', 'NA West', 'Asia'];
 
 /**
  * Parse extra regions string into array
@@ -116,11 +116,11 @@ async function postRegistration(interaction, guild, leaderUserId) {
   try {
     const { logGuildRegistered } = require('../misc/logEvents');
     await logGuildRegistered(guild, interaction.guild, interaction.user.id);
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     await ensureLeaderDiscordRole(interaction.guild, leaderUserId);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 module.exports = {

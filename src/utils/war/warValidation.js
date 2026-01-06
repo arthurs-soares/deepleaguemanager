@@ -51,7 +51,8 @@ function getRegionCategoryField(region) {
     'South America': 'warCategorySAId',
     'NA East': 'warCategoryNAEId',
     'NA West': 'warCategoryNAWId',
-    'Europe': 'warCategoryEUId'
+    'Europe': 'warCategoryEUId',
+    'Asia': 'warCategoryAsiaId'
   };
   return regionMap[region] || null;
 }
@@ -66,7 +67,8 @@ function getRegionDisplayName(region) {
     'South America': 'SA',
     'NA East': 'NAE',
     'NA West': 'NAW',
-    'Europe': 'EU'
+    'Europe': 'EU',
+    'Asia': 'Asia'
   };
   return displayMap[region] || region;
 }

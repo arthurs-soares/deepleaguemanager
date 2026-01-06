@@ -47,6 +47,12 @@ function buildChannelCategoryOptions() {
       .setLabel('War Category 2 (EU)').setDescription('Secondary Category for Europe')
       .setValue('warCategoryEU2').setEmoji('🌍'),
     new StringSelectMenuOptionBuilder()
+      .setLabel('War Category (Asia)').setDescription('Category for Asia war channels')
+      .setValue('warCategoryAsia').setEmoji('🌏'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('War Category 2 (Asia)').setDescription('Secondary Category for Asia')
+      .setValue('warCategoryAsia2').setEmoji('🌏'),
+    new StringSelectMenuOptionBuilder()
       .setLabel('Wager Category 1').setDescription('Primary category for wager channels')
       .setValue('wagerCategory').setEmoji('📁'),
     new StringSelectMenuOptionBuilder()
@@ -115,7 +121,10 @@ function buildChannelMiscOptions() {
       .setValue('rosterForumNA').setEmoji('🌎'),
     new StringSelectMenuOptionBuilder()
       .setLabel('Roster Forum (EU)').setDescription('Forum for Europe region rosters')
-      .setValue('rosterForumEU').setEmoji('🌍')
+      .setValue('rosterForumEU').setEmoji('🌍'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Roster Forum (Asia)').setDescription('Forum for Asia region rosters')
+      .setValue('rosterForumAsia').setEmoji('🌏')
   ];
 }
 
@@ -138,6 +147,8 @@ function buildChannelsDisplayText(cfg) {
     `**War Category 2 (NAE):** ${ch(cfg.warCategoryNAEId2)}\n` +
     `**War Category 2 (NAW):** ${ch(cfg.warCategoryNAWId2)}\n` +
     `**War Category 2 (EU):** ${ch(cfg.warCategoryEUId2)}\n` +
+    `**War Category (Asia):** ${ch(cfg.warCategoryAsiaId)}\n` +
+    `**War Category 2 (Asia):** ${ch(cfg.warCategoryAsiaId2)}\n` +
     `**Wager Category 1:** ${ch(cfg.wagerCategoryId)}\n` +
     `**Wager Category 2:** ${ch(cfg.wagerCategoryId2)}\n` +
     `**Wager Category 3:** ${ch(cfg.wagerCategoryId3)}\n` +
@@ -153,6 +164,7 @@ function buildChannelsDisplayText(cfg) {
     `**Roster Forum (SA):** ${ch(cfg.rosterForumSAChannelId)}\n` +
     `**Roster Forum (NA):** ${ch(cfg.rosterForumNAChannelId)}\n` +
     `**Roster Forum (EU):** ${ch(cfg.rosterForumEUChannelId)}\n` +
+    `**Roster Forum (Asia):** ${ch(cfg.rosterForumAsiaChannelId)}\n` +
     `**Guild Leaderboard Channel:** ${ch(cfg.leaderboardChannelId)}\n` +
     `**Wager Leaderboard Channel:** ${ch(cfg.wagerLeaderboardChannelId)}\n` +
     `**Event Points Leaderboard:** ${ch(cfg.eventPointsLeaderboardChannelId)}`
