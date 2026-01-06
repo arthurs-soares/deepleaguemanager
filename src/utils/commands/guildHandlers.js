@@ -32,6 +32,10 @@ const {
   handleAddRegion,
   handleRemoveRegion
 } = require('../../utils/commands/guildRegionHandlers');
+const {
+  safeDeferEphemeral,
+  safeDeferReply
+} = require('../../utils/core/ack');
 const LoggerService = require('../../services/LoggerService');
 
 /**
@@ -40,7 +44,8 @@ const LoggerService = require('../../services/LoggerService');
  * @returns {Promise<void>}
  */
 async function handlePanel(interaction) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  const deferred = await safeDeferEphemeral(interaction);
+  if (!deferred) return;
   const requestedName = interaction.options.getString('name');
 
   try {
@@ -122,7 +127,8 @@ async function handlePanel(interaction) {
  */
 async function handleRegister(interaction) {
   if (!(await ensureAdminOrReply(interaction))) return;
-  await interaction.deferReply();
+  const deferred = await safeDeferReply(interaction);
+  if (!deferred) return;
 
   try {
     const validation = validateRegisterInputs(interaction);
@@ -244,7 +250,8 @@ async function handleDelete(interaction) {
  * @returns {Promise<void>}
  */
 async function handleView(interaction) {
-  await interaction.deferReply();
+  const deferred = await safeDeferReply(interaction);
+  if (!deferred) return;
   try {
     const requestedName = interaction.options.getString('name');
     if (requestedName) return handleViewDetails(interaction, requestedName);

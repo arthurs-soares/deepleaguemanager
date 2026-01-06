@@ -1,4 +1,5 @@
 const { MessageFlags } = require('discord.js');
+const { isInteractionStale, BENIGN_CODES } = require('./ack');
 
 /**
  * Reply ephemerally, choosing between reply/editReply/followUp based on state.
@@ -9,6 +10,11 @@ const { MessageFlags } = require('discord.js');
  * @param {import('discord.js').InteractionReplyOptions & import('discord.js').InteractionUpdateOptions} options
  */
 async function replyEphemeral(interaction, options = {}) {
+  // Check if interaction is stale before attempting to reply
+  if (isInteractionStale(interaction)) {
+    return;
+  }
+
   // Detect if using Components v2 (components array with ContainerBuilder)
   const hasComponentsV2 = options.components && Array.isArray(options.components) &&
     options.components.some(c => c && c.constructor && c.constructor.name === 'ContainerBuilder');
@@ -37,11 +43,7 @@ async function replyEphemeral(interaction, options = {}) {
     return await interaction.reply(payload);
   } catch (e) {
     const code = e?.code ?? e?.rawError?.code;
-    if (
-      code === 10062 /* Unknown interaction */ ||
-      code === 40060 /* Already acknowledged */ ||
-      code === 50027 /* Invalid Webhook Token */
-    ) {
+    if (BENIGN_CODES.includes(code)) {
       // Best effort: nothing more we can do here safely.
       // Token expired or invalid - interaction is no longer usable
       return;

@@ -14,9 +14,15 @@ const LoggerService = require('../../../services/LoggerService');
 const { ContainerBuilder, TextDisplayBuilder } = require('@discordjs/builders');
 const { colors, emojis } = require('../../../config/botConfig');
 const { sendTranscriptToLogs } = require('../../../utils/tickets/transcript');
+const {
+  safeUpdate,
+  safeFollowUp,
+  isBenignError
+} = require('../../../utils/core/ack');
 
 /**
- * Disable buttons on the current interaction
+ * Disable buttons on the current interaction (safe)
+ * @returns {Promise<boolean>} - True if update was successful
  */
 async function disableButtons(interaction) {
   const components = interaction.message.components.map(row => {
@@ -29,7 +35,7 @@ async function disableButtons(interaction) {
     }
     return row;
   });
-  await interaction.update({ components });
+  return safeUpdate(interaction, { components });
 }
 
 /**
@@ -47,7 +53,7 @@ async function checkPermissions(interaction) {
   const hasAllowedRole = member.roles.cache.some(r => allowedRoleIds.has(r.id));
 
   if (!hasAdmin && !hasAllowedRole) {
-    await interaction.followUp({
+    await safeFollowUp(interaction, {
       content: '❌ Only hosters, moderators or admins can declare.',
       flags: MessageFlags.Ephemeral
     });
@@ -88,30 +94,16 @@ async function confirmWarResultUI(interaction) {
  */
 async function logWarResult(interaction, war, winner, loser, warRegion, guildA, guildB) {
   try {
-    const freshWinner = await Guild.findById(winner._id);
-    const freshLoser = await Guild.findById(loser._id);
-
-    // Get region-specific stats for logging
+    const [freshWinner, freshLoser] = await Promise.all([
+      Guild.findById(winner._id),
+      Guild.findById(loser._id)
+    ]);
     const winnerStats = freshWinner.regions?.find(r => r.region === warRegion);
     const loserStats = freshLoser.regions?.find(r => r.region === warRegion);
 
     const changes = [
-      {
-        entity: 'guild',
-        id: String(freshWinner._id),
-        field: `wins (${warRegion || 'unknown'})`,
-        before: (winnerStats?.wins || 1) - 1,
-        after: winnerStats?.wins || 0,
-        reason: 'war win'
-      },
-      {
-        entity: 'guild',
-        id: String(freshLoser._id),
-        field: `losses (${warRegion || 'unknown'})`,
-        before: (loserStats?.losses || 1) - 1,
-        after: loserStats?.losses || 0,
-        reason: 'war loss'
-      },
+      { entity: 'guild', id: String(freshWinner._id), field: `wins (${warRegion || 'unknown'})`, before: (winnerStats?.wins || 1) - 1, after: winnerStats?.wins || 0, reason: 'war win' },
+      { entity: 'guild', id: String(freshLoser._id), field: `losses (${warRegion || 'unknown'})`, before: (loserStats?.losses || 1) - 1, after: loserStats?.losses || 0, reason: 'war loss' },
     ];
     interaction._commandLogExtra = interaction._commandLogExtra || {};
     interaction._commandLogExtra.changes =
@@ -133,7 +125,8 @@ async function logWarResult(interaction, war, winner, loser, warRegion, guildA, 
  */
 async function handle(interaction) {
   try {
-    await disableButtons(interaction);
+    const updated = await disableButtons(interaction);
+    if (!updated) return; // Interaction expired
 
     const authorized = await checkPermissions(interaction);
     if (!authorized) return;
@@ -143,7 +136,7 @@ async function handle(interaction) {
     const [, , , warId, winnerGuildId] = interaction.customId.split(':');
     const war = await War.findById(warId);
     if (!war || war.status !== 'aberta') {
-      return interaction.followUp({
+      return safeFollowUp(interaction, {
         content: '⚠️ Invalid war or already finished.',
         flags: MessageFlags.Ephemeral
       });
@@ -156,7 +149,7 @@ async function handle(interaction) {
     ]);
 
     if (!winner) {
-      return interaction.followUp({
+      return safeFollowUp(interaction, {
         content: '❌ Invalid winner guild.',
         flags: MessageFlags.Ephemeral
       });
@@ -229,12 +222,15 @@ async function handle(interaction) {
 
     await logWarResult(interaction, war, winner, loser, warRegion, guildA, guildB);
 
-    return interaction.followUp({
+    return safeFollowUp(interaction, {
       content: '✅ Result saved successfully. Ticket will close automatically.',
       flags: MessageFlags.Ephemeral
     });
   } catch (error) {
-    LoggerService.error('Error confirming winner:', error);
+    // Skip logging for benign interaction errors
+    if (!isBenignError(error)) {
+      LoggerService.error('Error confirming winner:', error);
+    }
     return replyEphemeral(interaction, {
       content: '❌ Could not save the result.'
     });

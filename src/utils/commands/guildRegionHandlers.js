@@ -14,6 +14,7 @@ const {
   createSuccessEmbed
 } = require('../../utils/embeds/embedBuilder');
 const { ensureAdminOrReply } = require('../../utils/commands/permissionGuards');
+const { safeDeferReply } = require('../../utils/core/ack');
 const LoggerService = require('../../services/LoggerService');
 
 /**
@@ -23,7 +24,8 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handleAddRegion(interaction) {
   if (!(await ensureAdminOrReply(interaction))) return;
-  await interaction.deferReply();
+  const deferred = await safeDeferReply(interaction);
+  if (!deferred) return;
 
   try {
     const name = interaction.options.getString('name', true);
@@ -72,7 +74,8 @@ async function handleAddRegion(interaction) {
  */
 async function handleRemoveRegion(interaction) {
   if (!(await ensureAdminOrReply(interaction))) return;
-  await interaction.deferReply();
+  const deferred = await safeDeferReply(interaction);
+  if (!deferred) return;
 
   try {
     const name = interaction.options.getString('name', true);

@@ -10,6 +10,7 @@ const {
   TextDisplayBuilder
 } = require('@discordjs/builders');
 const { replyEphemeral } = require('../../../utils/core/reply');
+const { safeDeferReply } = require('../../../utils/core/ack');
 const War = require('../../../models/war/War');
 const Guild = require('../../../models/guild/Guild');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
@@ -22,7 +23,8 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply();
+    const deferred = await safeDeferReply(interaction);
+    if (!deferred) return;
 
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const rolesCfg = await getOrCreateRoleConfig(interaction.guild.id);
