@@ -3,6 +3,10 @@ const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const LoggerService = require('../../../services/LoggerService');
 const { isDatabaseConnected } = require('../../../config/database');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
+
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Check if user has permission to extend the wager ticket
@@ -42,7 +46,15 @@ async function hasExtendPermission(member, guildId, ticket) {
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:extend skipped (expired)', { age });
+      return;
+    }
+
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const [, , ticketId] = interaction.customId.split(':');
 

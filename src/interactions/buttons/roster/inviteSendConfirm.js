@@ -13,6 +13,9 @@ const {
 } = require('../../../utils/guilds/guildMemberManager');
 const LoggerService = require('../../../services/LoggerService');
 
+/** Max age (ms) before interaction is skipped */
+const MAX_AGE_MS = 2500;
+
 /**
  * Handle roster invite send confirmation
  * CustomId: rosterInvite:sendConfirm:<guildId>:<roster>:<userId>:yes|no:<region>
@@ -20,6 +23,13 @@ const LoggerService = require('../../../services/LoggerService');
  */
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('rosterInviteSendConfirm skipped (expired)', { age });
+      return;
+    }
+
     const parts = interaction.customId.split(':');
     const guildId = parts[2];
     const roster = parts[3];

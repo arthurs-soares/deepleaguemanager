@@ -20,6 +20,7 @@ const {
 } = require('../../utils/war/warEmbedBuilder');
 const { sendAndPin } = require('../../utils/tickets/pinUtils');
 const LoggerService = require('../../services/LoggerService');
+const { safeDeferEphemeral } = require('../../utils/core/ack');
 
 /** Max age (ms) before modal submission is skipped */
 const MAX_AGE_MS = 2500;
@@ -37,7 +38,8 @@ async function handle(interaction) {
       return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const parts = interaction.customId.split(':');
     const guildAId = parts[2];

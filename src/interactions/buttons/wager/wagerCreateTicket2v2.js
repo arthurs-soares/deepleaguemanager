@@ -10,6 +10,10 @@ const WagerTicket = require('../../../models/wager/WagerTicket');
 const LoggerService = require('../../../services/LoggerService');
 const { colors, emojis } = require('../../../config/botConfig');
 const { validateWagerParticipants } = require('../../../utils/wager/wagerTicketLimits');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
+
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Handle wager creation errors with user-friendly messages
@@ -35,7 +39,15 @@ function handleWagerCreationError(error) {
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:createTicket2v2 skipped (expired)', { age });
+      return;
+    }
+
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const parts = interaction.customId.split(':');
     const [, , teammateId, opponent1Id, opponent2Id] = parts;

@@ -3,6 +3,7 @@ const WagerTicket = require('../../../models/wager/WagerTicket');
 const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
 
 /** Max age (ms) before button click is skipped */
 const MAX_AGE_MS = 2500;
@@ -21,7 +22,8 @@ async function handle(interaction) {
       return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const [, , ticketId] = interaction.customId.split(':');
     if (!ticketId) {

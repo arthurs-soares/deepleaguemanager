@@ -9,6 +9,10 @@ const { isDatabaseConnected } = require('../../../config/database');
 const LoggerService = require('../../../services/LoggerService');
 const { unlockChannelForUsers } = require('../../../utils/wager/wagerChannelManager');
 const { sendLog } = require('../../../utils/core/logger');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
+
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Handle channel cleanup after dodge (send embed, transcript, delete)
@@ -66,7 +70,15 @@ async function handleDodgeChannelCleanup(
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:dodge:apply skipped (expired)', { age });
+      return;
+    }
+
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const parts = interaction.customId.split(':');
     const ticketId = parts[3];

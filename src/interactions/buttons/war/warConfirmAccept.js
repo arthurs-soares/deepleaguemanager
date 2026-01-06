@@ -11,6 +11,10 @@ const { sendAndPin } = require('../../../utils/tickets/pinUtils');
 const { createDisabledWarConfirmationButtons } = require('../../../utils/war/warEmbedBuilder');
 const { createSafeActionRow } = require('../../../utils/validation/componentValidation');
 const LoggerService = require('../../../services/LoggerService');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
+
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
 
 /**
  * Build the war result container with winner buttons
@@ -81,7 +85,15 @@ function buildControlRow(warId) {
  */
 async function handle(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('war:confirm:accept skipped (expired)', { age });
+      return;
+    }
+
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const [, , , warId] = interaction.customId.split(':');
     const war = await War.findById(warId);

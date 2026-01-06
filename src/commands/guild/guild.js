@@ -6,6 +6,7 @@ const { listGuilds } = require('../../utils/guilds/guildManager');
 const { createErrorEmbed } = require('../../utils/embeds/embedBuilder');
 const guildHandlers = require('../../utils/commands/guildHandlers');
 const LoggerService = require('../../services/LoggerService');
+const { safeAutocompleteRespond } = require('../../utils/core/ack');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -195,14 +196,10 @@ module.exports = {
         .slice(0, 25)
         .map(g => ({ name: g.name, value: g.name }));
 
-      await interaction.respond(choices);
+      await safeAutocompleteRespond(interaction, choices);
     } catch (error) {
       LoggerService.error('Error in /guild autocomplete:', { error: error.message });
-      try {
-        if (!interaction.responded) {
-          await interaction.respond([]);
-        }
-      } catch (_) {}
+      await safeAutocompleteRespond(interaction, []);
     }
   },
 

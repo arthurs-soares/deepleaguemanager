@@ -1,5 +1,31 @@
 const { MessageFlags } = require('discord.js');
 
+/** Max age (ms) before autocomplete interaction is considered stale */
+const MAX_AUTOCOMPLETE_AGE_MS = 2500;
+
+/**
+ * Safe helper to respond to autocomplete interactions.
+ * Handles race conditions where multiple autocomplete requests
+ * arrive in quick succession.
+ * @param {import('discord.js').AutocompleteInteraction} interaction
+ * @param {Array} choices - Autocomplete choices array
+ * @returns {Promise<boolean>} - True if response was sent
+ */
+async function safeAutocompleteRespond(interaction, choices = []) {
+  try {
+    const age = Date.now() - (interaction.createdTimestamp || Date.now());
+    if (age > MAX_AUTOCOMPLETE_AGE_MS) return false;
+    if (interaction.responded) return false;
+
+    await interaction.respond(choices);
+    return true;
+  } catch (e) {
+    const code = e?.code ?? e?.rawError?.code;
+    if (code === 10062 || code === 40060 || code === 50027) return false;
+    throw e;
+  }
+}
+
 /**
  * Safe helper to defer ephemeral replies without double-ack errors.
  * - Only defers if not already deferred/replied
@@ -36,4 +62,8 @@ async function safeDeferUpdate(interaction) {
   }
 }
 
-module.exports = { safeDeferEphemeral, safeDeferUpdate };
+module.exports = {
+  safeDeferEphemeral,
+  safeDeferUpdate,
+  safeAutocompleteRespond
+};

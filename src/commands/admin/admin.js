@@ -4,6 +4,7 @@ const { logCommandExecution } = require('../../utils/core/commandLogger');
 const War = require('../../models/war/War');
 const { listGuilds } = require('../../utils/guilds/list');
 const LoggerService = require('../../services/LoggerService');
+const { safeAutocompleteRespond } = require('../../utils/core/ack');
 
 const adminWar = require('../../utils/commands/adminWar');
 const adminWager = require('../../utils/commands/adminWager');
@@ -150,7 +151,7 @@ module.exports = {
           .filter(g => !query || g.name.toLowerCase().includes(query))
           .slice(0, 25)
           .map(g => ({ name: g.name, value: g.name }));
-        return interaction.respond(choices);
+        return safeAutocompleteRespond(interaction, choices);
       }
 
       if (focused.name === 'warid') {
@@ -178,14 +179,10 @@ module.exports = {
             return !query || id.includes(query);
           })
           .map(w => ({ name: `${String(w._id)} [${w.status}]`, value: String(w._id) }));
-        return interaction.respond(choices);
+        return safeAutocompleteRespond(interaction, choices);
       }
     } catch (_) {
-      try {
-        if (!interaction.responded) {
-          await interaction.respond([]);
-        }
-      } catch (_) {}
+      await safeAutocompleteRespond(interaction, []);
     }
   },
 

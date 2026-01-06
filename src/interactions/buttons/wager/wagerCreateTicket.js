@@ -24,6 +24,7 @@ const { colors, emojis } = require('../../../config/botConfig');
 const {
   validateWagerParticipants
 } = require('../../../utils/wager/wagerTicketLimits');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
 
 /** Max age (ms) before button click is skipped */
 const MAX_AGE_MS = 2500;
@@ -41,7 +42,8 @@ async function handle(interaction) {
       return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const [, , opponentUserId] = interaction.customId.split(':');
     if (!opponentUserId) {

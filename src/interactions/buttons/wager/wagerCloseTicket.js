@@ -4,8 +4,12 @@ const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
 const WagerTicket = require('../../../models/wager/WagerTicket');
 const { colors, emojis } = require('../../../config/botConfig');
 const LoggerService = require('../../../services/LoggerService');
+const { safeDeferEphemeral } = require('../../../utils/core/ack');
 
 const { isDatabaseConnected, withDatabase } = require('../../../config/database');
+
+/** Max age (ms) before button click is skipped */
+const MAX_AGE_MS = 2500;
 
 async function hasClosePermission(member, guildId) {
   const isAdmin = member.permissions?.has(PermissionFlagsBits.Administrator);
@@ -43,10 +47,17 @@ async function getWagerChannel(guild, ticketId, channelId) {
  * CustomId: wager:closeTicket:<ticketId>
  */
 async function handle(interaction) {
-  // Defer immediately to avoid token expiration
-  await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
-
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('wager:closeTicket skipped (expired)', { age });
+      return;
+    }
+
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
+
     const [, , ticketId] = interaction.customId.split(':');
     if (!ticketId) return interaction.editReply({ content: '❌ Ticket ID not provided.' });
 

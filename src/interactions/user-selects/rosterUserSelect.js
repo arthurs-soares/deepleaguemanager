@@ -23,9 +23,20 @@ const {
   isGuildManager
 } = require('../../utils/guilds/guildMemberManager');
 const LoggerService = require('../../services/LoggerService');
+const { safeDeferEphemeral, safeDeferUpdate } = require('../../utils/core/ack');
+
+/** Max age (ms) before interaction is skipped */
+const MAX_AGE_MS = 2500;
 
 async function handle(interaction) {
   try {
+    // Early expiration check - must respond within 3s
+    const age = Date.now() - interaction.createdTimestamp;
+    if (age > MAX_AGE_MS) {
+      LoggerService.warn('roster_user_select skipped (expired)', { age });
+      return;
+    }
+
     const parts = interaction.customId.split(':');
     const guildId = parts[1];
     const action = parts[2];
@@ -42,13 +53,18 @@ async function handle(interaction) {
     }
 
     const selectedUserId = interaction.values?.[0];
-    if (!selectedUserId) return interaction.deferUpdate();
-
-    if (!['add_main', 'add_sub'].includes(action)) {
-      return interaction.deferUpdate();
+    if (!selectedUserId) {
+      await safeDeferUpdate(interaction);
+      return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!['add_main', 'add_sub'].includes(action)) {
+      await safeDeferUpdate(interaction);
+      return;
+    }
+
+    await safeDeferEphemeral(interaction);
+    if (!interaction.deferred) return; // Defer failed, likely expired
 
     const guildDoc = await getGuildById(guildId);
     if (!guildDoc) {
