@@ -11,13 +11,28 @@ const MAX_INTERACTION_AGE_MS = 2800;
 const BENIGN_CODES = [10062, 40060, 50027];
 
 /**
+ * Normalize Discord error code to a number
+ * @param {Error} e - Error object
+ * @returns {number|null}
+ */
+function getErrorCode(e) {
+  const rawCode = e?.code ?? e?.rawError?.code;
+  const numeric = Number(rawCode);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+/**
  * Check if error code is a benign Discord interaction error
  * @param {Error} e - Error object
  * @returns {boolean}
  */
 function isBenignError(e) {
-  const code = e?.code ?? e?.rawError?.code;
-  return BENIGN_CODES.includes(code);
+  const code = getErrorCode(e);
+  if (code && BENIGN_CODES.includes(code)) return true;
+
+  const message = (e?.message || e?.rawError?.message || '').toLowerCase();
+  return message.includes('unknown interaction') ||
+    message.includes('already acknowledged');
 }
 
 /**
