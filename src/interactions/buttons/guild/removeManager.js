@@ -15,24 +15,28 @@ const { logRoleRemoval } = require('../../../utils/core/roleLogger');
  */
 async function handle(interaction) {
   try {
+    await interaction.deferReply({
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+    });
+
     const parts = interaction.customId.split(':');
     const guildId = parts[2];
     const managerId = parts[3];
 
     if (!guildId || !managerId) {
       const embed = createErrorEmbed('Invalid', 'Missing information.');
-      return interaction.reply({
+      return interaction.editReply({
         components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        flags: MessageFlags.IsComponentsV2
       });
     }
 
     const guildDoc = await Guild.findById(guildId);
     if (!guildDoc) {
       const embed = createErrorEmbed('Not found', 'Guild not found.');
-      return interaction.reply({
+      return interaction.editReply({
         components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        flags: MessageFlags.IsComponentsV2
       });
     }
 
@@ -44,9 +48,9 @@ async function handle(interaction) {
         'Permission denied',
         'Only the guild leader can remove managers.'
       );
-      return interaction.reply({
+      return interaction.editReply({
         components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        flags: MessageFlags.IsComponentsV2
       });
     }
 
@@ -57,9 +61,9 @@ async function handle(interaction) {
         'Not a manager',
         'This user is not a manager of this guild.'
       );
-      return interaction.reply({
+      return interaction.editReply({
         components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        flags: MessageFlags.IsComponentsV2
       });
     }
 
@@ -97,25 +101,27 @@ async function handle(interaction) {
       'Manager removed',
       `<@${managerId}> has been removed as a manager of this guild.`
     );
-    return interaction.reply({
+    return interaction.editReply({
       components: [container],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
     const container = createErrorEmbed(
       'Error',
       'Could not remove the manager.'
     );
-    if (interaction.deferred || interaction.replied) {
-      return interaction.followUp({
+    try {
+      if (interaction.deferred || interaction.replied) {
+        return interaction.editReply({
+          components: [container],
+          flags: MessageFlags.IsComponentsV2
+        });
+      }
+      return interaction.reply({
         components: [container],
         flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
       });
-    }
-    return interaction.reply({
-      components: [container],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-    });
+    } catch (_) { /* swallow reply errors */ }
   }
 }
 

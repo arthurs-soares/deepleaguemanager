@@ -87,10 +87,18 @@ async function handle(interaction) {
     if (managers.length > 0) {
       const removeRow = new ActionRowBuilder();
       for (const managerId of managers.slice(0, 5)) {
+        // Try to get the member's display name
+        let displayName = managerId;
+        try {
+          const member = await interaction.guild.members.fetch(managerId).catch(() => null);
+          if (member) {
+            displayName = member.displayName.slice(0, 15);
+          }
+        } catch (_) { /* ignore */ }
         removeRow.addComponents(
           new ButtonBuilder()
             .setCustomId(`manager:remove:${guildId}:${managerId}`)
-            .setLabel(`Remove`)
+            .setLabel(`Remove ${displayName}`)
             .setStyle(ButtonStyle.Danger)
         );
       }
