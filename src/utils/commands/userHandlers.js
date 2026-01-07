@@ -8,7 +8,6 @@ const {
   createSuccessEmbed,
   createInfoEmbed
 } = require('../../utils/embeds/embedBuilder');
-const { replyEphemeral } = require('../../utils/core/reply');
 const { handleKnownDiscordError } = require('../../utils/core/discordErrorUtils');
 const { buildUserProfileDisplayComponents } = require('../../utils/embeds/profileEmbed');
 const { isModeratorOrHoster } = require('../../utils/core/permissions');
@@ -49,7 +48,26 @@ async function handleProfile(interaction) {
       'Error',
       'An error occurred while loading the profile.'
     );
-    await replyEphemeral(interaction, { components: [errorContainer] });
+
+    // Use editReply since we already deferred with IsComponentsV2
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({
+          components: [errorContainer],
+          flags: MessageFlags.IsComponentsV2
+        });
+      } else {
+        await interaction.reply({
+          components: [errorContainer],
+          flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
+        });
+      }
+    } catch (replyError) {
+      // Swallow - interaction may be expired
+      LoggerService.warn('Failed to send error message for /user profile:', {
+        error: replyError.message
+      });
+    }
   }
 }
 
@@ -149,7 +167,7 @@ async function handleFixGuild(interaction) {
     if (clearCooldown !== false) {
       try {
         await clearAllCooldown(interaction.guild.id, target.id);
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const container = createSuccessEmbed(
@@ -239,7 +257,7 @@ async function handleResetRatings(interaction) {
         'Reset User Ratings',
         { modifiedCount: res?.modifiedCount || 0 }
       );
-    } catch (_) {}
+    } catch (_) { }
 
     const container = createSuccessEmbed(
       'User ratings reset',

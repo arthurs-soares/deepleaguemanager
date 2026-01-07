@@ -34,7 +34,14 @@ async function replyEphemeral(interaction, options = {}) {
   try {
     if (interaction.deferred && !interaction.replied && typeof interaction.editReply === 'function') {
       // Prefer editing the deferred placeholder message
-      const { flags: _flags, ...editPayload } = payload; // flags not applicable to edit
+      // ComponentsV2 flags ARE required for editReply when the original defer used V2
+      const editPayload = { ...payload };
+      // Only keep V2 flags for edits, ephemeral is already set by defer
+      if (hasComponentsV2) {
+        editPayload.flags = MessageFlags.IsComponentsV2;
+      } else {
+        delete editPayload.flags;
+      }
       return await interaction.editReply(editPayload);
     }
     if (interaction.replied) {
