@@ -19,6 +19,7 @@ const { clearAllCooldown } = require('../../utils/rate-limiting/guildTransitionO
 const { auditAdminAction } = require('../../utils/misc/adminAudit');
 const UserProfile = require('../../models/user/UserProfile');
 const LoggerService = require('../../services/LoggerService');
+const { replyEphemeral } = require('../../utils/core/reply');
 
 /**
  * Handle /user profile
@@ -27,7 +28,11 @@ const LoggerService = require('../../services/LoggerService');
  */
 async function handleProfile(interaction) {
   try {
-    await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
+    // This command is auto-deferred in the interaction pipeline.
+    // Only defer here if something bypassed autoDefer.
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
+    }
 
     const target = interaction.options.getUser('target') || interaction.user;
     const { container } = await buildUserProfileDisplayComponents(
@@ -49,21 +54,11 @@ async function handleProfile(interaction) {
       'An error occurred while loading the profile.'
     );
 
-    // Use editReply since we already deferred with IsComponentsV2
     try {
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({
-          components: [errorContainer],
-          flags: MessageFlags.IsComponentsV2
-        });
-      } else {
-        await interaction.reply({
-          components: [errorContainer],
-          flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-        });
-      }
+      await replyEphemeral(interaction, {
+        components: [errorContainer]
+      });
     } catch (replyError) {
-      // Swallow - interaction may be expired
       LoggerService.warn('Failed to send error message for /user profile:', {
         error: replyError.message
       });

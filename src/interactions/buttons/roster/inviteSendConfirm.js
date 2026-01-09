@@ -3,6 +3,8 @@ const {
   createErrorEmbed,
   createSuccessEmbed
 } = require('../../../utils/embeds/embedBuilder');
+const { safeDeferUpdate, safeUpdate } = require('../../../utils/core/ack');
+const { replyEphemeral } = require('../../../utils/core/reply');
 const { getGuildById } = require('../../../utils/roster/rosterManager');
 const { sendRosterInvite } = require('../../../utils/roster/sendRosterInvite');
 const { isGuildAdmin } = require('../../../utils/core/permissions');
@@ -11,6 +13,7 @@ const {
   isGuildCoLeader,
   isGuildManager
 } = require('../../../utils/guilds/guildMemberManager');
+const { handleKnownDiscordError } = require('../../../utils/core/discordErrorUtils');
 const LoggerService = require('../../../services/LoggerService');
 
 /** Max age (ms) before interaction is skipped */
@@ -40,27 +43,28 @@ async function handle(interaction) {
 
     if (!guildId || !roster || !userId || !decision || !region) {
       const embed = createErrorEmbed('Invalid data', 'Missing confirmation.');
-      return interaction.reply({
-        components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-      });
+      await replyEphemeral(interaction, { components: [embed] });
+      return;
     }
 
     if (decision === 'no') {
       const embed = createSuccessEmbed('Cancelled', 'Invitation was cancelled.');
-      return interaction.update({
+      await safeUpdate(interaction, {
         components: [embed],
         flags: MessageFlags.IsComponentsV2
       });
+      return;
     }
+
+    // Acknowledge immediately to avoid 3s timeout (10062) on slower DB calls.
+    // After this, use editReply / followUp instead of reply / update.
+    await safeDeferUpdate(interaction);
 
     const guildDoc = await getGuildById(guildId);
     if (!guildDoc) {
       const embed = createErrorEmbed('Not found', 'Guild not in database.');
-      return interaction.reply({
-        components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-      });
+      await replyEphemeral(interaction, { components: [embed] });
+      return;
     }
 
     // Permission check: server admin, leader, co-leader, or manager
@@ -75,13 +79,9 @@ async function handle(interaction) {
         'Permission denied',
         'Only guild leaders, co-leaders, managers, or server admins can send roster invites.'
       );
-      return interaction.reply({
-        components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-      });
+      await replyEphemeral(interaction, { components: [embed] });
+      return;
     }
-
-    await interaction.deferUpdate();
 
     // Send DM invite with region
     const invite = await sendRosterInvite(
@@ -95,7 +95,8 @@ async function handle(interaction) {
 
     if (!invite.ok) {
       const embed = createErrorEmbed('Send failed', invite.error || 'DM failed.');
-      return interaction.editReply({ components: [embed] });
+      await interaction.editReply({ components: [embed] });
+      return;
     }
 
     const label = roster === 'main' ? 'Main Roster' : 'Sub Roster';
@@ -105,18 +106,10 @@ async function handle(interaction) {
     );
     return interaction.editReply({ components: [embed] });
   } catch (error) {
+    if (handleKnownDiscordError(error, interaction)) return;
     LoggerService.error('Error in rosterInviteSendConfirm:', { error });
     const embed = createErrorEmbed('Error', 'Could not process invitation.');
-    if (interaction.deferred || interaction.replied) {
-      return interaction.followUp({
-        components: [embed],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-      });
-    }
-    return interaction.reply({
-      components: [embed],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-    });
+    await replyEphemeral(interaction, { components: [embed] });
   }
 }
 
