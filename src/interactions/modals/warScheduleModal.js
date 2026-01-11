@@ -166,11 +166,7 @@ async function handle(interaction) {
     let errorMessage = '❌ Unable to schedule war.';
     if (error?.message?.includes('Maximum number of server channels reached')) {
       errorMessage = '❌ **Channel Limit Reached**\n\n' +
-        'This server has reached the maximum number of channels allowed by Discord (500).\n\n' +
-        '**To fix this:**\n' +
-        '• Delete old or inactive war tickets\n' +
-        '• Remove unused text/voice channels\n' +
-        '• Close completed tickets using `/ticket close`';
+        'This server has reached the maximum number of channels allowed by Discord (500).';
     }
 
     const msg = { content: errorMessage, flags: MessageFlags.Ephemeral };
