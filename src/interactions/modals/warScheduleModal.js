@@ -161,7 +161,19 @@ async function handle(interaction) {
     await interaction.editReply({ content: `✅ Channel created: ${warChannel.toString()}` });
   } catch (error) {
     LoggerService.error('Error in warScheduleModal:', { error: error?.message });
-    const msg = { content: '❌ Unable to schedule war.', flags: MessageFlags.Ephemeral };
+
+    // Check for maximum channels reached error
+    let errorMessage = '❌ Unable to schedule war.';
+    if (error?.message?.includes('Maximum number of server channels reached')) {
+      errorMessage = '❌ **Channel Limit Reached**\n\n' +
+        'This server has reached the maximum number of channels allowed by Discord (500).\n\n' +
+        '**To fix this:**\n' +
+        '• Delete old or inactive war tickets\n' +
+        '• Remove unused text/voice channels\n' +
+        '• Close completed tickets using `/ticket close`';
+    }
+
+    const msg = { content: errorMessage, flags: MessageFlags.Ephemeral };
     if (interaction.deferred || interaction.replied) return interaction.followUp(msg);
     return interaction.reply(msg);
   }
