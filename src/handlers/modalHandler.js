@@ -20,6 +20,11 @@ async function handleModalInteraction(interaction) {
       return handler.handle(interaction);
     }
 
+    if (customId.startsWith('war:opponentModal:')) {
+      const handler = require('../interactions/modals/warOpponentModal');
+      return handler.handle(interaction);
+    }
+
     if (customId === 'profile:editModal') {
       const handler = require('../interactions/modals/editProfileModal');
       return handler.handle(interaction);
