@@ -29,7 +29,7 @@ function buildWarCloseButtonRow(warId) {
 }
 
 /**
- * Build an action row with Close Thread + Call Support buttons for Support DM fallback threads
+ * Build an action row with Close Thread button for Support DM fallback threads
  * @returns {import('discord.js').ActionRowBuilder}
  */
 function buildSupportCloseButtonRow() {
@@ -37,11 +37,7 @@ function buildSupportCloseButtonRow() {
     new ButtonBuilder()
       .setCustomId('support:closeThread')
       .setStyle(ButtonStyle.Secondary)
-      .setLabel('Close + Transcript'),
-    new ButtonBuilder()
-      .setCustomId('support:call')
-      .setStyle(ButtonStyle.Primary)
-      .setLabel('Call Support')
+      .setLabel('Close + Transcript')
   );
 }
 
