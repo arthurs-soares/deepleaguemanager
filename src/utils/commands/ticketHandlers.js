@@ -12,6 +12,7 @@ const GeneralTicket = require('../../models/ticket/GeneralTicket');
 const { sendLog } = require('../../utils/core/logger');
 const { sendTranscriptToLogs } = require('../../utils/tickets/transcript');
 const { handleAddUser } = require('../../utils/commands/ticketAddUser');
+const { handleRemoveUser } = require('../../utils/commands/ticketRemoveUser');
 const LoggerService = require('../../services/LoggerService');
 
 /**
@@ -204,5 +205,6 @@ async function logTicketClosure(interaction, war, wager, generalTicket) {
 
 module.exports = {
   handleClose,
-  handleAddUser
+  handleAddUser,
+  handleRemoveUser
 };

@@ -11,8 +11,9 @@ const {
 } = require('../../../utils/guilds/guildMemberManager');
 const { sendDmOrFallback } = require('../../../utils/dm/dmFallback');
 const LoggerService = require('../../../services/LoggerService');
-const { getOrCreateRoleConfig } = require('../../../utils/misc/roleConfig');
-const { logRoleAssignment } = require('../../../utils/core/roleLogger');
+const {
+  handleLeaderRoleChange
+} = require('../../../utils/guilds/inviteRoleHandler');
 
 /**
  * Safely defer reply as ephemeral
@@ -144,51 +145,14 @@ async function handle(interaction) {
       });
     }
 
-    // Update Discord Roles
-    try {
-      const cfg = await getOrCreateRoleConfig(guildDoc.discordGuildId);
-      const leaderRoleId = cfg?.leaderRoleId;
-
-      if (leaderRoleId) {
-        const discordGuild = interaction.client.guilds.cache.get(guildDoc.discordGuildId);
-        if (discordGuild) {
-          const role = discordGuild.roles.cache.get(leaderRoleId);
-          // Only proceed if the role actually exists in the guild
-          if (role) {
-            // 1. Remove from old leader
-            if (currentLeaderId && currentLeaderId !== userId) {
-              const oldMem = await discordGuild.members.fetch(currentLeaderId).catch(() => null);
-              if (oldMem) {
-                await oldMem.roles.remove(leaderRoleId).catch(err =>
-                  LoggerService.warn(`Failed to remove leader role from ${currentLeaderId}`, err)
-                );
-                // Log removal? The logger might be designed for assignment, checking arg signature:
-                // logRoleAssignment(guild, targetId, roleId, roleName, executorId, reason)
-                // We'll skip logging removal to avoid noise or if not supported, or just log generally if needed.
-              }
-            }
-
-            // 2. Add to new leader
-            const newMem = await discordGuild.members.fetch(userId).catch(() => null);
-            if (newMem && !newMem.roles.cache.has(leaderRoleId)) {
-              await newMem.roles.add(leaderRoleId).catch(err =>
-                LoggerService.warn(`Failed to add leader role to ${userId}`, err)
-              );
-              await logRoleAssignment(
-                discordGuild,
-                userId,
-                leaderRoleId,
-                role.name,
-                inviterId || 'system',
-                'Leader Role (Transfer Acceptance)'
-              );
-            }
-          }
-        }
-      }
-    } catch (roleErr) {
-      LoggerService.error('Error updating roles during leader transfer:', roleErr);
-    }
+    // Update Discord Roles - properly remove from old leader and add to new leader
+    await handleLeaderRoleChange(
+      interaction.client,
+      guildDoc,
+      userId,
+      currentLeaderId,
+      inviterId
+    );
 
     // Disable buttons after success
     try {

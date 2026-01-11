@@ -56,6 +56,60 @@ async function handleCoLeaderRoleChange(
 }
 
 /**
+ * Handle Discord role assignment for leader changes
+ * @param {import('discord.js').Client} client - Discord client
+ * @param {object} guildDoc - Guild document
+ * @param {string} newUserId - New leader user ID
+ * @param {string|null} oldUserId - Previous leader ID to demote
+ * @param {string|null} inviterId - Who sent the invite
+ */
+async function handleLeaderRoleChange(
+  client,
+  guildDoc,
+  newUserId,
+  oldUserId,
+  inviterId
+) {
+  const cfg = await getOrCreateRoleConfig(guildDoc.discordGuildId);
+  const leaderRoleId = cfg?.leaderRoleId;
+  if (!leaderRoleId) return;
+
+  try {
+    const discordGuild = client.guilds.cache.get(guildDoc.discordGuildId);
+    if (!discordGuild) return;
+
+    const role = discordGuild.roles.cache.get(leaderRoleId);
+    if (!role) return;
+
+    // Remove from old leader
+    if (oldUserId && oldUserId !== newUserId) {
+      const oldMem = await discordGuild.members
+        .fetch(oldUserId)
+        .catch(() => null);
+      if (oldMem && oldMem.roles.cache.has(leaderRoleId)) {
+        await oldMem.roles.remove(leaderRoleId).catch(() => { });
+      }
+    }
+
+    // Add to new leader
+    const newMem = await discordGuild.members
+      .fetch(newUserId)
+      .catch(() => null);
+    if (newMem && !newMem.roles.cache.has(leaderRoleId)) {
+      await newMem.roles.add(leaderRoleId);
+      await logRoleAssignment(
+        discordGuild,
+        newUserId,
+        leaderRoleId,
+        role.name,
+        inviterId || 'system',
+        'Leader via Transfer'
+      );
+    }
+  } catch (_) { /* ignore role errors */ }
+}
+
+/**
  * Handle Discord role assignment for manager additions
  * @param {import('discord.js').Client} client - Discord client
  * @param {object} guildDoc - Guild document
@@ -114,6 +168,7 @@ async function notifyDemotedCoLeader(client, guildDoc, oldUserId) {
 
 module.exports = {
   handleCoLeaderRoleChange,
+  handleLeaderRoleChange,
   handleManagerRoleChange,
   notifyDemotedCoLeader
 };
