@@ -144,7 +144,7 @@ async function handleManagerRoleChange(client, guildDoc, newUserId, inviterId) {
 }
 
 /**
- * Send notification to demoted co-leader
+ * Notify demoted co-leader
  * @param {import('discord.js').Client} client - Discord client
  * @param {object} guildDoc - Guild document
  * @param {string} oldUserId - Demoted user ID
@@ -166,9 +166,47 @@ async function notifyDemotedCoLeader(client, guildDoc, oldUserId) {
   } catch (_) { /* ignore DM errors */ }
 }
 
+/**
+ * Handle Discord role removal for managers
+ * @param {import('discord.js').Client} client - Discord client
+ * @param {string} discordGuildId - Discord server ID
+ * @param {string} userId - User to remove role from
+ * @param {string|null} removedBy - Who removed the manager (user ID or 'system')
+ * @param {string} reason - Reason for removal
+ */
+async function handleManagerRoleRemoval(client, discordGuildId, userId, removedBy, reason) {
+  const cfg = await getOrCreateRoleConfig(discordGuildId);
+  const mgrRoleId = cfg?.managersRoleId;
+  if (!mgrRoleId) return;
+
+  try {
+    const discordGuild = client.guilds.cache.get(discordGuildId);
+    if (!discordGuild) return;
+
+    const role = discordGuild.roles.cache.get(mgrRoleId);
+    if (!role) return;
+
+    const member = await discordGuild.members.fetch(userId).catch(() => null);
+    if (member && member.roles.cache.has(mgrRoleId)) {
+      await member.roles.remove(mgrRoleId);
+      const { logRoleRemoval } = require('../core/roleLogger');
+      await logRoleRemoval(
+        discordGuild,
+        userId,
+        mgrRoleId,
+        role.name,
+        removedBy || 'system',
+        reason || 'Manager role removed'
+      );
+    }
+  } catch (_) { /* ignore role errors */ }
+}
+
 module.exports = {
   handleCoLeaderRoleChange,
   handleLeaderRoleChange,
   handleManagerRoleChange,
+  handleManagerRoleRemoval,
   notifyDemotedCoLeader
 };
+

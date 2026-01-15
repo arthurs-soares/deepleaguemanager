@@ -58,6 +58,8 @@ async function handle(interaction) {
 
     war.status = 'dodge';
     war.dodgedByGuildId = dodgerGuildId;
+    war.closedByUserId = interaction.user.id;
+    war.closedAt = new Date();
     await war.save();
 
     // Update hoster stats
@@ -102,6 +104,15 @@ async function handle(interaction) {
             war
           );
         } catch (_) { }
+
+        // Auto-close ticket: delete the war channel after transcript
+        try {
+          await warChannel.delete('War ticket auto-closed due to dodge.');
+        } catch (deleteErr) {
+          LoggerService.warn('Failed to auto-delete war channel on dodge:', {
+            error: deleteErr?.message
+          });
+        }
       }
     } catch (_) { }
 
@@ -130,7 +141,7 @@ async function handle(interaction) {
     } catch (_) { }
 
     try {
-      return await interaction.editReply({ content: '✅ Dodge recorded.' });
+      return await interaction.editReply({ content: '✅ Dodge recorded. Ticket closed and transcript saved.' });
     } catch (e) {
       const code = e?.code ?? e?.rawError?.code;
       if (code !== 10008) throw e;

@@ -116,10 +116,11 @@ function findMember(guildDoc, userId) {
 /**
  * Transfer leadership to a new user
  * Ensures only one member has role='lider'.
+ * Also removes the new leader from managers list if they were a manager.
  * @param {string} guildId - Guild document ID
  * @param {string} newLeaderId - New leader ID
  * @param {string} newLeaderName - New leader display name
- * @returns {Promise<{success:boolean, message:string, guild?:object}>}
+ * @returns {Promise<{success:boolean, message:string, guild?:object, wasManager?:boolean}>}
  */
 async function transferLeadership(guildId, newLeaderId, newLeaderName) {
   try {
@@ -150,6 +151,13 @@ async function transferLeadership(guildId, newLeaderId, newLeaderName) {
     // Promote to leader
     target.role = 'lider';
 
+    // Check if new leader was a manager and remove them from managers list
+    const managers = Array.isArray(doc.managers) ? doc.managers : [];
+    const wasManager = managers.includes(newLeaderId);
+    if (wasManager) {
+      doc.managers = managers.filter(id => id !== newLeaderId);
+    }
+
     // Update fields
     doc.members = members;
     if (newLeaderName) doc.leader = newLeaderName;
@@ -158,7 +166,12 @@ async function transferLeadership(guildId, newLeaderId, newLeaderName) {
     ensureRegionsArray(doc);
 
     const saved = await doc.save();
-    return { success: true, message: 'Leadership transferred successfully.', guild: saved };
+    return {
+      success: true,
+      message: 'Leadership transferred successfully.',
+      guild: saved,
+      wasManager
+    };
   } catch (error) {
     console.error('Error transferring leadership:', error);
     return { success: false, message: 'Internal error transferring leadership.' };

@@ -154,6 +154,20 @@ async function handle(interaction) {
       inviterId
     );
 
+    // If new leader was a manager, remove manager role
+    if (result.wasManager) {
+      const {
+        handleManagerRoleRemoval
+      } = require('../../../utils/guilds/inviteRoleHandler');
+      await handleManagerRoleRemoval(
+        interaction.client,
+        guildDoc.discordGuildId,
+        userId,
+        inviterId || 'system',
+        'Promoted from manager to leader'
+      );
+    }
+
     // Disable buttons after success
     try {
       await interaction.message.edit({ components: [] });
