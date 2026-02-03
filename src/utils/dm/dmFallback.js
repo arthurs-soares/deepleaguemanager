@@ -34,12 +34,33 @@ async function sendDmOrFallback(client, discordGuildId, targetUserId, dmPayload,
   } catch (_) { /* fallback */ }
 
   // Fallback to private thread
-  if (!guild) return failResult;
+  if (!guild) {
+    LoggerService.warn('[dmFallback] Guild not found for fallback', {
+      discordGuildId,
+      targetUserId
+    });
+    return failResult;
+  }
 
   const settings = await getOrCreateServerSettings(discordGuildId);
   const channelId = settings?.dmWarningChannelId;
+  if (!channelId) {
+    LoggerService.warn('[dmFallback] No dmWarningChannelId configured', {
+      discordGuildId,
+      targetUserId
+    });
+    return failResult;
+  }
+
   const base = channelId ? guild.channels.cache.get(channelId) : null;
-  if (!base || !base.isTextBased?.()) return failResult;
+  if (!base || !base.isTextBased?.()) {
+    LoggerService.warn('[dmFallback] Fallback channel not found or invalid', {
+      discordGuildId,
+      channelId,
+      targetUserId
+    });
+    return failResult;
+  }
 
   const threadName = (options.threadTitle || `[DM Fallback] ${targetUserId}`)
     .slice(0, 90);
@@ -47,9 +68,17 @@ async function sendDmOrFallback(client, discordGuildId, targetUserId, dmPayload,
     name: threadName,
     autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
     type: ChannelType.PrivateThread,
-    invitable: false,
+    invitable: true,
     reason: options.reason || `Fallback for DM to <@${targetUserId}>`
-  }).catch(() => null);
+  }).catch(err => {
+    LoggerService.warn('[dmFallback] Failed to create fallback thread', {
+      discordGuildId,
+      channelId,
+      targetUserId,
+      error: err?.message
+    });
+    return null;
+  });
 
   if (!thread) return failResult;
 
