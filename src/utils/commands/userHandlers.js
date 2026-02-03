@@ -73,10 +73,7 @@ async function handleProfile(interaction) {
  */
 async function handleFixGuild(interaction) {
   try {
-    await interaction.deferReply({
-      flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-    });
-
+    // Note: deferReply is handled by autoDefer in user.js command
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const allowed = await isModeratorOrHoster(member, interaction.guild.id);
 
@@ -210,10 +207,7 @@ async function handleFixGuild(interaction) {
  */
 async function handleResetRatings(interaction) {
   try {
-    await interaction.deferReply({
-      flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-    });
-
+    // Note: deferReply is handled by autoDefer in user.js command
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const allowed = await isModeratorOrHoster(member, interaction.guild.id);
 
