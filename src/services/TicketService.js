@@ -147,7 +147,10 @@ class TicketService {
         rolesToMention.push(...roles.supportRoleIds, ...roles.moderatorRoleIds);
       }
 
-      const validRoleMentions = rolesToMention
+      // Deduplicate role IDs to avoid Discord API error
+      const uniqueRoles = [...new Set(rolesToMention)];
+
+      const validRoleMentions = uniqueRoles
         .filter(roleId => guild.roles.cache.has(roleId))
         .map(roleId => `<@&${roleId}>`)
         .join(' ');
@@ -155,7 +158,7 @@ class TicketService {
       if (validRoleMentions) {
         await channel.send({
           content: `${validRoleMentions} - New ${ticketConfig.title.toLowerCase()} opened by ${user}`,
-          allowedMentions: { roles: rolesToMention }
+          allowedMentions: { roles: uniqueRoles }
         });
       }
     } catch (err) {
