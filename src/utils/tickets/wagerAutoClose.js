@@ -9,6 +9,21 @@ const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000;
 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
+async function resolveTicketChannel(guild, channelId) {
+  if (!guild || !channelId) return null;
+
+  let channel = guild.channels.cache.get(channelId);
+  if (channel) return channel;
+
+  try {
+    channel = await guild.channels.fetch(channelId);
+  } catch (_) {
+    channel = null;
+  }
+
+  return channel;
+}
+
 /** Check if unaccepted ticket expired (1 day) */
 function isTicketExpired(ticket) {
   if (!ticket?.createdAt || ticket.acceptedAt) return false;
@@ -45,7 +60,7 @@ function isWagerTicketInactiveForWarning(ticket) {
  * @param {import('discord.js').Guild} guild
  */
 async function applyAutoDodgeForAcceptedTicket(client, ticket, guild) {
-  const channel = guild.channels.cache.get(ticket.channelId);
+  const channel = await resolveTicketChannel(guild, ticket.channelId);
 
   const dodgerUserId = ticket.opponentUserId;
   const opponentId = ticket.initiatorUserId;
@@ -123,7 +138,7 @@ async function applyAutoDodgeForAcceptedTicket(client, ticket, guild) {
  * @param {import('discord.js').Guild} guild
  */
 async function autoCloseUnacceptedTicket(client, ticket, guild) {
-  const channel = guild.channels.cache.get(ticket.channelId);
+  const channel = await resolveTicketChannel(guild, ticket.channelId);
 
   const initiatorId = ticket.initiatorUserId;
   const opponentId = ticket.opponentUserId;
@@ -173,7 +188,7 @@ async function autoCloseUnacceptedTicket(client, ticket, guild) {
 
 /** Send 24h warning for auto-dodge (at 48h mark) */
 async function sendWagerInactivityWarning(client, ticket, guild) {
-  const channel = guild.channels.cache.get(ticket.channelId);
+  const channel = await resolveTicketChannel(guild, ticket.channelId);
   if (!channel) return;
 
   try {
